@@ -37,7 +37,6 @@ import fredboat.db.api.GuildConfigService
 import fredboat.definitions.PermissionLevel
 import fredboat.definitions.RepeatMode
 import fredboat.feature.I18n
-import fredboat.jda.JdaEntityProvider
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.*
 import fredboat.util.extension.escapeAndDefuse
@@ -233,12 +232,6 @@ class GuildPlayer(
         }
         lavalink.getLink(guild).disconnect()
     }
-
-    /**
-     * May return null if the member is currently not in a channel
-     */
-    @Deprecated("Unnecessary bloat", ReplaceWith("member.voiceChannel"))
-    fun getUserCurrentVoiceChannel(member: Member): VoiceChannel? = member.voiceChannel
 
     suspend fun queue(identifier: String, context: CommandContext) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
