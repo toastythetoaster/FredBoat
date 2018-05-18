@@ -277,6 +277,7 @@ public class TextUtils {
     }
 
     //optional provide a style, for example diff or md
+    @Nonnull
     public static String asCodeBlock(String str, String... style) {
         String sty = style != null && style.length > 0 ? style[0] : "";
         return "```" + sty + "\n" + str + "\n```";
@@ -303,13 +304,13 @@ public class TextUtils {
 
 
     public static String forceNDigits(int i, int n) {
-        String str = Integer.toString(i);
+        StringBuilder str = new StringBuilder(Integer.toString(i));
 
         while (str.length() < n) {
-            str = "0" + str;
+            str.insert(0, "0");
         }
 
-        return str;
+        return str.toString();
     }
 
     public static String padWithSpaces(@Nullable String str, int totalLength, boolean front) {
