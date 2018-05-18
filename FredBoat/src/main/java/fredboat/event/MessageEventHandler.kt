@@ -69,7 +69,7 @@ class MessageEventHandler(
         }
 
         if (channel.guild.selfMember.id == author.id) log.info(content)
-        if (author.bot) return
+        if (author.isBot) return
 
         //Preliminary permission filter to avoid a ton of parsing
         //Let messages pass on to parsing that contain "help" since we want to answer help requests even from channels

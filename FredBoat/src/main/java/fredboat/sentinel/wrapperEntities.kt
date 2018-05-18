@@ -94,7 +94,7 @@ class Member(val raw: RawMember) {
         get() = Guild(raw.guildId)
     val guildId: Long
         get() = raw.guildId
-    val bot: Boolean
+    val isBot: Boolean
         get() = raw.bot
     val voiceChannel: VoiceChannel?
         get() {
@@ -108,6 +108,9 @@ class Member(val raw: RawMember) {
             guildRoles.forEach { if (raw.roles.contains(it.id)) list.add(it) }
             return list.toList()
         }
+    /** True if this [Member] is our bot */
+    val isUs: Boolean
+        get() = id == Sentinel.INSTANCE.getApplicationInfo().botId
 
     fun asMention() = "<@$id>"
     fun asUser(): User {
@@ -115,7 +118,7 @@ class Member(val raw: RawMember) {
                 id,
                 name,
                 discrim,
-                bot
+                isBot
         ))
     }
 

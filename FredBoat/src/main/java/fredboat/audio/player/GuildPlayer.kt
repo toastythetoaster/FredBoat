@@ -298,7 +298,7 @@ class GuildPlayer(
     fun getHumanUsersInVC(vc: VoiceChannel?): List<Member> {
         vc ?: return emptyList()
         return vc.members.stream()
-                .filter { !it.bot }
+                .filter { !it.isBot }
                 .toList()
     }
 
