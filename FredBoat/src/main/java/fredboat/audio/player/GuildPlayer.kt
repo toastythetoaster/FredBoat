@@ -327,7 +327,7 @@ class GuildPlayer(
             var currentTrackSkippable = true
             val playingTrack = playingTrack
             if (playingTrack != null
-                    && trackIds.contains(getPlayingTrack().trackId)
+                    && trackIds.contains(playingTrack.trackId)
                     && playingTrack.userId != userId) {
 
                 currentTrackSkippable = false
