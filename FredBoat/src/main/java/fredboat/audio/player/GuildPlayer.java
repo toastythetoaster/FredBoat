@@ -70,19 +70,17 @@ public class GuildPlayer extends AbstractPlayer {
 
     private final MusicTextChannelProvider musicTextChannelProvider;
     private final JdaEntityProvider jdaEntityProvider;
-    private final AudioConnectionFacade audioConnectionFacade;
     private final GuildConfigService guildConfigService;
 
     @SuppressWarnings("LeakingThisInConstructor")
     public GuildPlayer(Guild guild, MusicTextChannelProvider musicTextChannelProvider, JdaEntityProvider jdaEntityProvider,
-                       AudioConnectionFacade audioConnectionFacade, AudioPlayerManager audioPlayerManager,
-                       GuildConfigService guildConfigService, Ratelimiter ratelimiter, YoutubeAPI youtubeAPI) {
-        super(guild.getId(), audioConnectionFacade);
+                       AudioPlayerManager audioPlayerManager, GuildConfigService guildConfigService, Ratelimiter ratelimiter,
+                       YoutubeAPI youtubeAPI) {
+        super(guild.getId());
         log.debug("Constructing GuildPlayer({})", guild.getIdLong());
 
         this.jdaEntityProvider = jdaEntityProvider;
         this.musicTextChannelProvider = musicTextChannelProvider;
-        this.audioConnectionFacade = audioConnectionFacade;
         this.guildConfigService = guildConfigService;
         onPlayHook = this::announceTrack;
         onErrorHook = this::handleError;

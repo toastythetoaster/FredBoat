@@ -21,8 +21,7 @@ class AudioEventHandler(val lavalink: SentinelLavalink) : SentinelEventHandler()
 
     }
 
-    override fun onVoiceServerUpdate(voiceServerUpdate: VoiceServerUpdate) {
-
-    }
+    override fun onVoiceServerUpdate(voiceServerUpdate: VoiceServerUpdate)
+            = lavalink.onVoiceServerUpdate(voiceServerUpdate)
 
 }

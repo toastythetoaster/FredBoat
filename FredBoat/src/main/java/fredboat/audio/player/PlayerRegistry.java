@@ -50,7 +50,6 @@ public class PlayerRegistry {
     private final Map<Long, GuildPlayer> registry = new ConcurrentHashMap<>();
     private final Object iteratorLock = new Object(); //iterators, which are also used by stream(), need to be synced, despite it being a concurrent map
     private final JdaEntityProvider jdaEntityProvider;
-    private final AudioConnectionFacade audioConnectionFacade;
     private final GuildConfigService guildConfigService;
     private final AudioPlayerManager audioPlayerManager;
     private final Ratelimiter ratelimiter;
@@ -58,12 +57,11 @@ public class PlayerRegistry {
     private final MusicTextChannelProvider musicTextChannelProvider;
 
     public PlayerRegistry(MusicTextChannelProvider musicTextChannelProvider, JdaEntityProvider jdaEntityProvider,
-                          AudioConnectionFacade audioConnectionFacade, GuildConfigService guildConfigService,
+                          GuildConfigService guildConfigService,
                           @Qualifier("loadAudioPlayerManager") AudioPlayerManager audioPlayerManager,
                           Ratelimiter ratelimiter, YoutubeAPI youtubeAPI) {
         this.musicTextChannelProvider = musicTextChannelProvider;
         this.jdaEntityProvider = jdaEntityProvider;
-        this.audioConnectionFacade = audioConnectionFacade;
         this.guildConfigService = guildConfigService;
         this.audioPlayerManager = audioPlayerManager;
         this.ratelimiter = ratelimiter;

@@ -68,7 +68,7 @@ public abstract class AbstractPlayer extends AudioEventAdapterWrapped implements
     private ConcurrentLinkedQueue<AudioTrackContext> historyQueue = new ConcurrentLinkedQueue<>();
 
     @SuppressWarnings("LeakingThisInConstructor")
-    AbstractPlayer(String guildId, AudioConnectionFacade audioConnectionFacade) {
+    AbstractPlayer(String guildId) {
         player = audioConnectionFacade.createPlayer(guildId);
 
         player.addListener(this);
