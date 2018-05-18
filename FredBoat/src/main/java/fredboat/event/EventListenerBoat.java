@@ -109,12 +109,6 @@ public class EventListenerBoat extends ListenerAdapter {
         cacheMetrics.addCache("messagesToDeleteIfIdDeleted", messagesToDeleteIfIdDeleted);
     }
 
-    /* music related */
-    @Override
-    public void onGuildVoiceLeave(GuildVoiceLeaveEvent event) {
-        checkForAutoPause(event.getChannelLeft());
-    }
-
     @Override
     public void onGuildVoiceMove(GuildVoiceMoveEvent event) {
         checkForAutoPause(event.getChannelLeft());
@@ -150,41 +144,6 @@ public class EventListenerBoat extends ListenerAdapter {
             TextChannel activeTextChannel = player.getActiveTextChannel();
             if (activeTextChannel != null) {
                 CentralMessaging.message(activeTextChannel, I18n.get(guild).getString("eventAutoResumed"))
-                        .send(null);
-            }
-        }
-    }
-
-    private void checkForAutoPause(VoiceChannel channelLeft) {
-        if (appConfig.getContinuePlayback())
-            return;
-
-        Guild guild = channelLeft.getGuild();
-        GuildPlayer player = playerRegistry.getExisting(guild);
-
-        if (player == null) {
-            return;
-        }
-
-        //we got kicked from the server while in a voice channel, do nothing and return, because onGuildLeave()
-        // should take care of destroying stuff
-        if (!guild.isMember(guild.getJDA().getSelfUser())) {
-            log.warn("onGuildVoiceLeave called for a guild where we aren't a member. This line should only ever be " +
-                    "reached if we are getting kicked from that guild while in a voice channel. Investigate if not.");
-            return;
-        }
-
-        //are we in the channel that someone left from?
-        VoiceChannel currentVc = player.getCurrentVoiceChannel();
-        if (currentVc != null && currentVc.getIdLong() != channelLeft.getIdLong()) {
-            return;
-        }
-
-        if (player.getHumanUsersInVC(currentVc).isEmpty() && !player.isPaused()) {
-            player.pause();
-            TextChannel activeTextChannel = player.getActiveTextChannel();
-            if (activeTextChannel != null) {
-                CentralMessaging.message(activeTextChannel, I18n.get(guild).getString("eventUsersLeftVC"))
                         .send(null);
             }
         }

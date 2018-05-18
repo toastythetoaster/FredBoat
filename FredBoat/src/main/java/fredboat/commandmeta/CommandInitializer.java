@@ -147,7 +147,6 @@ public class CommandInitializer {
 
         // Fun Module - mostly ascii, memes, pictures, games
         CommandRegistry funModule = new CommandRegistry(Module.FUN);
-        funModule.registerCommand(new AkinatorCommand("akinator", "aki"));
         funModule.registerCommand(new DanceCommand(cacheMetrics, "dance"));
         funModule.registerCommand(new JokeCommand("joke", "jk"));
         funModule.registerCommand(new RiotCommand("riot"));
