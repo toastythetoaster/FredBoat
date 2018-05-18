@@ -1,5 +1,7 @@
 package fredboat.sentinel
 
+val NO_PERMISSIONS = PermissionSet(0L)
+
 enum class Permission(offset: Int, val uiName: String) : IPermissionSet {
 
     CREATE_INSTANT_INVITE(0, "Create Instant Invite"),
@@ -53,6 +55,9 @@ class PermissionSet(override val raw: Long) : IPermissionSet {
 interface IPermissionSet {
     val raw: Long
     operator fun plus(other: IPermissionSet): PermissionSet
+
+    infix fun has(other: IPermissionSet): Boolean = raw and other.raw == other.raw
+    infix fun hasNot(other: IPermissionSet): Boolean = raw and other.raw != other.raw
 
     fun asList(): List<Permission> {
         val list = mutableListOf<Permission>()

@@ -32,11 +32,13 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import com.sedmelluq.discord.lavaplayer.track.TrackMarker;
 import com.sedmelluq.discord.lavaplayer.track.playback.AudioFrame;
+import fredboat.audio.lavalink.SentinelLavalink;
 import fredboat.audio.queue.AudioTrackContext;
 import fredboat.audio.queue.ITrackProvider;
 import fredboat.audio.queue.SplitAudioTrackContext;
 import fredboat.audio.queue.TrackEndMarkerHandler;
 import fredboat.commandmeta.MessagingException;
+import fredboat.sentinel.Guild;
 import fredboat.util.TextUtils;
 import lavalink.client.player.IPlayer;
 import lavalink.client.player.LavalinkPlayer;
@@ -68,9 +70,8 @@ public abstract class AbstractPlayer extends AudioEventAdapterWrapped implements
     private ConcurrentLinkedQueue<AudioTrackContext> historyQueue = new ConcurrentLinkedQueue<>();
 
     @SuppressWarnings("LeakingThisInConstructor")
-    AbstractPlayer(String guildId) {
-        player = audioConnectionFacade.createPlayer(guildId);
-
+    AbstractPlayer(SentinelLavalink lavalink, Guild guild) {
+        player = lavalink.getLink(Long.toString(guild.getId())).getPlayer();
         player.addListener(this);
     }
 

@@ -164,7 +164,7 @@ abstract class Context {
         if (result.missingEntityFault) return false // Error
 
         val builder = StringBuilder()
-        PermissionSet(result.missingPermissions).asList().forEach{
+        PermissionSet(result.missing).asList().forEach{
             builder.append(it.uiName).append("\"**, **")
         }
         reply("${i18n("permissionMissingBot")} **$builder**")
@@ -182,7 +182,7 @@ abstract class Context {
         if (result.missingEntityFault) return false // Error
 
         val builder = StringBuilder()
-        PermissionSet(result.missingPermissions).asList().forEach{
+        PermissionSet(result.missing).asList().forEach{
             builder.append(it.uiName).append("\"**, **")
         }
         reply("${i18n("permissionMissingInvoker")} **$builder**")

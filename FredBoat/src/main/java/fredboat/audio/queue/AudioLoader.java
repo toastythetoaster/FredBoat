@@ -61,7 +61,6 @@ public class AudioLoader implements AudioLoadResultHandler {
     private static final Pattern SPLIT_DESCRIPTION_PATTERN = Pattern.compile("(.*?)[( \\[]*((?:\\d?\\d:)?\\d?\\d:\\d\\d)[) \\]]*(.*)");
     private static final int QUEUE_TRACK_LIMIT = 10000;
 
-    private final JdaEntityProvider jdaEntityProvider;
     private final Ratelimiter ratelimiter;
     private final ITrackProvider trackProvider;
     private final AudioPlayerManager playerManager;
@@ -71,9 +70,8 @@ public class AudioLoader implements AudioLoadResultHandler {
     private IdentifierContext context = null;
     private volatile boolean isLoading = false;
 
-    public AudioLoader(JdaEntityProvider jdaEntityProvider, Ratelimiter ratelimiter, ITrackProvider trackProvider,
+    public AudioLoader(Ratelimiter ratelimiter, ITrackProvider trackProvider,
                        AudioPlayerManager playerManager, GuildPlayer gplayer, YoutubeAPI youtubeAPI) {
-        this.jdaEntityProvider = jdaEntityProvider;
         this.ratelimiter = ratelimiter;
         this.trackProvider = trackProvider;
         this.playerManager = playerManager;
@@ -104,7 +102,7 @@ public class AudioLoader implements AudioLoadResultHandler {
                     return;
                 }
 
-                playerManager.loadItem(ic.identifier, this);
+                playerManager.loadItem(ic.getIdentifier(), this);
             } else {
                 isLoading = false;
             }
@@ -121,7 +119,7 @@ public class AudioLoader implements AudioLoadResultHandler {
      * @return false if the user is not allowed to load the playlist, true if he is
      */
     private boolean ratelimitIfSlowLoadingPlaylistAndAnnounce(IdentifierContext ic) {
-        PlaylistInfo playlistInfo = getSlowLoadingPlaylistData(ic.identifier);
+        PlaylistInfo playlistInfo = getSlowLoadingPlaylistData(ic.getIdentifier());
 
         if (playlistInfo == null) //not a slow loading playlist
             return true;
@@ -225,7 +223,7 @@ public class AudioLoader implements AudioLoadResultHandler {
     @Override
     public void noMatches() {
         try {
-            context.reply(context.i18nFormat("loadNoMatches", context.identifier));
+            context.reply(context.i18nFormat("loadNoMatches", context.getIdentifier()));
         } catch (Throwable th) {
             handleThrowable(context, th);
         }
@@ -331,12 +329,12 @@ public class AudioLoader implements AudioLoadResultHandler {
                 FriendlyException fe = (FriendlyException) th;
                 if (fe.severity == FriendlyException.Severity.COMMON) {
                     if (ic.getTextChannel() != null) {
-                        context.reply(ic.i18nFormat("loadErrorCommon", context.identifier, fe.getMessage()));
+                        context.reply(ic.i18nFormat("loadErrorCommon", context.getIdentifier(), fe.getMessage()));
                     } else {
                         log.error("Error while loading track ", th);
                     }
                 } else if (ic.getTextChannel() != null) {
-                    context.reply(ic.i18nFormat("loadErrorSusp", context.identifier));
+                    context.reply(ic.i18nFormat("loadErrorSusp", context.getIdentifier()));
                     Throwable exposed = fe.getCause() == null ? fe : fe.getCause();
                     TextUtils.handleException("Failed to load a track", exposed, context);
                 } else {

@@ -2,6 +2,7 @@ package fredboat.audio.lavalink
 
 import com.fredboat.sentinel.entities.VoiceServerUpdate
 import fredboat.config.property.AppConfig
+import fredboat.sentinel.Guild
 import fredboat.sentinel.Sentinel
 import lavalink.client.io.Lavalink
 import org.json.JSONObject
@@ -25,6 +26,8 @@ class SentinelLavalink(
     }
 
     override fun buildNewLink(guildId: String) = SentinelLink(this, guildId)
+
+    fun getLink(guild: Guild) = getLink(guild.id.toString())
 
     fun onVoiceServerUpdate(update: VoiceServerUpdate) {
         val json = JSONObject(update.raw)

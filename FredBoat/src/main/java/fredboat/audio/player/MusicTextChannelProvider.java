@@ -27,9 +27,9 @@ package fredboat.audio.player;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import fredboat.config.property.Credentials;
+import fredboat.sentinel.Guild;
+import fredboat.sentinel.TextChannel;
 import io.prometheus.client.guava.cache.CacheMetricsCollector;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -59,7 +59,7 @@ public class MusicTextChannelProvider {
     }
 
     public void setMusicChannel(TextChannel textChannel) {
-        musicTextChannels.put(textChannel.getGuild().getIdLong(), textChannel.getIdLong());
+        musicTextChannels.put(textChannel.getGuild().getId(), textChannel.getId());
     }
 
     /**
@@ -79,7 +79,7 @@ public class MusicTextChannelProvider {
      */
     @Nullable
     public TextChannel getMusicTextChannel(@Nonnull Guild guild) {
-        TextChannel textChannel = guild.getTextChannelById(getMusicTextChannelId(guild.getIdLong()));
+        TextChannel textChannel = guild.getTextChannel(getMusicTextChannelId(guild.getId()));
 
         if (textChannel != null) {
             return textChannel;

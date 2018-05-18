@@ -49,6 +49,15 @@ class Guild(
     val roles: List<Role>
         get() = raw.roles.map { Role(it, id) }
 
+    /** This is true if we are present in this [Guild]*/
+    val selfPresent: Boolean
+        get() = true //TODO
+
+    fun getTextChannel(id: Long): TextChannel? {
+        textChannels.forEach { if (it.id == id) return it }
+        return null
+    }
+
     fun getVoiceChannel(id: Long): VoiceChannel? {
         voiceChannels.forEach { if (it.id == id) return it }
         return null
@@ -66,6 +75,8 @@ class Guild(
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun getMember(userId: Long): Member? = membersMap[userId.toString()]
 }
 
 class Member(val raw: RawMember) {
@@ -108,9 +119,23 @@ class Member(val raw: RawMember) {
         ))
     }
 
-    fun hasPermission(permissions: IPermissionSet): Mono<Boolean> =
-            Sentinel.INSTANCE.checkPermissions(this, permissions)
+    fun getPermissions(channel: Channel? = null): Mono<PermissionSet> {
+        return when (channel) {
+            null -> Sentinel.INSTANCE.checkPermissions(this, NO_PERMISSIONS)
+                    .map { PermissionSet(it.effective) }
+            else -> Sentinel.INSTANCE.checkPermissions(channel, this, NO_PERMISSIONS)
+                    .map { PermissionSet(it.effective) }
+        }
+    }
+
+    fun hasPermission(permissions: IPermissionSet, channel: Channel? = null): Mono<Boolean> {
+        return when (channel) {
+            null -> Sentinel.INSTANCE.checkPermissions(this, permissions)
                     .map { it.passed }
+            else -> Sentinel.INSTANCE.checkPermissions(channel, this, permissions)
+                    .map { it.passed }
+        }
+    }
 
     override fun equals(other: Any?): Boolean {
         return other is Member && id == other.id
@@ -184,11 +209,11 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel {
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)
 }
 
 class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
-    // TODO: List of members
-
     override val id: Long
         get() = raw.id
     override val name: String
@@ -197,6 +222,10 @@ class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
         get() = Guild(guildId)
     override val ourEffectivePermissions: Long
         get() = raw.ourEffectivePermissions
+    val userLimit: Int
+        get() = 0 //TODO
+    val members: List<Member>
+        get() = listOf() //TODO: List of members
 
     override fun equals(other: Any?): Boolean {
         return other is VoiceChannel && id == other.id
