@@ -19,6 +19,7 @@ abstract class SentinelEventHandler {
     open fun onVoiceServerUpdate(voiceServerUpdate: VoiceServerUpdate) {}
 
     open fun onGuildMessage(channel: TextChannel, author: Member, content: String) {}
+    open fun onGuildMessageDelete(channel: TextChannel, messageId: Long) {}
     open fun onPrivateMessage(author: User, content: String) {}
 
 }

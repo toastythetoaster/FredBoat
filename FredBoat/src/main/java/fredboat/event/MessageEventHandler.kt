@@ -25,6 +25,7 @@
 
 package fredboat.event
 
+import com.google.common.cache.CacheBuilder
 import fredboat.command.info.HelpCommand
 import fredboat.command.info.ShardsCommand
 import fredboat.command.info.StatsCommand
@@ -42,12 +43,13 @@ import fredboat.sentinel.Permission.MESSAGE_WRITE
 import fredboat.sentinel.Sentinel
 import fredboat.sentinel.TextChannel
 import fredboat.sentinel.User
-import fredboat.util.DiscordUtil
 import fredboat.util.ratelimit.Ratelimiter
+import io.prometheus.client.guava.cache.CacheMetricsCollector
 import kotlinx.coroutines.experimental.async
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 
 @Component
 class MessageEventHandler(
@@ -55,11 +57,21 @@ class MessageEventHandler(
         private val ratelimiter: Ratelimiter,
         private val commandContextParser: CommandContextParser,
         private val commandManager: CommandManager,
-        private val appConfig: AppConfigProperties
+        private val appConfig: AppConfigProperties,
+        cacheMetrics: CacheMetricsCollector
 ) : SentinelEventHandler() {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(MessageEventHandler::class.java)
+        // messageId <-> messageId
+        private val messagesToDeleteIfIdDeleted = CacheBuilder.newBuilder()
+                .recordStats()
+                .expireAfterWrite(6, TimeUnit.HOURS)
+                .build<Long, Long>()
+    }
+
+    init {
+        cacheMetrics.addCache("messagesToDeleteIfIdDeleted", messagesToDeleteIfIdDeleted)
     }
 
     override fun onGuildMessage(channel: TextChannel, author: Member, content: String) {
@@ -120,17 +132,6 @@ class MessageEventHandler(
         // their performance should be judged by the totalResponseTime metric instead
     }
 
-    /* TODO
-    @Override
-    public void onMessageDelete(MessageDeleteEvent event) {
-        Long toDelete = messagesToDeleteIfIdDeleted.getIfPresent(event.getMessageIdLong());
-        if (toDelete != null) {
-            messagesToDeleteIfIdDeleted.invalidate(toDelete);
-            CentralMessaging.deleteMessageById(event.getChannel(), toDelete);
-        }
-    }
-     */
-
     override fun onPrivateMessage(author: User, content: String) {
         if (ratelimiter.isBlacklisted(author.id)) {
             Metrics.blacklistedMessagesReceived.inc()
@@ -160,6 +161,12 @@ class MessageEventHandler(
         }
 
         HelpCommand.sendGeneralHelp(author, content)
+    }
+
+    override fun onGuildMessageDelete(channel: TextChannel, messageId: Long) {
+        val toDelete = messagesToDeleteIfIdDeleted.getIfPresent(messageId) ?: return
+        messagesToDeleteIfIdDeleted.invalidate(toDelete)
+        Sentinel.INSTANCE.deleteMessages(channel, listOf(toDelete)).subscribe()
     }
 
 }

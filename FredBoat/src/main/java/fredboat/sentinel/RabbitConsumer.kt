@@ -123,6 +123,14 @@ class RabbitConsumer(
         eventHandlers.forEach { it.onPrivateMessage(author, event.content) }
     }
 
+    @RabbitHandler
+    fun receive(event: MessageDeleteEvent) {
+        eventHandlers.forEach { it.onGuildMessageDelete(
+                TextChannel(event.channel, event.guildId),
+                event.id
+        ) }
+    }
+
     @RabbitListener
     fun guildInvalidate(event: GuildInvalidation) = sentinel.guildCache.invalidate(event.id)
 
