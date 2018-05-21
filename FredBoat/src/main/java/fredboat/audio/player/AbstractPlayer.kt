@@ -254,10 +254,10 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
 
         if (trackContext is SplitAudioTrackContext) {
             //Ensure we don't step over our bounds
-            log.info("Start: ${trackContext.getStartPosition()} End: ${trackContext.getStartPosition() + trackContext.getEffectiveDuration()}")
+            log.info("Start: ${trackContext.startPosition} End: ${trackContext.startPosition + trackContext.effectiveDuration}")
 
-            trackContext.getTrack().setMarker(
-                    TrackMarker(trackContext.getStartPosition() + trackContext.getEffectiveDuration(),
+            trackContext.track.setMarker(
+                    TrackMarker(trackContext.startPosition + trackContext.effectiveDuration,
                             TrackEndMarkerHandler(this, trackContext)))
         }
 
