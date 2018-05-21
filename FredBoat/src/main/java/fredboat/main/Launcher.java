@@ -5,7 +5,6 @@ import fredboat.agent.CarbonitexAgent;
 import fredboat.agent.FredBoatAgent;
 import fredboat.agent.StatsAgent;
 import fredboat.agent.VoiceChannelCleanupAgent;
-import fredboat.audio.player.AudioConnectionFacade;
 import fredboat.audio.player.PlayerLimiter;
 import fredboat.audio.player.PlayerRegistry;
 import fredboat.audio.player.VideoSelectionCache;
@@ -71,7 +70,6 @@ public class Launcher implements ApplicationRunner {
     private final StatsAgent statsAgent;
     private final BotMetrics botMetrics;
     private final Weather weather;
-    private final AudioConnectionFacade audioConnectionFacade;
     private final TrackSearcher trackSearcher;
     private final VideoSelectionCache videoSelectionCache;
     private final ShardProvider shardProvider;
@@ -125,9 +123,8 @@ public class Launcher implements ApplicationRunner {
     }
 
     public Launcher(BotController botController, ConfigPropertiesProvider configProvider, ExecutorService executor,
-                    CacheMetricsCollector cacheMetrics, PlayerRegistry playerRegistry,
-                    StatsAgent statsAgent, BotMetrics botMetrics, Weather weather,
-                    AudioConnectionFacade audioConnectionFacade, TrackSearcher trackSearcher,
+                    CacheMetricsCollector cacheMetrics, PlayerRegistry playerRegistry, StatsAgent statsAgent,
+                    BotMetrics botMetrics, Weather weather, TrackSearcher trackSearcher,
                     VideoSelectionCache videoSelectionCache, ShardProvider shardProvider, GuildProvider guildProvider,
                     SentryConfiguration sentryConfiguration, PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI) {
         Launcher.BC = botController;
@@ -138,7 +135,6 @@ public class Launcher implements ApplicationRunner {
         this.statsAgent = statsAgent;
         this.botMetrics = botMetrics;
         this.weather = weather;
-        this.audioConnectionFacade = audioConnectionFacade;
         this.trackSearcher = trackSearcher;
         this.videoSelectionCache = videoSelectionCache;
         this.shardProvider = shardProvider;
@@ -160,7 +156,7 @@ public class Launcher implements ApplicationRunner {
 
         if (!configProvider.getAppConfig().isPatronDistribution()) {
             log.info("Starting VoiceChannelCleanupAgent.");
-            FredBoatAgent.start(new VoiceChannelCleanupAgent(playerRegistry, guildProvider, audioConnectionFacade));
+            FredBoatAgent.start(new VoiceChannelCleanupAgent(playerRegistry, guildProvider));
         } else {
             log.info("Skipped setting up the VoiceChannelCleanupAgent, " +
                     "either running Patron distro or overridden by temp config");

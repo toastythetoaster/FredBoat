@@ -49,14 +49,11 @@ public class VoiceChannelCleanupAgent extends FredBoatAgent {
     private static final int UNUSED_CLEANUP_THRESHOLD = 60000 * 60; // Effective when users are in the VC, but the player is not playing
     private final PlayerRegistry playerRegistry;
     private final GuildProvider guildProvider;
-    private final AudioConnectionFacade audioConnectionFacade;
 
-    public VoiceChannelCleanupAgent(PlayerRegistry playerRegistry, GuildProvider guildProvider,
-                                    AudioConnectionFacade audioConnectionFacade) {
+    public VoiceChannelCleanupAgent(PlayerRegistry playerRegistry, GuildProvider guildProvider) {
         super("voice-cleanup", 10, TimeUnit.MINUTES);
         this.playerRegistry = playerRegistry;
         this.guildProvider = guildProvider;
-        this.audioConnectionFacade = audioConnectionFacade;
     }
 
     @Override
