@@ -28,8 +28,8 @@ package fredboat.audio.queue;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.jda.JdaEntityProvider;
+import fredboat.sentinel.Member;
 import lavalink.client.player.TrackData;
-import net.dv8tion.jda.core.entities.Member;
 
 public class SplitAudioTrackContext extends AudioTrackContext {
 

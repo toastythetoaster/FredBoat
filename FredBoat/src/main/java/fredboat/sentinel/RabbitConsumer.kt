@@ -3,10 +3,7 @@ package fredboat.sentinel
 import com.fredboat.sentinel.QueueNames
 import com.fredboat.sentinel.entities.*
 import fredboat.config.SentryConfiguration
-import fredboat.event.AudioEventHandler
-import fredboat.event.EventLogger
-import fredboat.event.GuildEventHandler
-import fredboat.event.SentinelEventHandler
+import fredboat.event.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -21,7 +18,10 @@ class RabbitConsumer(
         private val sentinel: Sentinel,
         eventLogger: EventLogger,
         guildHandler: GuildEventHandler,
-        audioHandler: AudioEventHandler
+        audioHandler: AudioEventHandler,
+        messageHandler: MessageEventHandler,
+        musicPersistenceHandler: MusicPersistenceHandler,
+        shardReviveHandler: ShardReviveHandler
 ) {
 
     companion object {
@@ -31,7 +31,10 @@ class RabbitConsumer(
     private val eventHandlers: List<SentinelEventHandler> = listOf(
             eventLogger,
             guildHandler,
-            audioHandler
+            audioHandler,
+            messageHandler,
+            musicPersistenceHandler,
+            shardReviveHandler
     )
 
     /* Shard lifecycle */

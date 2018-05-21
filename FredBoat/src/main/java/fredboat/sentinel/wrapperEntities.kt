@@ -4,6 +4,8 @@ import com.fredboat.sentinel.entities.IMessage
 import com.fredboat.sentinel.entities.MessageReceivedEvent
 import com.fredboat.sentinel.entities.SendMessageResponse
 import fredboat.audio.lavalink.SentinelLavalink
+import fredboat.config.property.AppConfig
+import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.util.regex.Pattern
 
@@ -18,6 +20,20 @@ typealias RawMesssage = com.fredboat.sentinel.entities.Message
 private val MENTION_PATTERN = Pattern.compile("<@!?([0-9]+)>", Pattern.DOTALL)
 
 // TODO: These classes are rather inefficient. We should cache more things, and we should avoid duplication of Guild entities
+
+@Service
+class EntityWrapperBeanProvider(sentinelParam: Sentinel, appConfigParam: AppConfig) {
+    companion object {
+        lateinit var sentinel: Sentinel
+        lateinit var appConfig: AppConfig
+    }
+
+    init {
+        sentinel = sentinelParam
+        appConfig = appConfigParam
+    }
+
+}
 
 class Guild(
         val id: Long
@@ -47,6 +63,8 @@ class Guild(
         get() = members.associateBy { it.id }
     val roles: List<Role>
         get() = raw.roles.map { Role(it, id) }
+    val shardId: Int
+        get() = ((id shr 22) % EntityWrapperBeanProvider.appConfig.shardCount.toLong()).toInt()
 
     /** This is true if we are present in this [Guild]*/
     val selfPresent: Boolean

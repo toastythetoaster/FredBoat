@@ -30,8 +30,7 @@ import fredboat.audio.player.GuildPlayer;
 import fredboat.jda.JdaEntityProvider;
 import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.TextChannel;
+import fredboat.sentinel.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -44,7 +43,7 @@ public class AudioTrackContext extends Context implements Comparable<AudioTrackC
     private int rand;
     private final long trackId; //used to identify this track even when the track gets cloned and the rand reranded
 
-    public AudioTrackContext(JdaEntityProvider jdaEntityProvider, AudioTrack at, Member member) {
+    public AudioTrackContext(AudioTrack at, Member member) {
         this(jdaEntityProvider, at, member.getGuild().getIdLong(), member.getUser().getIdLong());
     }
 
