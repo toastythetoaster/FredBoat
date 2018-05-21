@@ -56,7 +56,7 @@ public class ShardsCommand extends Command implements IInfoCommand {
         }
     }
 
-    public static List<Message> getShardStatus(@Nonnull String input) {
+    public static List<String> getShardStatus(@Nonnull String input) {
         List<String> lines = new ArrayList<>();
 
         //do a full report? or just a summary

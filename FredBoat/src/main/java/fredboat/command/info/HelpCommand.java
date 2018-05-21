@@ -38,6 +38,7 @@ import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.definitions.PermissionLevel;
 import fredboat.messaging.CentralMessaging;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.User;
 import fredboat.shared.constant.BotConstants;
 import fredboat.util.Emojis;
 import fredboat.util.TextUtils;

@@ -62,7 +62,7 @@ public class StatsCommand extends Command implements IInfoCommand {
         context.reply(getStats(context, context.getGuild().getJDA()));
     }
 
-    public static Message getStats(@Nullable Context context, @Nonnull JDA jda) {
+    public static String getStats(@Nullable Context context) {
         long totalSecs = (System.currentTimeMillis() - Launcher.START_TIME) / 1000;
         int days = (int) (totalSecs / (60 * 60 * 24));
         int hours = (int) ((totalSecs / (60 * 60)) % 24);

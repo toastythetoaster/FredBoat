@@ -151,11 +151,11 @@ class MessageEventHandler(
             val lowered = content.toLowerCase()
             if (lowered.contains("shard")) {
                 for (message in ShardsCommand.getShardStatus(content)) {
-                    sentinel.sendPrivateMessage(author, message.contentRaw).subscribe()
+                    author.sendPrivate(message).subscribe()
                 }
                 return
             } else if (lowered.contains("stats")) {
-                sentinel.sendPrivateMessage(author, StatsCommand.getStats(null, TODO()).contentRaw).subscribe()
+                author.sendPrivate(StatsCommand.getStats(null)).subscribe()
                 return
             }
         }
