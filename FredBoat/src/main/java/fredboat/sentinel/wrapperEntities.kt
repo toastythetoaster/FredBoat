@@ -3,6 +3,7 @@ package fredboat.sentinel
 import com.fredboat.sentinel.entities.IMessage
 import com.fredboat.sentinel.entities.MessageReceivedEvent
 import com.fredboat.sentinel.entities.SendMessageResponse
+import fredboat.audio.lavalink.SentinelLavalink
 import reactor.core.publisher.Mono
 import java.util.regex.Pattern
 
@@ -36,16 +37,14 @@ class Guild(
         get() = raw.textChannels.map { TextChannel(it, id) }
     val voiceChannels: List<VoiceChannel>
         get() = raw.voiceChannels.map { VoiceChannel(it, id) }
+    val voiceChannelsMap: Map<Long, VoiceChannel>
+        get() = voiceChannels.associateBy { it.id }
     val selfMember: Member
-        get() = membersMap[Sentinel.INSTANCE.getApplicationInfo().botId.toString()]!!
+        get() = membersMap[Sentinel.INSTANCE.getApplicationInfo().botId]!!
     val members: List<Member>
         get() = raw.members.map { Member(it.value) }
-    val membersMap: Map<String, Member>
-        get() {
-            val list = mutableMapOf<String, Member>()
-            raw.members.forEach { (k, v) -> list[k] = Member(v) }
-            return list
-        }
+    val membersMap: Map<Long, Member>
+        get() = members.associateBy { it.id }
     val roles: List<Role>
         get() = raw.roles.map { Role(it, id) }
 
@@ -76,7 +75,7 @@ class Guild(
         return id.hashCode()
     }
 
-    fun getMember(userId: Long): Member? = membersMap[userId.toString()]
+    fun getMember(userId: Long): Member? = membersMap[userId]
 }
 
 class Member(val raw: RawMember) {
@@ -237,6 +236,10 @@ class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    fun connect() {
+        SentinelLavalink.INSTANCE.getLink(guild).connect(this)
+    }
 }
 
 class Role(val raw: RawRole, val guildId: Long) {
@@ -280,7 +283,7 @@ class Message(val raw: MessageReceivedEvent) {
             val list =  mutableListOf<Member>()
             val members = guild.membersMap
             while (matcher.find()) {
-                members[matcher.group(1)]?.let { list.add(it) }
+                members[matcher.group(1).toLong()]?.let { list.add(it) }
             }
 
             return list

@@ -16,7 +16,7 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
             lavalink.sentinel.sendAndForget(AudioQueueRequest(QUEUE_DISCONNECT, guildId.toLong()))
 
     fun connect(channel: VoiceChannel) {
-        TODO()
+        zz
     }
 
 }
