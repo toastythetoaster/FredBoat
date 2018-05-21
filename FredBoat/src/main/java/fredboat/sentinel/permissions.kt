@@ -1,5 +1,7 @@
 package fredboat.sentinel
 
+import fredboat.util.InsufficientPermissionException
+
 val NO_PERMISSIONS = PermissionSet(0L)
 
 enum class Permission(offset: Int, val uiName: String) : IPermissionSet {
@@ -59,6 +61,12 @@ interface IPermissionSet {
     infix fun has(other: IPermissionSet): Boolean = raw and other.raw == other.raw
     infix fun hasNot(other: IPermissionSet): Boolean = raw and other.raw != other.raw
 
+    fun assertHas(other: IPermissionSet, message: String? = null) {
+        if (this has other) return
+        val missing = PermissionSet(getMissing(other.raw, this.raw))
+        throw InsufficientPermissionException(missing, message ?: "Missing permissions: ${missing.asList()}")
+    }
+
     fun asList(): List<Permission> {
         val list = mutableListOf<Permission>()
         Permission.values().forEach {
@@ -67,3 +75,6 @@ interface IPermissionSet {
         return list.toList()
     }
 }
+
+/** Performs converse nonimplication */
+private fun getMissing(expected: Long, actual: Long) = (expected.inv() or actual).inv()
