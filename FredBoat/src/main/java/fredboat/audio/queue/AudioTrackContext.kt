@@ -27,7 +27,9 @@ package fredboat.audio.queue
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.player.GuildPlayer
+import fredboat.feature.I18n
 import fredboat.main.Launcher
+import fredboat.sentinel.Guild
 import fredboat.sentinel.Member
 import fredboat.sentinel.TextChannel
 import java.util.concurrent.ThreadLocalRandom
@@ -100,6 +102,8 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member) : Compar
         result = 31 * result + trackId.hashCode()
         return result
     }
+
+    fun i18n(key: String) = I18n.get(Guild(guildId)).getString(key)!!
 
 
 }
