@@ -102,10 +102,6 @@ public class KickCommand extends DiscordModerationCommand<Void> {
         };
     }
 
-<<<<<<< HEAD
-    private boolean checkKickAuthorization(CommandContext context, Member target) {
-        Member mod = context.getMember();
-=======
     @Override
     protected CompletionStage<Boolean> checkAuthorizationWithFeedback(@Nonnull ModActionInfo modActionInfo) {
         CommandContext context = modActionInfo.getContext();
@@ -122,8 +118,6 @@ public class KickCommand extends DiscordModerationCommand<Void> {
             return CompletableFuture.completedFuture(true);
         }
 
-
->>>>>>> dev
         if (mod == target) {
             context.replyWithName(context.i18n("kickFailSelf"));
             return CompletableFuture.completedFuture(false);
