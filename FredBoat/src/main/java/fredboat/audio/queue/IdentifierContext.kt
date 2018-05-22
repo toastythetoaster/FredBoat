@@ -39,7 +39,7 @@ class IdentifierContext(
     override val guild: Guild
         get() = member.guild
     override val user: User
-        get() = member.asUser()
+        get() = member.user
     var isQuiet = false
     var isSplit = false
     var position = 0L

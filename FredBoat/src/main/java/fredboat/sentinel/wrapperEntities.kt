@@ -85,7 +85,7 @@ class Guild(
     }
 
     fun getRole(id: Long): Role? {
-        roles.forEach { if(it.id == id) return it }
+        roles.forEach { if (it.id == id) return it }
         return null
     }
 
@@ -134,15 +134,13 @@ class Member(val raw: RawMember) : IMentionable {
         get() = id == Sentinel.INSTANCE.getApplicationInfo().botId
     override val asMention: String
         get() = "<@$id>"
-
-    fun asUser(): User {
-        return User(RawUser(
+    val user: User
+        get() = User(RawUser(
                 id,
                 name,
                 discrim,
                 isBot
         ))
-    }
 
     fun getPermissions(channel: Channel? = null): Mono<PermissionSet> {
         return when (channel) {
@@ -183,10 +181,8 @@ class User(val raw: RawUser) : IMentionable {
     override val asMention: String
         get() = "<@$id>"
 
-    fun sendPrivate(message: String)
-            = Sentinel.INSTANCE.sendPrivateMessage(this, RawMesssage(message))
-    fun sendPrivate(message: IMessage)
-            = Sentinel.INSTANCE.sendPrivateMessage(this, message)
+    fun sendPrivate(message: String) = Sentinel.INSTANCE.sendPrivateMessage(this, RawMesssage(message))
+    fun sendPrivate(message: IMessage) = Sentinel.INSTANCE.sendPrivateMessage(this, message)
 
     override fun equals(other: Any?): Boolean {
         return other is User && id == other.id
@@ -195,13 +191,6 @@ class User(val raw: RawUser) : IMentionable {
     override fun hashCode(): Int {
         return id.hashCode()
     }
-}
-
-interface Channel {
-    val id: Long
-    val name: String
-    val guild: Guild
-    val ourEffectivePermissions: Long
 }
 
 class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentionable {
@@ -311,7 +300,7 @@ class Message(val raw: MessageReceivedEvent) {
             // but we don't really care for that
 
             val matcher = MENTION_PATTERN.matcher(content)
-            val list =  mutableListOf<Member>()
+            val list = mutableListOf<Member>()
             val members = guild.membersMap
             while (matcher.find()) {
                 members[matcher.group(1).toLong()]?.let { list.add(it) }
@@ -323,6 +312,3 @@ class Message(val raw: MessageReceivedEvent) {
     fun delete(): Mono<Unit> = Sentinel.INSTANCE.deleteMessages(channel, listOf(id))
 }
 
-interface IMentionable {
-    val asMention: String
-}

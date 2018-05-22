@@ -69,7 +69,7 @@ class CommandContext(
         get() = Launcher.getBotController().guildModulesService.fetchGuildModules(this.guild).enabledModules
 
     override val user: User
-        get() = member.asUser()
+        get() = member.user
 
     /**
      * Deletes the users message that triggered this command, if we have the permissions to do so

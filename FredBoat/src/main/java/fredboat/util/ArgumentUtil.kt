@@ -291,7 +291,7 @@ object ArgumentUtil {
         }
 
         constructor(member: Member) {
-            this.user = member.asUser()
+            this.user = member.user
             this.nick = member.nickname
         }
 
