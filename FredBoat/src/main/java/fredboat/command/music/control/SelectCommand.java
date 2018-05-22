@@ -93,7 +93,7 @@ public class SelectCommand extends Command implements IMusicCommand, ICommandRes
             ArrayList<Integer> validChoices = new ArrayList<>();
             // Only include valid values which are 1 to <size> of the offered selection
             for (Integer value : requestChoices) {
-                if (1 <= value && value <= selection.choices.size()) {
+                if (1 <= value && value <= selection.getChoices().size()) {
                     validChoices.add(value);
                     Metrics.selectionChoiceChosen.labels(value.toString()).inc();
                 }
@@ -112,7 +112,7 @@ public class SelectCommand extends Command implements IMusicCommand, ICommandRes
                 StringBuilder outputMsgBuilder = new StringBuilder();
                 GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getOrCreate(context.getGuild());
                 for (int i = 0; i < validChoices.size(); i++) {
-                    selectedTracks[i] = selection.choices.get(validChoices.get(i) - 1);
+                    selectedTracks[i] = selection.getChoices().get(validChoices.get(i) - 1);
 
                     String msg = context.i18nFormat("selectSuccess", validChoices.get(i),
                             TextUtils.escapeAndDefuse(selectedTracks[i].getInfo().title),
@@ -127,16 +127,16 @@ public class SelectCommand extends Command implements IMusicCommand, ICommandRes
                 }
 
                 videoSelectionCache.remove(invoker);
-                TextChannel tc = Launcher.getBotController().getJdaEntityProvider().getTextChannelById(selection.channelId);
+                TextChannel tc = Launcher.getBotController().getJdaEntityProvider().getTextChannelById(selection.getChannelId());
                 if (tc != null) {
-                    CentralMessaging.editMessage(tc, selection.outMsgId, CentralMessaging.from(outputMsgBuilder.toString()));
+                    CentralMessaging.editMessage(tc, selection.getOutMsgId(), CentralMessaging.from(outputMsgBuilder.toString()));
                 }
 
                 player.setPause(false);
                 context.deleteMessage();
             }
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            context.reply(context.i18nFormat("selectInterval", selection.choices.size()));
+            context.reply(context.i18nFormat("selectInterval", selection.getChoices().size()));
         }
     }
 

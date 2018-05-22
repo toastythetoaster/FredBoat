@@ -235,6 +235,8 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel {
     }
 
     fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)
+    fun deleteMessage(messageId: Long) =
+            EntityWrapperBeanProvider.sentinel.deleteMessages(this, listOf(messageId))
 }
 
 class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
