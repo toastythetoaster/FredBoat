@@ -37,6 +37,7 @@ import fredboat.db.api.GuildConfigService
 import fredboat.definitions.PermissionLevel
 import fredboat.definitions.RepeatMode
 import fredboat.feature.I18n
+import fredboat.perms.Permission
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.*
 import fredboat.util.extension.escapeAndDefuse

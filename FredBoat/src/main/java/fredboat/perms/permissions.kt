@@ -1,6 +1,4 @@
-package fredboat.sentinel
-
-import fredboat.util.InsufficientPermissionException
+package fredboat.perms
 
 val NO_PERMISSIONS = PermissionSet(0L)
 
@@ -64,7 +62,8 @@ interface IPermissionSet {
     fun assertHas(other: IPermissionSet, message: String? = null) {
         if (this has other) return
         val missing = PermissionSet(getMissing(other.raw, this.raw))
-        throw InsufficientPermissionException(missing, message ?: "Missing permissions: ${missing.asList()}")
+        throw InsufficientPermissionException(missing, message
+                ?: "Missing permissions: ${missing.asList()}")
     }
 
     fun asList(): List<Permission> {

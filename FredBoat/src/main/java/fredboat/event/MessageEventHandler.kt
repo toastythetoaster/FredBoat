@@ -38,8 +38,8 @@ import fredboat.definitions.PermissionLevel
 import fredboat.feature.metrics.Metrics
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.Member
-import fredboat.sentinel.Permission.MESSAGE_READ
-import fredboat.sentinel.Permission.MESSAGE_WRITE
+import fredboat.perms.Permission.MESSAGE_READ
+import fredboat.perms.Permission.MESSAGE_WRITE
 import fredboat.sentinel.Sentinel
 import fredboat.sentinel.TextChannel
 import fredboat.sentinel.User

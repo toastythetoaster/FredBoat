@@ -2,10 +2,10 @@ package fredboat.audio.lavalink
 
 import com.fredboat.sentinel.entities.AudioQueueRequest
 import com.fredboat.sentinel.entities.AudioQueueRequestEnum.*
-import fredboat.sentinel.Permission.*
-import fredboat.sentinel.PermissionSet
+import fredboat.perms.Permission.*
+import fredboat.perms.PermissionSet
 import fredboat.sentinel.VoiceChannel
-import fredboat.util.InsufficientPermissionException
+import fredboat.perms.InsufficientPermissionException
 import lavalink.client.io.Link
 
 class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(lavalink, guildId) {
@@ -39,7 +39,7 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
                     "members, and we don't have $VOICE_MOVE_OTHERS to bypass the limit.")
         }
 
-        setState(Link.State.CONNECTING)
+        state = Link.State.CONNECTING
         queueAudioConnect(channel.id)
     }
 

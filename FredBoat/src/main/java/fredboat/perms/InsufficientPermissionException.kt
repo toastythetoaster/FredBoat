@@ -1,6 +1,4 @@
-package fredboat.util
-
-import fredboat.sentinel.IPermissionSet
+package fredboat.perms
 
 class InsufficientPermissionException(
         val permissions: IPermissionSet,

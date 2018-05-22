@@ -32,6 +32,8 @@ import com.fredboat.sentinel.entities.embed
 import fredboat.command.config.PrefixCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.feature.I18n
+import fredboat.perms.IPermissionSet
+import fredboat.perms.PermissionSet
 import fredboat.sentinel.*
 import fredboat.shared.constant.BotConstants
 import fredboat.util.TextUtils

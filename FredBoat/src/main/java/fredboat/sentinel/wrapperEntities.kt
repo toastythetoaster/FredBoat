@@ -5,6 +5,10 @@ import com.fredboat.sentinel.entities.MessageReceivedEvent
 import com.fredboat.sentinel.entities.SendMessageResponse
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.config.property.AppConfig
+import fredboat.perms.IPermissionSet
+import fredboat.perms.NO_PERMISSIONS
+import fredboat.perms.Permission
+import fredboat.perms.PermissionSet
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.util.regex.Pattern
