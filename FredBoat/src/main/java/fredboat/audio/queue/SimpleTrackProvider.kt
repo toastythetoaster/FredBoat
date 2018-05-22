@@ -161,9 +161,8 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         return result
     }
 
-    override fun getAsList(): List<AudioTrackContext> {
-        return ArrayList(queue)
-    }
+    override val asList: List<AudioTrackContext>
+        get() = queue.toList()
 
     @Synchronized
     override fun reshuffle() {
@@ -171,9 +170,8 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         shouldUpdateShuffledQueue = true
     }
 
-    override fun isEmpty(): Boolean {
-        return queue.isEmpty()
-    }
+    override val isEmpty: Boolean
+        get() = queue.isEmpty()
 
     override fun size(): Int {
         return queue.size
@@ -195,15 +193,16 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         queue.clear()
     }
 
-    override fun getDurationMillis(): Long {
-        var duration: Long = 0
-        for (atc in queue) {
-            if (!atc.track.info.isStream) {
-                duration += atc.effectiveDuration
+    override val durationMillis: Long
+        get() {
+            var duration: Long = 0
+            for (atc in queue) {
+                if (!atc.track.info.isStream) {
+                    duration += atc.effectiveDuration
+                }
             }
+            return duration
         }
-        return duration
-    }
 
     override fun streamsCount(): Int {
         var streams = 0
@@ -215,7 +214,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         return streams
     }
 
-    override fun peek(): AudioTrackContext? {
+    override fun peek(): AudioTrackContext {
         return if (isShuffle && queue.size > 0) {
             asListOrdered[0]
         } else {

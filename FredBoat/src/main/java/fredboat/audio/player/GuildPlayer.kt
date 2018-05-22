@@ -39,7 +39,10 @@ import fredboat.definitions.RepeatMode
 import fredboat.feature.I18n
 import fredboat.perms.Permission
 import fredboat.perms.PermsUtil
-import fredboat.sentinel.*
+import fredboat.sentinel.Guild
+import fredboat.sentinel.Member
+import fredboat.sentinel.TextChannel
+import fredboat.sentinel.VoiceChannel
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
@@ -59,7 +62,7 @@ class GuildPlayer(
         private val guildConfigService: GuildConfigService,
         ratelimiter: Ratelimiter,
         youtubeAPI: YoutubeAPI
-) : AbstractPlayer(lavalink, guild) {
+) : AbstractPlayer(lavalink, SimpleTrackProvider(), guild) {
 
     private val audioLoader: AudioLoader
     val guildId: Long
@@ -120,11 +123,11 @@ class GuildPlayer(
 
     var repeatMode: RepeatMode
         get() = if (audioTrackProvider is AbstractTrackProvider)
-            (audioTrackProvider as AbstractTrackProvider).repeatMode
+            audioTrackProvider.repeatMode
         else
             RepeatMode.OFF
         set(repeatMode) = if (audioTrackProvider is AbstractTrackProvider) {
-            (audioTrackProvider as AbstractTrackProvider).repeatMode = repeatMode
+            audioTrackProvider.repeatMode = repeatMode
         } else {
             throw UnsupportedOperationException("Can't repeat " + audioTrackProvider.javaClass)
         }
@@ -132,7 +135,7 @@ class GuildPlayer(
     var isShuffle: Boolean
         get() = audioTrackProvider is AbstractTrackProvider && (audioTrackProvider as AbstractTrackProvider).isShuffle
         set(shuffle) = if (audioTrackProvider is AbstractTrackProvider) {
-            (audioTrackProvider as AbstractTrackProvider).isShuffle = shuffle
+            audioTrackProvider.isShuffle = shuffle
         } else {
             throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
         }
@@ -157,7 +160,6 @@ class GuildPlayer(
 
         this.guildId = guild.id
 
-        audioTrackProvider = SimpleTrackProvider()
         audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager,
                 this, youtubeAPI)
     }
@@ -276,7 +278,7 @@ class GuildPlayer(
 
         if (player.playingTrack != null) {
             if (start_ <= 0) {
-                result.add(context)
+                result.add(context!!)
                 end_--//shorten the requested range by 1, but still start at 0, since that's the way the trackprovider counts its tracks
             } else {
                 //dont add the currently playing track, drop the args by one since the "first" track is currently playing
@@ -369,9 +371,7 @@ class GuildPlayer(
 
         audioTrackProvider.removeAllById(toRemove)
 
-        if (skipCurrentTrack) {
-            skip()
-        }
+        if (skipCurrentTrack) skip()
     }
 
     override fun onTrackStart(player: AudioPlayer?, track: AudioTrack?) {
@@ -379,7 +379,7 @@ class GuildPlayer(
         super.onTrackStart(player, track)
     }
 
-    internal override fun destroy() {
+    override fun destroy() {
         audioTrackProvider.clear()
         super.destroy()
         log.info("Player for $guildId was destroyed.")

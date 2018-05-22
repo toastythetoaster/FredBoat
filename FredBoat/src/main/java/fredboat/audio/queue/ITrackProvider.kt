@@ -48,9 +48,9 @@ interface ITrackProvider {
     fun peek(): AudioTrackContext
 
     /**
-     * @return the next track
+     * @return the next track, or null if empty
      */
-    fun provideAudioTrack(): AudioTrackContext
+    fun provideAudioTrack(): AudioTrackContext?
 
     /**
      * Call this when the current track is skipped by the user to let the provider know about it

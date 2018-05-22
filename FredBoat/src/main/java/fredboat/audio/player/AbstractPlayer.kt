@@ -47,10 +47,13 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.Consumer
 
-abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, guild: Guild) : AudioEventAdapterWrapped() {
+abstract class AbstractPlayer internal constructor(
+        lavalink: SentinelLavalink,
+        internal val audioTrackProvider: ITrackProvider,
+        guild: Guild
+) : AudioEventAdapterWrapped() {
 
     val player: IPlayer
-    internal var audioTrackProvider: ITrackProvider? = null
     protected var context: AudioTrackContext? = null
 
     internal var onPlayHook: Consumer<AudioTrackContext>? = null
@@ -67,7 +70,7 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
         get() {
             log.trace("isQueueEmpty()")
 
-            return player.playingTrack == null && audioTrackProvider!!.isEmpty
+            return player.playingTrack == null && audioTrackProvider.isEmpty
         }
 
     val trackCountInHistory: Int
@@ -81,7 +84,7 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
             log.trace("getPlayingTrack()")
 
             return if (player.playingTrack == null && context == null) {
-                audioTrackProvider!!.peek()
+                audioTrackProvider.peek()
             } else context
 
 
@@ -98,7 +101,7 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
                 list.add(atc)
             }
 
-            list.addAll(audioTrackProvider!!.asList)
+            list.addAll(audioTrackProvider.asList)
             return list
         }
 
@@ -160,7 +163,7 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
     fun stop() {
         log.trace("stop()")
 
-        audioTrackProvider!!.clear()
+        audioTrackProvider.clear()
         stopTrack()
     }
 
@@ -170,7 +173,7 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
     fun skip() {
         log.trace("skip()")
 
-        audioTrackProvider!!.skipped()
+        audioTrackProvider.skipped()
         stopTrack()
     }
 
@@ -207,7 +210,7 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
         } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
             if (onErrorHook != null)
                 onErrorHook!!.accept(MessagingException("Track `" + TextUtils.escapeAndDefuse(track.info.title) + "` failed to load. Skipping..."))
-            audioTrackProvider!!.skipped()
+            audioTrackProvider.skipped()
             loadAndPlay()
         } else {
             log.warn("Track " + track.identifier + " ended with unexpected reason: " + endReason)
@@ -218,17 +221,9 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
     private fun loadAndPlay() {
         log.trace("loadAndPlay()")
 
-        var atc: AudioTrackContext? = null
-        if (audioTrackProvider != null) {
-            atc = audioTrackProvider!!.provideAudioTrack()
-        } else {
-            log.warn("TrackProvider doesn't exist")
-        }
-
-        if (atc != null) {
-            queuedTrackInHistory = atc
-            playTrack(atc)
-        }
+        val atc = audioTrackProvider.provideAudioTrack()
+        queuedTrackInHistory = atc
+        atc?.let { playTrack(it) }
     }
 
     private fun updateHistoryQueue() {
@@ -263,7 +258,7 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
         if (!silent && onPlayHook != null) onPlayHook!!.accept(trackContext)
     }
 
-    internal fun destroy() {
+    internal open fun destroy() {
         stop()
         player.removeListener(this)
         if (player is LavalinkPlayer) {
