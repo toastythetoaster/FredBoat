@@ -25,32 +25,26 @@
 
 package fredboat.event
 
-import com.fredboat.sentinel.entities.*
+import com.fredboat.sentinel.entities.IMessage
+import com.fredboat.sentinel.entities.LifecycleEventEnum
+import com.fredboat.sentinel.entities.ShardLifecycleEvent
 import fredboat.config.property.EventLoggerConfig
-import fredboat.jda.ShardProvider
 import fredboat.main.ShutdownHandler
 import fredboat.sentinel.Guild
 import fredboat.util.Emojis
 import fredboat.util.TextUtils
-import net.dv8tion.jda.core.EmbedBuilder
-import net.dv8tion.jda.core.JDA
-import net.dv8tion.jda.core.entities.Message
-import net.dv8tion.jda.core.entities.User
-import net.dv8tion.jda.core.events.*
-import net.dv8tion.jda.core.events.guild.GuildJoinEvent
-import net.dv8tion.jda.core.events.guild.GuildLeaveEvent
-import net.dv8tion.jda.core.hooks.ListenerAdapter
-import net.dv8tion.jda.webhook.WebhookClient
-import net.dv8tion.jda.webhook.WebhookClientBuilder
+import fredboat.util.localMessageBuilder
+import fredboat.util.rest.Webhook
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
-import space.npstr.annotations.FieldsAreNonNullByDefault
-import space.npstr.annotations.ParametersAreNonnullByDefault
-import space.npstr.annotations.ReturnTypesAreNonNullByDefault
-import java.time.OffsetDateTime
+import reactor.core.publisher.Mono
+import java.time.Duration
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 /**
@@ -73,11 +67,11 @@ class EventLogger(
     }
 
     private val scheduler = Executors.newSingleThreadScheduledExecutor { runnable -> Thread(runnable, "eventlogger") }
-    private val eventLogWebhook: WebhookClient?
-    private val guildStatsWebhook: WebhookClient?
+    private val eventLogWebhook: Webhook?
+    private val guildStatsWebhook: Webhook?
 
     //saves some messages, so that in case we run into occasional connection issues we dont just drop them due to the webhook timing out
-    private val toBeSentEventLog = ConcurrentLinkedQueue<Message>()
+    private val toBeSentEventLog = ConcurrentLinkedQueue<IMessage>()
 
     private val statusStats = CopyOnWriteArrayList<ShardStatusEvent>()
     private val guildsJoinedEvents = AtomicInteger(0)
@@ -119,12 +113,12 @@ class EventLogger(
                 "${Emojis.DOOR}Exiting with unknown code."
             }
             log.info(message)
-            var elw: Future<*>? = null
-            var gsw: Future<*>? = null
+            var elw: Mono<Unit>? = null
+            var gsw: Mono<Unit>? = null
             if (eventLogWebhook != null) elw = eventLogWebhook.send(message)
             if (guildStatsWebhook != null) gsw = guildStatsWebhook.send(message)
-            if (elw != null) elw.get(30, TimeUnit.SECONDS)
-            if (gsw != null) gsw.get(30, TimeUnit.SECONDS)
+            elw?.block(Duration.ofSeconds(30))
+            gsw?.block(Duration.ofSeconds(30))
         }
     }
 
@@ -132,10 +126,10 @@ class EventLogger(
         Runtime.getRuntime().addShutdownHook(Thread(createShutdownHook(shutdownHandler), EventLogger::class.java.simpleName + " shutdownhook"))
 
         val eventLoggerWebhookUrl = eventLoggerConfig.eventLogWebhook
-        var eventLoggerWebhook: WebhookClient? = null
+        var eventLoggerWebhook: Webhook? = null
         if (!eventLoggerWebhookUrl.isEmpty()) {
             try {
-                eventLoggerWebhook = WebhookClientBuilder(eventLoggerWebhookUrl).build()
+                eventLoggerWebhook = Webhook(eventLoggerWebhookUrl)
             } catch (e: IllegalArgumentException) {
                 log.error("Eventlogger webhook url could not be parsed: {}", eventLoggerWebhookUrl, e)
             }
@@ -143,20 +137,13 @@ class EventLogger(
         }
 
         //test the provided webhooks before assigning them, otherwise they will spam our logs with exceptions
-        var workingWebhook: WebhookClient? = null
+        var workingWebhook: Webhook? = null
         if (eventLoggerWebhook != null) {
-            if (eventLoggerWebhook.idLong > 0) { //id is 0 when there is no webhookid configured in the config; skip this in that case
-                try {
-                    eventLoggerWebhook.send(Emojis.PENCIL + "Event logger started.")
-                            .get()
-                    workingWebhook = eventLoggerWebhook //webhook test was successful; FIXME occasionally this might fail during the start due to connection issues, while the provided values are actually valid
-                } catch (e: Exception) {
-                    log.error("Failed to create event log webhook. Event logs will not be available. Doublecheck your configuration values.")
-                    eventLoggerWebhook.close()
-                }
-
-            } else {
-                eventLoggerWebhook.close()
+            try {
+                eventLoggerWebhook.send(Emojis.PENCIL + "Event logger started.").block(Duration.ofSeconds(30))
+                workingWebhook = eventLoggerWebhook //webhook test was successful; FIXME occasionally this might fail during the start due to connection issues, while the provided values are actually valid
+            } catch (e: Exception) {
+                log.error("Failed to create event log webhook. Event logs will not be available. Doublecheck your configuration values.")
             }
         }
         this.eventLogWebhook = workingWebhook
@@ -173,10 +160,10 @@ class EventLogger(
 
 
         val guildStatsWebhookUrl = eventLoggerConfig.guildStatsWebhook
-        var guildStatsWebhook: WebhookClient? = null
+        var guildStatsWebhook: Webhook? = null
         if (!guildStatsWebhookUrl.isEmpty()) {
             try {
-                guildStatsWebhook = WebhookClientBuilder(guildStatsWebhookUrl).build()
+                guildStatsWebhook = Webhook(guildStatsWebhookUrl)
             } catch (e: IllegalArgumentException) {
                 log.error("Guildstats webhook url could not be parsed: {}", guildStatsWebhookUrl, e)
             }
@@ -185,19 +172,12 @@ class EventLogger(
 
         workingWebhook = null
         if (guildStatsWebhook != null) {
-            if (guildStatsWebhook.idLong > 0) { //id is 0 when there is no webhookid configured in the config; skip this in that case
                 try {
-                    guildStatsWebhook.send(Emojis.PENCIL + "Guild stats logger started.")
-                            .get()
+                    guildStatsWebhook.send(Emojis.PENCIL + "Guild stats logger started.").block(Duration.ofSeconds(30))
                     workingWebhook = guildStatsWebhook //webhook test was successful; FIXME occasionally this might fail during the start due to connection issues, while the provided values are actually valid
                 } catch (e: Exception) {
                     log.error("Failed to create guild stats webhook. Guild stats will not be available. Doublecheck your configuration values.")
-                    guildStatsWebhook.close()
                 }
-
-            } else {
-                guildStatsWebhook.close()
-            }
         }
         this.guildStatsWebhook = workingWebhook
     }
@@ -218,24 +198,22 @@ class EventLogger(
         for (event in events) {
             val eventStr = event.toString()
             if (msg.length + eventStr.length > 1900) {
-                toBeSentEventLog.add(CentralMessaging.getClearThreadLocalMessageBuilder()
-                        .appendCodeBlock(msg.toString(), "diff").build())
+                toBeSentEventLog.add(localMessageBuilder().codeBlock(msg.toString(), "diff").build())
                 msg = StringBuilder()
             }
             msg.append("\n").append(eventStr)
         }
         if (msg.isNotEmpty()) {//any leftovers?
-            toBeSentEventLog.add(CentralMessaging.getClearThreadLocalMessageBuilder()
-                    .appendCodeBlock(msg.toString(), "diff").build())
+            toBeSentEventLog.add(localMessageBuilder().codeBlock(msg.toString(), "diff").build())
         }
         drainMessageQueue(toBeSentEventLog, eventLogWebhook)
     }
 
-    private fun drainMessageQueue(queue: Queue<Message>, webhook: WebhookClient) {
+    private fun drainMessageQueue(queue: Queue<IMessage>, webhook: Webhook) {
         try {
             while (!queue.isEmpty()) {
                 val message = queue.peek()
-                webhook.send(message).get()
+                webhook.send(message).block(Duration.ofSeconds(30))
                 queue.poll()
             }
         } catch (e: Exception) {

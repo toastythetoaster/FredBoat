@@ -13,6 +13,10 @@ import java.lang.UnsupportedOperationException
 class Webhook(val url: String) {
     val http = Http(Http.DEFAULT_BUILDER)
 
+    fun send(message: String, username: String? = null, avatarUri: String? = null): Mono<Unit> {
+        return send(RawMesssage(message), username, avatarUri)
+    }
+
     fun send(message: IMessage, username: String? = null, avatarUri: String? = null): Mono<Unit> {
         if (message !is RawMesssage) throw UnsupportedOperationException("Only RawMessage is supported for now")
 
