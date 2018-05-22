@@ -2,14 +2,12 @@ package fredboat.main
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import fredboat.agent.FredBoatAgent
-import fredboat.audio.player.AudioConnectionFacade
 import fredboat.audio.player.PlayerRegistry
 import fredboat.config.property.*
 import fredboat.db.api.GuildConfigService
 import fredboat.db.api.GuildModulesService
 import fredboat.db.api.GuildPermsService
 import fredboat.db.api.PrefixService
-import fredboat.event.EventListenerBoat
 import fredboat.feature.metrics.BotMetrics
 import fredboat.feature.metrics.Metrics
 import fredboat.jda.JdaEntityProvider
