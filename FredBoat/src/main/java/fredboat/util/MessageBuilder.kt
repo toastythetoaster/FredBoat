@@ -1,10 +1,8 @@
 package fredboat.util
 
 import com.fredboat.sentinel.entities.IMessage
-import fredboat.sentinel.Member
+import fredboat.sentinel.IMentionable
 import fredboat.sentinel.RawMesssage
-import fredboat.sentinel.TextChannel
-import fredboat.sentinel.User
 
 class MessageBuilder {
 
@@ -50,18 +48,8 @@ class MessageBuilder {
         return this
     }
 
-    fun mention(user: User): MessageBuilder {
-        builder.append("<@").append(user.id).append(">")
-        return this
-    }
-
-    fun mention(member: Member): MessageBuilder {
-        builder.append("<@").append(member.id).append(">")
-        return this
-    }
-
-    fun mention(channel: TextChannel): MessageBuilder {
-        builder.append("<#").append(channel.id).append(">")
+    fun mention(mentionable: IMentionable): MessageBuilder {
+        builder.append(mentionable.asMention)
         return this
     }
 

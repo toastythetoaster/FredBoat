@@ -48,7 +48,7 @@ public class FuzzyUserSearchCommand extends Command implements IInfoCommand {
             HelpCommand.sendFormattedCommandHelp(context);
         } else {
             String query = context.getRawArgs();
-            List<Member> list = ArgumentUtil.fuzzyMemberSearch(context.getGuild(), query, true);
+            List<Member> list = ArgumentUtil.INSTANCE.fuzzyMemberSearch(context.getGuild(), query, true);
 
             if(list.isEmpty()){
                 context.replyWithName(context.i18n("fuzzyNoResults"));
@@ -56,7 +56,7 @@ public class FuzzyUserSearchCommand extends Command implements IInfoCommand {
             }
 
             String escapedQuery = TextUtils.escapeAndDefuse(query);
-            String formatted = ArgumentUtil.formatFuzzyMemberResult(list, Integer.MAX_VALUE, 1900 - escapedQuery.length());
+            String formatted = ArgumentUtil.INSTANCE.formatFuzzyMemberResult(list, Integer.MAX_VALUE, 1900 - escapedQuery.length());
             context.replyWithName("Results for `" + escapedQuery + "`:\n" + formatted);
         }
     }

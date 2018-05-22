@@ -266,7 +266,7 @@ public abstract class DiscordModerationCommand<T> extends Command implements IMo
      */
     @CheckReturnValue
     protected CompletionStage<Optional<User>> fromFuzzySearch(CommandContext context, String searchTerm) {
-        Member member = ArgumentUtil.checkSingleFuzzyMemberSearchResult(context, searchTerm, true);
+        Member member = ArgumentUtil.INSTANCE.checkSingleFuzzyMemberSearchResult(context, searchTerm, true);
         if (member == null) {
             return CompletableFuture.completedFuture(Optional.empty());
         }

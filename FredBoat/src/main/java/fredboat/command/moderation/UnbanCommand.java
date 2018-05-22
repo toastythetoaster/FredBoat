@@ -101,7 +101,7 @@ public class UnbanCommand extends DiscordModerationCommand<Void> {
                     if (!banlist.isPresent()) {
                         return Optional.empty();
                     }
-                    return ArgumentUtil.checkSingleFuzzyUserSearchResult(
+                    return ArgumentUtil.INSTANCE.checkSingleFuzzyUserSearchResult(
                             banlist.get().stream().map(Guild.Ban::getUser).collect(Collectors.toList()),
                             context, searchTerm, true);
                 });

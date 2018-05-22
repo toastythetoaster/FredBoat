@@ -64,7 +64,7 @@ public class UserInfoCommand extends Command implements IUtilCommand {
         if (!context.hasArguments()) {
             target = context.getMember();
         } else {
-            target = ArgumentUtil.checkSingleFuzzyMemberSearchResult(context, context.getRawArgs(), true);
+            target = ArgumentUtil.INSTANCE.checkSingleFuzzyMemberSearchResult(context, context.getRawArgs(), true);
         }
         if (target == null) return;
         List<String> matchedGuildNames = Launcher.getBotController().getJdaEntityProvider().streamGuilds()

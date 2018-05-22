@@ -105,10 +105,10 @@ public class PermissionsCommand extends Command implements IConfigCommand {
         String term = context.getRawArgs().replaceFirst(context.getArgs()[0], "").trim();
 
         List<IMentionable> search = new ArrayList<>();
-        search.addAll(ArgumentUtil.fuzzyRoleSearch(guild, term));
-        search.addAll(ArgumentUtil.fuzzyMemberSearch(guild, term, false));
+        search.addAll(ArgumentUtil.INSTANCE.fuzzyRoleSearch(guild, term));
+        search.addAll(ArgumentUtil.INSTANCE.fuzzyMemberSearch(guild, term, false));
 
-        IMentionable selected = ArgumentUtil.checkSingleFuzzySearchResult(search, context, term);
+        IMentionable selected = ArgumentUtil.INSTANCE.checkSingleFuzzySearchResult(search, context, term);
         if (selected == null) return;
 
         Function<GuildPermissions, GuildPermissions> transformation = gp -> {
@@ -140,10 +140,10 @@ public class PermissionsCommand extends Command implements IConfigCommand {
         String term = context.getRawArgs().replaceFirst(context.getArgs()[0], "").trim();
 
         List<IMentionable> list = new ArrayList<>();
-        list.addAll(ArgumentUtil.fuzzyRoleSearch(guild, term));
-        list.addAll(ArgumentUtil.fuzzyMemberSearch(guild, term, false));
+        list.addAll(ArgumentUtil.INSTANCE.fuzzyRoleSearch(guild, term));
+        list.addAll(ArgumentUtil.INSTANCE.fuzzyMemberSearch(guild, term, false));
 
-        IMentionable selected = ArgumentUtil.checkSingleFuzzySearchResult(list, context, term);
+        IMentionable selected = ArgumentUtil.INSTANCE.checkSingleFuzzySearchResult(list, context, term);
         if (selected == null) return;
 
         Function<GuildPermissions, GuildPermissions> transformation = gp -> {

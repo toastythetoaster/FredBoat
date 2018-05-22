@@ -140,7 +140,7 @@ class MessageEventHandler(
 
         //Technically not possible anymore to receive private messages from bots but better safe than sorry
         //Also ignores our own messages since we're a bot
-        if (author.bot) {
+        if (author.isBot) {
             return
         }
 

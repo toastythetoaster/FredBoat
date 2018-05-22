@@ -100,7 +100,7 @@ class Guild(
     fun getMember(userId: Long): Member? = membersMap[userId]
 }
 
-class Member(val raw: RawMember) {
+class Member(val raw: RawMember) : IMentionable {
     val id: Long
         get() = raw.id
     val name: String
@@ -132,8 +132,9 @@ class Member(val raw: RawMember) {
     /** True if this [Member] is our bot */
     val isUs: Boolean
         get() = id == Sentinel.INSTANCE.getApplicationInfo().botId
+    override val asMention: String
+        get() = "<@$id>"
 
-    fun asMention() = "<@$id>"
     fun asUser(): User {
         return User(RawUser(
                 id,
@@ -170,15 +171,17 @@ class Member(val raw: RawMember) {
     }
 }
 
-class User(val raw: RawUser) {
+class User(val raw: RawUser) : IMentionable {
     val id: Long
         get() = raw.id
     val name: String
         get() = raw.name
     val discrim: Short
         get() = raw.discrim
-    val bot: Boolean
+    val isBot: Boolean
         get() = raw.bot
+    override val asMention: String
+        get() = "<@$id>"
 
     fun sendPrivate(message: String)
             = Sentinel.INSTANCE.sendPrivateMessage(this, RawMesssage(message))
@@ -201,7 +204,7 @@ interface Channel {
     val ourEffectivePermissions: Long
 }
 
-class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel {
+class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentionable {
     override val id: Long
         get() = raw.id
     override val name: String
@@ -210,6 +213,8 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel {
         get() = Guild(guildId)
     override val ourEffectivePermissions: Long
         get() = raw.ourEffectivePermissions
+    override val asMention: String
+        get() = "<#$id>"
 
     fun checkOurPermissions(permissions: IPermissionSet): Boolean =
             raw.ourEffectivePermissions and permissions.raw == permissions.raw
@@ -266,7 +271,7 @@ class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
     }
 }
 
-class Role(val raw: RawRole, val guildId: Long) {
+class Role(val raw: RawRole, val guildId: Long) : IMentionable {
     val id: Long
         get() = raw.id
     val name: String
@@ -277,6 +282,8 @@ class Role(val raw: RawRole, val guildId: Long) {
         get() = Guild(guildId)
     val publicRole: Boolean // The @everyone role shares the ID of the guild
         get() = id == guildId
+    override val asMention: String
+        get() = "<@$id>"
 
     override fun equals(other: Any?): Boolean {
         return other is Role && id == other.id
@@ -314,4 +321,8 @@ class Message(val raw: MessageReceivedEvent) {
         }
 
     fun delete(): Mono<Unit> = Sentinel.INSTANCE.deleteMessages(channel, listOf(id))
+}
+
+interface IMentionable {
+    val asMention: String
 }
