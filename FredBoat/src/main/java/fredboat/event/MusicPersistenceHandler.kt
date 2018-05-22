@@ -271,7 +271,7 @@ class MusicPersistenceHandler(private val playerRegistry: PlayerRegistry, privat
                     val atc: AudioTrackContext
                     val split = json.optJSONObject("split")
                     if (split != null) {
-                        atc = SplitAudioTrackContext(jdaEntityProvider, at, member,
+                        atc = SplitAudioTrackContext(at, member,
                                 split.getLong("startPos"),
                                 split.getLong("endPos"),
                                 split.getString("title")
