@@ -36,10 +36,10 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.config.property.AppConfigProperties
 import fredboat.definitions.PermissionLevel
 import fredboat.feature.metrics.Metrics
-import fredboat.perms.PermsUtil
-import fredboat.sentinel.Member
 import fredboat.perms.Permission.MESSAGE_READ
 import fredboat.perms.Permission.MESSAGE_WRITE
+import fredboat.perms.PermsUtil
+import fredboat.sentinel.Member
 import fredboat.sentinel.Sentinel
 import fredboat.sentinel.TextChannel
 import fredboat.sentinel.User
@@ -120,7 +120,7 @@ class MessageEventHandler(
      * Check the rate limit of the user and execute the command if everything is fine.
      * @param context Command context of the command to be invoked.
      */
-    private fun limitOrExecuteCommand(context: CommandContext) {
+    private suspend fun limitOrExecuteCommand(context: CommandContext) {
         if (ratelimiter.isRatelimited(context, context.command)) {
             return
         }

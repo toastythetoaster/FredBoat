@@ -76,7 +76,7 @@ public class StatsCommand extends Command implements IInfoCommand {
         } else {
             i18n = I18n.DEFAULT.getProps();
         }
-        double commandsExecuted = CommandManager.totalCommandsExecuted.get();
+        double commandsExecuted = CommandManager.Companion.getTotalCommandsExecuted().get();
         String str = MessageFormat.format(i18n.getString("statsParagraph"),
                 days, hours, mins, secs, commandsExecuted - 1)
                 + "\n";

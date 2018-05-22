@@ -30,9 +30,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import fredboat.config.property.AppConfig;
 import fredboat.main.BotController;
+import fredboat.sentinel.Guild;
 import fredboat.util.rest.CacheUtil;
 import io.prometheus.client.guava.cache.CacheMetricsCollector;
-import net.dv8tion.jda.core.entities.Guild;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class PatronageChecker {
 
     private static final Logger log = LoggerFactory.getLogger(PatronageChecker.class);
 
-    private final LoadingCache<String, Status> cache = CacheBuilder.newBuilder()
+    private final LoadingCache<Long, Status> cache = CacheBuilder.newBuilder()
             .recordStats()
             .expireAfterWrite(120, TimeUnit.MINUTES)
             .build(new Loader());
@@ -109,11 +109,11 @@ public class PatronageChecker {
         }
     }
 
-    private class Loader extends CacheLoader<String, Status> {
+    private class Loader extends CacheLoader<Long, Status> {
 
         @SuppressWarnings("NullableProblems")
         @Override
-        public Status load(String key) {
+        public Status load(Long key) {
             //TODO prevent selfhosters from running this?
             try {
                 return new Status(

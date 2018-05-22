@@ -58,12 +58,12 @@ public class DisableCommandsCommand extends Command implements ICommandRestricte
                 return;
             }
 
-            if (CommandManager.disabledCommands.contains(command)) {
+            if (CommandManager.Companion.getDisabledCommands().contains(command)) {
                 context.reply("This command is already disabled!");
                 return;
             }
 
-            CommandManager.disabledCommands.add(command);
+            CommandManager.Companion.getDisabledCommands().add(command);
             context.reply(":ok_hand: Command `" + command.getName() + "` disabled!");
         } else {
             HelpCommand.sendFormattedCommandHelp(context);
