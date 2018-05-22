@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import java.time.Duration
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CopyOnWriteArrayList
@@ -93,7 +94,7 @@ class EventLogger(
         log.info("Joined guild {} with {} users", guild, guild.members.size)
     }
 
-    override fun onGuildLeave(guild: Guild) {
+    override fun onGuildLeave(guild: Guild, joinTime: Instant) {
         if (guildStatsWebhook == null) {
             return
         }

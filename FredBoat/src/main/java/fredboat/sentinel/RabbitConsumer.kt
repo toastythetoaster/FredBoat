@@ -107,7 +107,7 @@ class RabbitConsumer(
         MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_GUILD, channel.guild.id.toString()).use {
             MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_CHANNEL, channel.id.toString()).use {
                 MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_INVOKER, author.id.toString()).use {
-                    eventHandlers.forEach { it.onGuildMessage(channel, author, event.content) }
+                    eventHandlers.forEach { it.onGuildMessage(channel, author, Message(event)) }
                 }
             }
         }

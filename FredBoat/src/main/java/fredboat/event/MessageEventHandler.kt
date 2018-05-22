@@ -39,10 +39,7 @@ import fredboat.feature.metrics.Metrics
 import fredboat.perms.Permission.MESSAGE_READ
 import fredboat.perms.Permission.MESSAGE_WRITE
 import fredboat.perms.PermsUtil
-import fredboat.sentinel.Member
-import fredboat.sentinel.Sentinel
-import fredboat.sentinel.TextChannel
-import fredboat.sentinel.User
+import fredboat.sentinel.*
 import fredboat.util.ratelimit.Ratelimiter
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import kotlinx.coroutines.experimental.async
@@ -74,23 +71,23 @@ class MessageEventHandler(
         cacheMetrics.addCache("messagesToDeleteIfIdDeleted", messagesToDeleteIfIdDeleted)
     }
 
-    override fun onGuildMessage(channel: TextChannel, author: Member, content: String) {
+    override fun onGuildMessage(channel: TextChannel, author: Member, message: Message) {
         if (ratelimiter.isBlacklisted(author.id)) {
             Metrics.blacklistedMessagesReceived.inc()
             return
         }
 
-        if (channel.guild.selfMember.id == author.id) log.info(content)
+        if (channel.guild.selfMember.id == author.id) log.info(message.content)
         if (author.isBot) return
 
         //Preliminary permission filter to avoid a ton of parsing
         //Let messages pass on to parsing that contain "help" since we want to answer help requests even from channels
         // where we can't talk in
         if (!channel.checkOurPermissions(MESSAGE_READ + MESSAGE_WRITE)
-                && !content.contains(CommandInitializer.HELP_COMM_NAME)) return
+                && !message.content.contains(CommandInitializer.HELP_COMM_NAME)) return
 
-        val context = commandContextParser.parse(channel, author, content) ?: return
-        log.info(content)
+        val context = commandContextParser.parse(channel, author, message) ?: return
+        log.info(message.content)
 
         //ignore all commands in channels where we can't write, except for the help command
         if (!channel.checkOurPermissions(MESSAGE_READ + MESSAGE_WRITE) && context.command !is HelpCommand) {
