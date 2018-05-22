@@ -27,8 +27,8 @@ package fredboat.db.rest;
 import fredboat.config.property.BackendConfig;
 import fredboat.db.api.GuildDataService;
 import fredboat.db.transfer.GuildData;
+import fredboat.sentinel.Guild;
 import io.prometheus.client.guava.cache.CacheMetricsCollector;
-import net.dv8tion.jda.core.entities.Guild;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -51,7 +51,7 @@ public class RestGuildDataService extends CachedRestService<Long, GuildData> imp
 
     @Override
     public GuildData fetchGuildData(Guild guild) {
-        return fetchUserFriendly(() -> fetch(guild.getIdLong()));
+        return fetchUserFriendly(() -> fetch(guild.getId()));
     }
 
     @Override
