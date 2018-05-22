@@ -49,6 +49,11 @@ import java.util.concurrent.atomic.AtomicInteger
 class CommandManager(private val patronageChecker: PatronageChecker, private val musicTextChannelProvider: MusicTextChannelProvider,
                      private val credentials: Credentials) {
 
+    companion object {
+        val disabledCommands: Set<Command> = HashSet(0)
+        val totalCommandsExecuted = AtomicInteger(0)
+    }
+
     suspend fun prefixCalled(context: CommandContext) {
         val guild = context.guild
         val invoked = context.command
@@ -106,12 +111,5 @@ class CommandManager(private val patronageChecker: PatronageChecker, private val
             TextUtils.handleException("Caught exception while executing a command", e, context)
         }
 
-    }
-
-    companion object {
-
-        val disabledCommands: Set<Command> = HashSet(0)
-
-        val totalCommandsExecuted = AtomicInteger(0)
     }
 }
