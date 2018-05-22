@@ -32,8 +32,8 @@ import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Guild;
 import fredboat.shared.constant.BotConstants;
-import net.dv8tion.jda.core.entities.Guild;
 
 import javax.annotation.Nonnull;
 

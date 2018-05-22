@@ -4,6 +4,7 @@ import com.fredboat.sentinel.entities.ShardLifecycleEvent
 import com.fredboat.sentinel.entities.ShardStatusChange
 import com.fredboat.sentinel.entities.VoiceServerUpdate
 import fredboat.sentinel.*
+import java.time.Instant
 
 abstract class SentinelEventHandler {
 
@@ -11,7 +12,7 @@ abstract class SentinelEventHandler {
     open fun onShardLifecycle(event: ShardLifecycleEvent) {}
 
     open fun onGuildJoin(guild: Guild) {}
-    open fun onGuildLeave(guild: Guild) {}
+    open fun onGuildLeave(guild: Guild, joinTime: Instant) {}
 
     open fun onVoiceJoin(channel: VoiceChannel, member: Member) {}
     open fun onVoiceLeave(channel: VoiceChannel, member: Member) {}

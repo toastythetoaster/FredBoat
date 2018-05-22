@@ -3,14 +3,13 @@ package fredboat.event
 import fredboat.audio.player.PlayerRegistry
 import fredboat.command.info.HelloCommand
 import fredboat.db.api.GuildDataService
-import fredboat.db.transfer.GuildData
 import fredboat.feature.metrics.Metrics
 import fredboat.sentinel.Guild
-import net.dv8tion.jda.core.entities.TextChannel
+import fredboat.sentinel.TextChannel
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import java.time.Duration
-import java.time.OffsetDateTime
+import java.time.Instant
 
 @Component
 class GuildEventHandler(
@@ -26,10 +25,10 @@ class GuildEventHandler(
                 .subscribe()
     }
 
-    override fun onGuildLeave(guild: Guild) {
+    override fun onGuildLeave(guild: Guild, joinTime: Instant) {
         playerRegistry.destroyPlayer(guild)
 
-        val lifespan = OffsetDateTime.now().toEpochSecond() - guild.selfMember.getJoinDate().toEpochSecond()
+        val lifespan = Instant.now().epochSecond - joinTime.epochSecond
         Metrics.guildLifespan.observe(lifespan.toDouble())
     }
 
@@ -42,7 +41,7 @@ class GuildEventHandler(
             return
         }
 
-        var channel: TextChannel? = guild.getTextChannelById(guild.id) //old public channel
+        var channel: TextChannel? = guild.getTextChannel(guild.id) //old public channel
         if (channel == null || !channel.canTalk()) {
             //find first channel that we can talk in
             for (tc in guild.textChannels) {
@@ -58,8 +57,8 @@ class GuildEventHandler(
         }
 
         //send actual hello message and persist on success
-        CentralMessaging.message(channel, HelloCommand.getHello(guild))
-                .success({ __ -> guildDataService.transformGuildData(guild, Function<GuildData, GuildData> { it.helloSent() }) })
-                .send(null)
+        channel.send(HelloCommand.getHello(guild))
+                .doOnSuccess { guildDataService.transformGuildData(guild, { it.helloSent() }) }
+                .subscribe()
     }
 }

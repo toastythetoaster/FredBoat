@@ -64,7 +64,7 @@ class RabbitConsumer(
     @RabbitHandler
     fun receive(event: GuildLeaveEvent) {
         log.info("Left guild ${event.guildId}")
-        eventHandlers.forEach { it.onGuildLeave(Guild(event.guildId)) }
+        eventHandlers.forEach { it.onGuildLeave(Guild(event.guildId), event.joinTime) }
     }
 
     /* Voice events */
