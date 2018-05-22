@@ -23,35 +23,30 @@
  *
  */
 
-package fredboat.audio.queue;
+package fredboat.audio.queue
 
-import com.sedmelluq.discord.lavaplayer.track.TrackMarkerHandler;
-import fredboat.audio.player.AbstractPlayer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sedmelluq.discord.lavaplayer.track.TrackMarkerHandler
+import fredboat.audio.player.AbstractPlayer
+import org.slf4j.LoggerFactory
 
-public class TrackEndMarkerHandler implements TrackMarkerHandler {
+class TrackEndMarkerHandler(
+        private val player: AbstractPlayer,
+        private val track: AudioTrackContext
+) : TrackMarkerHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(TrackEndMarkerHandler.class);
-
-    private final AbstractPlayer player;
-    private final AudioTrackContext track;
-
-    public TrackEndMarkerHandler(AbstractPlayer player, AudioTrackContext track) {
-        this.player = player;
-        this.track = track;
+    companion object {
+        private val log = LoggerFactory.getLogger(TrackEndMarkerHandler::class.java)
     }
 
-    @Override
-    public void handle(MarkerState state) {
-        log.info("Stopping track " + track.getEffectiveTitle() + " because of end state: " + state);
-        if (player.getPlayingTrack() != null && player.getPlayingTrack().getTrackId() == track.getTrackId()) {
+    override fun handle(state: TrackMarkerHandler.MarkerState) {
+        log.info("Stopping track " + track.effectiveTitle + " because of end state: " + state)
+        if (player.playingTrack != null && player.playingTrack!!.trackId == track.trackId) {
             //if this was ended because the track finished instead of skipped, we need to transfer that info
             //state == STOPPED after we already called skip on it, so it may be ignored safely
             //state == REACHED if the tracks runs out by itself
             //state == BYPASSED if the track was forwarded over its length
-            if (state.equals(MarkerState.REACHED) | state.equals(MarkerState.BYPASSED))
-                player.stopTrack();
+            if ((state == TrackMarkerHandler.MarkerState.REACHED) or (state == TrackMarkerHandler.MarkerState.BYPASSED))
+                player.stopTrack()
         }
     }
 }

@@ -292,8 +292,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
 
         val list = ArrayList<SplitAudioTrackContext>()
 
-        var i = 0
-        for (pair in pairs) {
+        for ((i, pair) in pairs.withIndex()) {
             val startPos: Long
             val endPos: Long
 
@@ -315,7 +314,6 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             list.add(atc)
             async { loader.gplayer.queue(atc) }
 
-            i++
         }
 
         var mb = localMessageBuilder()

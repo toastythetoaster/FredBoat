@@ -23,62 +23,64 @@
  *
  */
 
-package fredboat.audio.queue;
+package fredboat.audio.queue
 
-import java.util.Collection;
-import java.util.List;
-
-public interface ITrackProvider {
-
-    /**
-     * @return the track that a call to provideAudioTrack() would return
-     */
-    AudioTrackContext peek();
-
-    /**
-     * @return the next track
-     */
-    AudioTrackContext provideAudioTrack();
-
-    /**
-     * Call this when the current track is skipped by the user to let the provider know about it
-     */
-    void skipped();
-
-    /**
-     * When restoring a guild player this allows us to set a potentially currently playing track
-     */
-    void setLastTrack(AudioTrackContext lastTrack);
+interface ITrackProvider {
 
     /**
      * @return a list of all tracks in the queue in regular (unshuffled) order
      */
-    List<AudioTrackContext> getAsList();
+    val asList: List<AudioTrackContext>
 
     /**
      * @return true if there are no tracks in the queue
      */
-    boolean isEmpty();
+    val isEmpty: Boolean
+
+    /**
+     * @return duration of all tracks
+     */
+    val durationMillis: Long
+
+    /**
+     * @return the track that a call to provideAudioTrack() would return
+     */
+    fun peek(): AudioTrackContext
+
+    /**
+     * @return the next track
+     */
+    fun provideAudioTrack(): AudioTrackContext
+
+    /**
+     * Call this when the current track is skipped by the user to let the provider know about it
+     */
+    fun skipped()
+
+    /**
+     * When restoring a guild player this allows us to set a potentially currently playing track
+     */
+    fun setLastTrack(lastTrack: AudioTrackContext)
 
     /**
      * @return amount of tracks in the queue
      */
-    int size();
+    fun size(): Int
 
     /**
      * @param track add a track to the queue
      */
-    void add(AudioTrackContext track);
+    fun add(track: AudioTrackContext)
 
     /**
      * @param tracks add several tracks to the queue
      */
-    void addAll(Collection<AudioTrackContext> tracks);
+    fun addAll(tracks: Collection<AudioTrackContext>)
 
     /**
      * empty the queue
      */
-    void clear();
+    fun clear()
 
     /**
      * remove a track from the queue
@@ -86,23 +88,23 @@ public interface ITrackProvider {
      * @param atc the track to be removed
      * @return true if the track part of the queue, false if not
      */
-    boolean remove(AudioTrackContext atc);
+    fun remove(atc: AudioTrackContext): Boolean
 
     /**
      * @param tracks tracks to be removed from the queue
      */
-    void removeAll(Collection<AudioTrackContext> tracks);
+    fun removeAll(tracks: Collection<AudioTrackContext>)
 
     /**
      * @param trackIds tracks to be removed from the queue
      */
-    void removeAllById(Collection<Long> trackIds);
+    fun removeAllById(trackIds: Collection<Long>)
 
     /**
      * @param index the index of the requested track in playing order
      * @return the track at the given index
      */
-    AudioTrackContext getTrack(int index);
+    fun getTrack(index: Int): AudioTrackContext
 
     /**
      * Returns all songs from one index till another in a non-bitching way.
@@ -114,21 +116,16 @@ public interface ITrackProvider {
      * @param endIndex   exclusive ending index
      * @return the tracks in the given range
      */
-    List<AudioTrackContext> getTracksInRange(int startIndex, int endIndex);
-
-    /**
-     * @return duration of all tracks
-     */
-    long getDurationMillis();
+    fun getTracksInRange(startIndex: Int, endIndex: Int): List<AudioTrackContext>
 
     /**
      * @return amount of live streams
      */
-    int streamsCount();
+    fun streamsCount(): Int
 
     /**
      * @return false if any of the provided tracks was added by user that is not the provided userId
      */
-    boolean isUserTrackOwner(long userId, Collection<Long> trackIds);
+    fun isUserTrackOwner(userId: Long, trackIds: Collection<Long>): Boolean
 
 }
