@@ -23,41 +23,23 @@
  *
  */
 
-package fredboat.audio.queue;
+package fredboat.audio.queue
 
-import fredboat.definitions.RepeatMode;
-
-import java.util.List;
+import fredboat.definitions.RepeatMode
 
 /**
  * Shuffle and repeat mode methods for track providers
  */
-public abstract class AbstractTrackProvider implements ITrackProvider {
+abstract class AbstractTrackProvider : ITrackProvider {
 
-    private RepeatMode repeatMode = RepeatMode.OFF;
-    private boolean shuffle = false;
-
-    public RepeatMode getRepeatMode() {
-        return repeatMode;
-    }
-
-    public boolean isShuffle() {
-        return shuffle;
-    }
-
-    public void setRepeatMode(RepeatMode repeatMode) {
-        this.repeatMode = repeatMode;
-    }
-
-    public void setShuffle(boolean shuffle) {
-        this.shuffle = shuffle;
-    }
+    var repeatMode = RepeatMode.OFF
+    open var isShuffle = false
 
     /**
      * @return the shuffled play list if shuffle is true, otherwise the regular one
      */
-    public abstract List<AudioTrackContext> getAsListOrdered();
+    abstract val asListOrdered: List<AudioTrackContext>
 
-    public abstract void reshuffle();
+    abstract fun reshuffle()
 
 }
