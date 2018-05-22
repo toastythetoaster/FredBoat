@@ -52,7 +52,6 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
     val player: IPlayer
     internal var audioTrackProvider: ITrackProvider? = null
     protected var context: AudioTrackContext? = null
-    val audioLossCounter = AudioLossCounter()
 
     internal var onPlayHook: Consumer<AudioTrackContext>? = null
     internal var onErrorHook: Consumer<Throwable>? = null
@@ -273,13 +272,13 @@ abstract class AbstractPlayer internal constructor(lavalink: SentinelLavalink, g
     }
 
     override fun onTrackException(player: AudioPlayer?, track: AudioTrack, exception: FriendlyException?) {
-        log.error("Lavaplayer encountered an exception while playing {}" + "\nPerformance stats for errored track: {}",
-                track.identifier, audioLossCounter, exception)
+        log.error("Lavaplayer encountered an exception while playing {}",
+                track.identifier, exception)
     }
 
     override fun onTrackStuck(player: AudioPlayer?, track: AudioTrack, thresholdMs: Long) {
-        log.error("Lavaplayer got stuck while playing {}\nPerformance stats for stuck track: {}",
-                track.identifier, audioLossCounter)
+        log.error("Lavaplayer got stuck while playing {}",
+                track.identifier)
     }
 
     fun seekTo(position: Long) {

@@ -94,7 +94,6 @@ public class CommandInitializer {
 
         // Informational / Debugging / Maintenance - always on
         CommandRegistry infoModule = new CommandRegistry(Module.INFO);
-        infoModule.registerCommand(new AudioDebugCommand("adebug"));
         infoModule.registerCommand(new CommandsCommand(COMMANDS_COMM_NAME, "comms", "cmds"));
         infoModule.registerCommand(new DebugCommand("debug"));
         infoModule.registerCommand(new FuzzyUserSearchCommand("fuzzy"));

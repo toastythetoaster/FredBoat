@@ -25,7 +25,6 @@
 
 package fredboat.command.info;
 
-import fredboat.audio.player.AudioLossCounter;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
@@ -33,7 +32,6 @@ import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.definitions.PermissionLevel;
 import fredboat.main.Launcher;
-import fredboat.messaging.CentralMessaging;
 import fredboat.messaging.internal.Context;
 import fredboat.perms.PermsUtil;
 import fredboat.util.TextUtils;
@@ -95,17 +93,6 @@ public class DebugCommand extends Command implements IInfoCommand, ICommandRestr
         if (player.getPlayer() instanceof LavalinkPlayer) {
             content = "State: " + ((LavalinkPlayer) player.getPlayer()).getLink().getState();
         }
-        return eb.addField(title, TextUtils.asCodeBlock(content), false);
-    }
-
-    private EmbedBuilder addAudioDebug(EmbedBuilder eb, GuildPlayer player) {
-        int deficit = AudioLossCounter.EXPECTED_PACKET_COUNT_PER_MIN - (player.getAudioLossCounter().getLastMinuteLoss() + player.getAudioLossCounter().getLastMinuteSuccess());
-
-        String title = "**Audio Debug**";
-        String content
-                = "Packets sent:   " + player.getAudioLossCounter().getLastMinuteSuccess() + "\n"
-                + "Null packets:   " + player.getAudioLossCounter().getLastMinuteLoss() + "\n"
-                + "Packet deficit: " + deficit;
         return eb.addField(title, TextUtils.asCodeBlock(content), false);
     }
 
