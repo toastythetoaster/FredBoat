@@ -1,0 +1,35 @@
+package fredboat.util.rest
+
+import com.fredboat.sentinel.entities.IMessage
+import fredboat.sentinel.RawMesssage
+import okhttp3.Call
+import okhttp3.Callback
+import okhttp3.Response
+import org.json.JSONObject
+import reactor.core.publisher.Mono
+import java.io.IOException
+import java.lang.UnsupportedOperationException
+
+class Webhook(val url: String) {
+    val http = Http(Http.DEFAULT_BUILDER)
+
+    fun send(message: IMessage, username: String? = null, avatarUri: String? = null): Mono<Unit> {
+        if (message !is RawMesssage) throw UnsupportedOperationException("Only RawMessage is supported for now")
+
+        val json = JSONObject()
+        json.put("content", message.content)
+        username?.apply { json.put("username", this) }
+        avatarUri?.apply { json.put("avatar_url", this) }
+        val request = http.post(url, json.toString(), "application/json")
+
+        return Mono.create<Unit> { request.enqueue(object : Callback {
+            override fun onFailure(call: Call?, e: IOException?) {
+                if (e != null) it.error(e) else it.error(RuntimeException("The webhook call failed"))
+            }
+
+            override fun onResponse(call: Call?, response: Response?) {
+                it.success()
+            }
+        })}
+    }
+}

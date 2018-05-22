@@ -25,9 +25,6 @@ import java.util.concurrent.ExecutorService
  */
 @Component
 class BotController(private val configProvider: ConfigPropertiesProvider,
-                    val audioConnectionFacade: AudioConnectionFacade,
-                    //central event listener that all events by all shards pass through
-                    val mainEventListener: EventListenerBoat,
                     val shutdownHandler: ShutdownHandler,
                     val executor: ExecutorService,
                     val playerRegistry: PlayerRegistry,

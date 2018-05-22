@@ -9,9 +9,7 @@ import fredboat.sentinel.User
 class MessageBuilder {
 
     companion object {
-        private val threadLocal = ThreadLocal.withInitial { MessageBuilder() }
-
-        fun getThreadLocal() = threadLocal.get().clear()
+        internal val threadLocal = ThreadLocal.withInitial { MessageBuilder() }
     }
 
     private var builder = StringBuilder()
@@ -75,3 +73,5 @@ class MessageBuilder {
     override fun toString(): String = builder.toString()
 
 }
+
+fun localMessageBuilder() = MessageBuilder.threadLocal.get().clear()
