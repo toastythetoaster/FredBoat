@@ -13,6 +13,8 @@ class MessageBuilder {
     }
 
     private var builder = StringBuilder()
+    val length: Int
+        get() = builder.length
 
     fun append(str: String): MessageBuilder {
         builder.append(str)
