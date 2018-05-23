@@ -34,7 +34,10 @@ import fredboat.commandmeta.MessagingException
 import fredboat.feature.I18n
 import fredboat.perms.IPermissionSet
 import fredboat.perms.PermissionSet
-import fredboat.sentinel.*
+import fredboat.sentinel.Guild
+import fredboat.sentinel.Member
+import fredboat.sentinel.TextChannel
+import fredboat.sentinel.User
 import fredboat.shared.constant.BotConstants
 import fredboat.util.TextUtils
 import kotlinx.coroutines.experimental.reactive.awaitSingle
@@ -160,7 +163,7 @@ abstract class Context {
      * missing permissions for the bot, given there is a channel to reply in.
      */
     suspend fun checkSelfPermissionsWithFeedback(permissions: IPermissionSet): Boolean {
-        val result = Sentinel.INSTANCE.checkPermissions(guild.selfMember, permissions).awaitSingle()
+        val result = guild.sentinel.checkPermissions(guild.selfMember, permissions).awaitSingle()
 
         if (result.passed) return true
         if (result.missingEntityFault) return false // Error
@@ -178,7 +181,7 @@ abstract class Context {
      * missing permissions, given there is a channel to reply in.
      */
     suspend fun checkInvokerPermissionsWithFeedback(permissions: IPermissionSet): Boolean {
-        val result = Sentinel.INSTANCE.checkPermissions(member, permissions).awaitSingle()
+        val result = guild.sentinel.checkPermissions(member, permissions).awaitSingle()
 
         if (result.passed) return true
         if (result.missingEntityFault) return false // Error

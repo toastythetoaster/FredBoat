@@ -23,13 +23,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                private val blockingTemplate: RabbitTemplate) {
 
     companion object {
-        // This may be static abuse. Consider refactoring
-        lateinit var INSTANCE: Sentinel
         private val log: Logger = LoggerFactory.getLogger(Sentinel::class.java)
-    }
-
-    init {
-        INSTANCE = this
     }
 
     val guildCache: LoadingCache<Long, RawGuild> = CacheBuilder

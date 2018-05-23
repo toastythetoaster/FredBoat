@@ -163,7 +163,7 @@ class MessageEventHandler(
     override fun onGuildMessageDelete(channel: TextChannel, messageId: Long) {
         val toDelete = messagesToDeleteIfIdDeleted.getIfPresent(messageId) ?: return
         messagesToDeleteIfIdDeleted.invalidate(toDelete)
-        Sentinel.INSTANCE.deleteMessages(channel, listOf(toDelete)).subscribe()
+        channel.sentinel.deleteMessages(channel, listOf(toDelete)).subscribe()
     }
 
 }

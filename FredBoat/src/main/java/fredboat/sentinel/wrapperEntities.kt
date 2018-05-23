@@ -56,7 +56,7 @@ class Guild(
     val voiceChannelsMap: Map<Long, VoiceChannel>
         get() = voiceChannels.associateBy { it.id }
     val selfMember: Member
-        get() = membersMap[Sentinel.INSTANCE.getApplicationInfo().botId]!!
+        get() = membersMap[sentinel.getApplicationInfo().botId]!!
     val members: List<Member>
         get() = raw.members.map { Member(it.value) }
     val membersMap: Map<Long, Member>
@@ -127,7 +127,7 @@ class Member(val raw: RawMember) : IMentionable, SentinelEntity {
         }
     /** True if this [Member] is our bot */
     val isUs: Boolean
-        get() = id == Sentinel.INSTANCE.getApplicationInfo().botId
+        get() = id == sentinel.getApplicationInfo().botId
     override val asMention: String
         get() = "<@$id>"
     val user: User
@@ -140,18 +140,18 @@ class Member(val raw: RawMember) : IMentionable, SentinelEntity {
 
     fun getPermissions(channel: Channel? = null): Mono<PermissionSet> {
         return when (channel) {
-            null -> Sentinel.INSTANCE.checkPermissions(this, NO_PERMISSIONS)
+            null -> sentinel.checkPermissions(this, NO_PERMISSIONS)
                     .map { PermissionSet(it.effective) }
-            else -> Sentinel.INSTANCE.checkPermissions(channel, this, NO_PERMISSIONS)
+            else -> sentinel.checkPermissions(channel, this, NO_PERMISSIONS)
                     .map { PermissionSet(it.effective) }
         }
     }
 
     fun hasPermission(permissions: IPermissionSet, channel: Channel? = null): Mono<Boolean> {
         return when (channel) {
-            null -> Sentinel.INSTANCE.checkPermissions(this, permissions)
+            null -> sentinel.checkPermissions(this, permissions)
                     .map { it.passed }
-            else -> Sentinel.INSTANCE.checkPermissions(channel, this, permissions)
+            else -> sentinel.checkPermissions(channel, this, permissions)
                     .map { it.passed }
         }
     }
@@ -177,8 +177,8 @@ class User(val raw: RawUser) : IMentionable, SentinelEntity {
     override val asMention: String
         get() = "<@$id>"
 
-    fun sendPrivate(message: String) = Sentinel.INSTANCE.sendPrivateMessage(this, RawMessage(message))
-    fun sendPrivate(message: IMessage) = Sentinel.INSTANCE.sendPrivateMessage(this, message)
+    fun sendPrivate(message: String) = sentinel.sendPrivateMessage(this, RawMessage(message))
+    fun sendPrivate(message: IMessage) = sentinel.sendPrivateMessage(this, message)
 
     override fun equals(other: Any?): Boolean {
         return other is User && id == other.id
@@ -205,15 +205,15 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
             raw.ourEffectivePermissions and permissions.raw == permissions.raw
 
     fun send(str: String): Mono<SendMessageResponse> {
-        return Sentinel.INSTANCE.sendMessage(raw, RawMessage(str))
+        return sentinel.sendMessage(raw, RawMessage(str))
     }
 
     fun send(message: IMessage): Mono<SendMessageResponse> {
-        return Sentinel.INSTANCE.sendMessage(raw, message)
+        return sentinel.sendMessage(raw, message)
     }
 
     fun sendTyping() {
-        Sentinel.INSTANCE.sendTyping(raw)
+        sentinel.sendTyping(raw)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -304,6 +304,6 @@ class Message(val raw: MessageReceivedEvent) : SentinelEntity {
             return list
         }
 
-    fun delete(): Mono<Unit> = Sentinel.INSTANCE.deleteMessages(channel, listOf(id))
+    fun delete(): Mono<Unit> = sentinel.deleteMessages(channel, listOf(id))
 }
 

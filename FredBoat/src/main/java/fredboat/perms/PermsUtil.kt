@@ -29,7 +29,6 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
 import fredboat.sentinel.Member
-import fredboat.sentinel.Sentinel
 import kotlinx.coroutines.experimental.reactive.awaitSingle
 import javax.annotation.CheckReturnValue
 
@@ -39,7 +38,7 @@ import javax.annotation.CheckReturnValue
 object PermsUtil {
 
     suspend fun getPerms(member: Member): PermissionLevel = when {
-        Sentinel.INSTANCE.getApplicationInfo().ownerId == member.id
+        member.sentinel.getApplicationInfo().ownerId == member.id
         -> PermissionLevel.BOT_OWNER // https://fred.moe/Q-EB.png
         isBotAdmin(member)
         -> PermissionLevel.BOT_ADMIN
