@@ -2,7 +2,7 @@ package fredboat.util
 
 import com.fredboat.sentinel.entities.IMessage
 import fredboat.sentinel.IMentionable
-import fredboat.sentinel.RawMesssage
+import fredboat.sentinel.RawMessage
 
 class MessageBuilder {
 
@@ -58,7 +58,7 @@ class MessageBuilder {
         return this
     }
 
-    fun build(): IMessage = RawMesssage(builder.toString())
+    fun build(): IMessage = RawMessage(builder.toString())
 
     override fun toString(): String = builder.toString()
 

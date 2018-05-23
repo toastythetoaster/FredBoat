@@ -19,31 +19,27 @@ typealias RawUser = com.fredboat.sentinel.entities.User
 typealias RawTextChannel = com.fredboat.sentinel.entities.TextChannel
 typealias RawVoiceChannel = com.fredboat.sentinel.entities.VoiceChannel
 typealias RawRole = com.fredboat.sentinel.entities.Role
-typealias RawMesssage = com.fredboat.sentinel.entities.Message
+typealias RawMessage = com.fredboat.sentinel.entities.Message
 
 private val MENTION_PATTERN = Pattern.compile("<@!?([0-9]+)>", Pattern.DOTALL)
 
-// TODO: These classes are rather inefficient. We should cache more things, and we should avoid duplication of Guild entities
-
 @Service
-class EntityWrapperBeanProvider(sentinelParam: Sentinel, appConfigParam: AppConfig) {
-    companion object {
-        lateinit var sentinel: Sentinel
-        lateinit var appConfig: AppConfig
-    }
-
+private class WrapperEntityBeans(appConfigParam: AppConfig) {
     init {
-        sentinel = sentinelParam
         appConfig = appConfigParam
     }
 
 }
 
+private lateinit var appConfig: AppConfig
+
+// TODO: These classes are rather inefficient. We should cache more things, and we should avoid duplication of Guild entities
+
 class Guild(
-        val id: Long
-) {
+        override val id: Long
+) : SentinelEntity {
     val raw: RawGuild
-        get() = Sentinel.INSTANCE.getGuild(id)
+        get() = sentinel.getGuild(id)
     val name: String
         get() = raw.name
     val owner: Member?
@@ -68,7 +64,7 @@ class Guild(
     val roles: List<Role>
         get() = raw.roles.map { Role(it, id) }
     val shardId: Int
-        get() = ((id shr 22) % EntityWrapperBeanProvider.appConfig.shardCount.toLong()).toInt()
+        get() = ((id shr 22) % appConfig.shardCount.toLong()).toInt()
 
     /** This is true if we are present in this [Guild]*/
     val selfPresent: Boolean
@@ -100,8 +96,8 @@ class Guild(
     fun getMember(userId: Long): Member? = membersMap[userId]
 }
 
-class Member(val raw: RawMember) : IMentionable {
-    val id: Long
+class Member(val raw: RawMember) : IMentionable, SentinelEntity {
+    override val id: Long
         get() = raw.id
     val name: String
         get() = raw.name
@@ -169,8 +165,8 @@ class Member(val raw: RawMember) : IMentionable {
     }
 }
 
-class User(val raw: RawUser) : IMentionable {
-    val id: Long
+class User(val raw: RawUser) : IMentionable, SentinelEntity {
+   override val id: Long
         get() = raw.id
     val name: String
         get() = raw.name
@@ -181,7 +177,7 @@ class User(val raw: RawUser) : IMentionable {
     override val asMention: String
         get() = "<@$id>"
 
-    fun sendPrivate(message: String) = Sentinel.INSTANCE.sendPrivateMessage(this, RawMesssage(message))
+    fun sendPrivate(message: String) = Sentinel.INSTANCE.sendPrivateMessage(this, RawMessage(message))
     fun sendPrivate(message: IMessage) = Sentinel.INSTANCE.sendPrivateMessage(this, message)
 
     override fun equals(other: Any?): Boolean {
@@ -209,7 +205,7 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
             raw.ourEffectivePermissions and permissions.raw == permissions.raw
 
     fun send(str: String): Mono<SendMessageResponse> {
-        return Sentinel.INSTANCE.sendMessage(raw, RawMesssage(str))
+        return Sentinel.INSTANCE.sendMessage(raw, RawMessage(str))
     }
 
     fun send(message: IMessage): Mono<SendMessageResponse> {
@@ -229,8 +225,7 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
     }
 
     fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)
-    fun deleteMessage(messageId: Long) =
-            EntityWrapperBeanProvider.sentinel.deleteMessages(this, listOf(messageId))
+    fun deleteMessage(messageId: Long) = sentinel.deleteMessages(this, listOf(messageId))
 }
 
 class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
@@ -260,8 +255,8 @@ class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
     }
 }
 
-class Role(val raw: RawRole, val guildId: Long) : IMentionable {
-    val id: Long
+class Role(val raw: RawRole, val guildId: Long) : IMentionable, SentinelEntity {
+    override val id: Long
         get() = raw.id
     val name: String
         get() = raw.name
@@ -283,8 +278,8 @@ class Role(val raw: RawRole, val guildId: Long) : IMentionable {
     }
 }
 
-class Message(val raw: MessageReceivedEvent) {
-    val id: Long
+class Message(val raw: MessageReceivedEvent) : SentinelEntity {
+    override val id: Long
         get() = raw.id
     val content: String
         get() = raw.content

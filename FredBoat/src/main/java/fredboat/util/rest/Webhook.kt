@@ -1,7 +1,7 @@
 package fredboat.util.rest
 
 import com.fredboat.sentinel.entities.IMessage
-import fredboat.sentinel.RawMesssage
+import fredboat.sentinel.RawMessage
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Response
@@ -14,11 +14,11 @@ class Webhook(val url: String) {
     val http = Http(Http.DEFAULT_BUILDER)
 
     fun send(message: String, username: String? = null, avatarUri: String? = null): Mono<Unit> {
-        return send(RawMesssage(message), username, avatarUri)
+        return send(RawMessage(message), username, avatarUri)
     }
 
     fun send(message: IMessage, username: String? = null, avatarUri: String? = null): Mono<Unit> {
-        if (message !is RawMesssage) throw UnsupportedOperationException("Only RawMessage is supported for now")
+        if (message !is RawMessage) throw UnsupportedOperationException("Only RawMessage is supported for now")
 
         val json = JSONObject()
         json.put("content", message.content)

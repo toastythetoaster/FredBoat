@@ -95,7 +95,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         )
     }
 
-    fun deleteMessages(channel: TextChannel, messages: List<Long>) = Mono.create<Unit> {
+    fun deleteMessages(channel: TextChannel, messages: List<Long>): Mono<Unit> = Mono.create<Unit> {
         val req = MessageDeleteRequest(channel.id, messages)
         template.convertSendAndReceive<Unit>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
                 { _ -> it.success() },
