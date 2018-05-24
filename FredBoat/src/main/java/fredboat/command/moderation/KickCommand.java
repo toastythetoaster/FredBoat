@@ -58,7 +58,6 @@ public class KickCommand extends DiscordModerationCommand<Void> {
 
     @Nonnull
     @Override
-
     protected AuditableRestAction<Void> modAction(@Nonnull ModActionInfo modActionInfo) {
         String auditLogReason = modActionInfo.getFormattedReason();
         Guild guild = modActionInfo.getContext().getGuild();

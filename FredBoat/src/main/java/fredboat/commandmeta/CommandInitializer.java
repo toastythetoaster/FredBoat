@@ -85,7 +85,6 @@ public class CommandInitializer {
         adminModule.registerCommand(new GetNodeCommand("getnode"));
         adminModule.registerCommand(new LeaveServerCommand("leaveserver"));
         adminModule.registerCommand(new NodeAdminCommand("node", "nodes"));
-        adminModule.registerCommand(new PlayerDebugCommand("playerdebug"));
         adminModule.registerCommand(new ReviveCommand("revive"));
         adminModule.registerCommand(new SentryDsnCommand(sentryConfiguration, "sentrydsn"));
         adminModule.registerCommand(new SetAvatarCommand("setavatar"));
