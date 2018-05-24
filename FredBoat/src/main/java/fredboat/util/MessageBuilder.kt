@@ -19,6 +19,11 @@ class MessageBuilder {
         return this
     }
 
+    fun append(bool: Boolean): MessageBuilder {
+        builder.append(bool)
+        return this
+    }
+
     fun italic(str: String): MessageBuilder {
         builder.append("*").append(str).append("*")
         return this
