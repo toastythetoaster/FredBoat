@@ -25,15 +25,11 @@
 
 package fredboat.commandmeta.abs
 
-import fredboat.messaging.internal.Context
+/** This is a [Command] which is intended to be extended by Java commands, which don't work with coroutines */
+abstract class JCommand(name: String, vararg aliases: String) : Command(name, *aliases) {
 
-interface ICommand {
+    override suspend fun invoke(context: CommandContext) = onInvoke(context)
 
-    fun onInvoke(context: CommandContext)
+    abstract fun onInvoke(context: CommandContext)
 
-    /**
-     * @param context Context for where the help is going to be posted, mostly used for i18ning the help string
-     * @return an unformatted help string: convention {0} = prefix, {1} = command, fill these in by the running bot, more parameters can be present
-     */
-    fun help(context: Context): String
 }

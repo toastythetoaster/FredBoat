@@ -25,7 +25,7 @@
 
 package fredboat.command.admin;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -36,7 +36,7 @@ import net.dv8tion.jda.core.entities.Guild;
 
 import javax.annotation.Nonnull;
 
-public class GetNodeCommand extends Command implements ICommandRestricted {
+public class GetNodeCommand extends JCommand implements ICommandRestricted {
 
     public GetNodeCommand(String name, String... aliases) {
         super(name, aliases);

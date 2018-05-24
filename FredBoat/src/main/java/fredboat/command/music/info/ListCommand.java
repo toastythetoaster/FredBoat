@@ -28,7 +28,7 @@ package fredboat.command.music.info;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
 import fredboat.definitions.RepeatMode;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
 import fredboat.main.Launcher;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class ListCommand extends Command implements IMusicCommand {
+public class ListCommand extends JCommand implements IMusicCommand {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ListCommand.class);
 

@@ -26,7 +26,7 @@
 package fredboat.command.util;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.messaging.CentralMessaging;
 import fredboat.messaging.internal.Context;
@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 /**
  * Created by napster on 18.01.18.
  */
-public class RoleInfoCommand extends Command {
+public class RoleInfoCommand extends JCommand {
 
     public RoleInfoCommand(@Nonnull String name, String... aliases) {
         super(name, aliases);

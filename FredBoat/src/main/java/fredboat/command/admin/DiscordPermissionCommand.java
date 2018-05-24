@@ -25,7 +25,7 @@
 
 package fredboat.command.admin;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -47,7 +47,7 @@ import java.util.List;
  *
  * This command is for debugging and FredBoat support staff.
  */
-public class DiscordPermissionCommand extends Command implements ICommandRestricted {
+public class DiscordPermissionCommand extends JCommand implements ICommandRestricted {
 
     public DiscordPermissionCommand(@Nonnull String name, String... aliases) {
         super(name, aliases);

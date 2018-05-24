@@ -31,7 +31,7 @@ import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.player.PlayerLimiter;
 import fredboat.audio.player.VideoSelectionCache;
 import fredboat.audio.player.VideoSelectionCache.VideoSelection;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -52,7 +52,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public class PlayCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class PlayCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PlayCommand.class);
     private final PlayerLimiter playerLimiter;

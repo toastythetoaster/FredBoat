@@ -27,7 +27,7 @@ package fredboat.command.admin;
 
 import fredboat.audio.player.GuildPlayer;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -51,7 +51,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author frederik
  */
-public class AnnounceCommand extends Command implements ICommandRestricted {
+public class AnnounceCommand extends JCommand implements ICommandRestricted {
 
     private static final Logger log = LoggerFactory.getLogger(AnnounceCommand.class);
 

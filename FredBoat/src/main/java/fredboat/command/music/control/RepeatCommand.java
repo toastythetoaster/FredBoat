@@ -27,7 +27,7 @@ package fredboat.command.music.control;
 
 import fredboat.definitions.RepeatMode;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -37,7 +37,7 @@ import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class RepeatCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class RepeatCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public RepeatCommand(String name, String... aliases) {
         super(name, aliases);

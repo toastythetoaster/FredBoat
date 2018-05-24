@@ -1,6 +1,6 @@
 package fredboat.command.info;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.messaging.internal.Context;
@@ -12,7 +12,7 @@ import javax.annotation.Nonnull;
  * Good enough of an indicator of the ping to Discord.
  */
 
-public class PingCommand extends Command implements IInfoCommand {
+public class PingCommand extends JCommand implements IInfoCommand {
 
     public PingCommand(String name, String... aliases) {
         super(name, aliases);

@@ -25,7 +25,7 @@
 
 package fredboat.command.fun;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.main.BotController;
@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
-public class JokeCommand extends Command implements IFunCommand {
+public class JokeCommand extends JCommand implements IFunCommand {
 
     private static final Logger log = LoggerFactory.getLogger(JokeCommand.class);
 

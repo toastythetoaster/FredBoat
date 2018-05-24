@@ -25,7 +25,7 @@
 
 package fredboat.command.fun.img;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.main.BotController;
@@ -35,7 +35,7 @@ import fredboat.messaging.internal.Context;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
-public class CatgirlCommand extends Command implements IFunCommand {
+public class CatgirlCommand extends JCommand implements IFunCommand {
 
     private static final String BASE_URL = "https://nekos.life/api/neko";
 

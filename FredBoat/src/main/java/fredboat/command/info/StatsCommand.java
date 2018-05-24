@@ -28,7 +28,7 @@ package fredboat.command.info;
 import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary;
 import fredboat.agent.FredBoatAgent;
 import fredboat.commandmeta.CommandManager;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.feature.I18n;
@@ -41,9 +41,7 @@ import fredboat.messaging.internal.Context;
 import fredboat.util.AppInfo;
 import fredboat.util.DiscordUtil;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.JDAInfo;
-import net.dv8tion.jda.core.entities.Message;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -51,7 +49,7 @@ import java.text.MessageFormat;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-public class StatsCommand extends Command implements IInfoCommand {
+public class StatsCommand extends JCommand implements IInfoCommand {
 
     public StatsCommand(String name, String... aliases) {
         super(name, aliases);

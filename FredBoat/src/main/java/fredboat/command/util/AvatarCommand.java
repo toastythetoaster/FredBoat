@@ -26,14 +26,14 @@
 package fredboat.command.util;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class AvatarCommand extends Command implements IUtilCommand {
+public class AvatarCommand extends JCommand implements IUtilCommand {
 
     public AvatarCommand(String name, String... aliases) {
         super(name, aliases);

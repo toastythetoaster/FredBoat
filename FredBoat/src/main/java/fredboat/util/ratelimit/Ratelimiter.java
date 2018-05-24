@@ -30,7 +30,7 @@ import fredboat.command.music.control.SkipCommand;
 import fredboat.command.music.info.ExportCommand;
 import fredboat.command.util.WeatherCommand;
 import fredboat.commandmeta.CommandInitializer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.config.property.AppConfig;
 import fredboat.db.api.BlacklistService;
 import fredboat.feature.metrics.Metrics;
@@ -94,14 +94,14 @@ public class Ratelimiter {
         ratelimits.add(new Ratelimit("userExportComm", cacheMetrics, executor, whitelist, Ratelimit.Scope.USER,
                 2, 60000, ExportCommand.class, defaultUserMessage));
         ratelimits.add(new Ratelimit("userAllComms", cacheMetrics, executor, whitelist, Ratelimit.Scope.USER,
-                5, 10000, Command.class, defaultUserMessage));
+                5, 10000, JCommand.class, defaultUserMessage));
 
         ratelimits.add(new Ratelimit("guildWeatherComm", cacheMetrics, executor, whitelist, Ratelimit.Scope.GUILD,
                 30, 180000, WeatherCommand.class, defaultGuildMessage));
         ratelimits.add(new Ratelimit("guildSongsAdded", cacheMetrics, executor, whitelist, Ratelimit.Scope.GUILD,
                 1000, 120000, PlaylistInfo.class, playlistMessage));
         ratelimits.add(new Ratelimit("guildAllComms", cacheMetrics, executor, whitelist, Ratelimit.Scope.GUILD,
-                10, 10000, Command.class, defaultGuildMessage));
+                10, 10000, JCommand.class, defaultGuildMessage));
     }
 
     /**

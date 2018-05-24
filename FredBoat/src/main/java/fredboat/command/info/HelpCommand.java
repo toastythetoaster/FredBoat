@@ -31,7 +31,7 @@ import fredboat.command.config.PrefixCommand;
 import fredboat.command.music.control.SelectCommand;
 import fredboat.commandmeta.CommandInitializer;
 import fredboat.commandmeta.CommandRegistry;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IInfoCommand;
@@ -48,7 +48,7 @@ import javax.annotation.Nullable;
 import java.text.MessageFormat;
 import java.util.concurrent.TimeUnit;
 
-public class HelpCommand extends Command implements IInfoCommand {
+public class HelpCommand extends JCommand implements IInfoCommand {
 
     public static final String LINK_DISCORD_DOCS_IDS = "https://support.discordapp.com/hc/en-us/articles/206346498";
 
@@ -133,7 +133,7 @@ public class HelpCommand extends Command implements IInfoCommand {
         })).send(null);
     }
 
-    public static String getFormattedCommandHelp(Context context, Command command, String commandOrAlias) {
+    public static String getFormattedCommandHelp(Context context, JCommand command, String commandOrAlias) {
         String helpStr = command.help(context);
         //some special needs
         //to display helpful information on some commands: thirdParam = {2} in the language resources
@@ -162,7 +162,7 @@ public class HelpCommand extends Command implements IInfoCommand {
      */
     private static void sendFormattedCommandHelp(@Nonnull CommandContext context, @Nonnull String trigger,
                                                  @Nullable String specificHelpMessage) {
-        Command command = CommandRegistry.findCommand(trigger);
+        JCommand command = CommandRegistry.findCommand(trigger);
         if (command == null) {
             String out = "`" + TextUtils.escapeMarkdown(context.getPrefix()) + trigger + "`: " + context.i18n("helpUnknownCommand");
             out += "\n" + context.i18nFormat("helpCommandsPromotion",

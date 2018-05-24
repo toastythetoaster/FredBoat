@@ -25,7 +25,7 @@
 package fredboat.command.admin;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
  * <p>
  * Lift ratelimit and remove a user from the blacklist
  */
-public class UnblacklistCommand extends Command implements ICommandRestricted {
+public class UnblacklistCommand extends JCommand implements ICommandRestricted {
 
     public UnblacklistCommand(String name, String... aliases) {
         super(name, aliases);

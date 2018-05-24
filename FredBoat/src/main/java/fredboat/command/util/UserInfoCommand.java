@@ -25,7 +25,7 @@
 
 package fredboat.command.util;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.main.Launcher;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 /**
  * Created by midgard on 17/01/20.
  */
-public class UserInfoCommand extends Command implements IUtilCommand {
+public class UserInfoCommand extends JCommand implements IUtilCommand {
 
     public UserInfoCommand(String name, String... aliases) {
         super(name, aliases);

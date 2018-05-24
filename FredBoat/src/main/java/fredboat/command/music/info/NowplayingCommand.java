@@ -34,7 +34,7 @@ import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
 import fredboat.main.BotController;
@@ -53,7 +53,7 @@ import javax.annotation.Nonnull;
 import java.awt.*;
 import java.io.IOException;
 
-public class NowplayingCommand extends Command implements IMusicCommand {
+public class NowplayingCommand extends JCommand implements IMusicCommand {
 
     private final YoutubeAPI youtubeAPI;
 

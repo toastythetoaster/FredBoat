@@ -26,7 +26,7 @@
 package fredboat.command.info;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IInfoCommand;
@@ -43,7 +43,7 @@ import net.dv8tion.jda.core.entities.*;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class DebugCommand extends Command implements IInfoCommand, ICommandRestricted {
+public class DebugCommand extends JCommand implements IInfoCommand, ICommandRestricted {
 
     public DebugCommand(String name, String... aliases) {
         super(name, aliases);

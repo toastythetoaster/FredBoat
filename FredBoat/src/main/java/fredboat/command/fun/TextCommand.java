@@ -25,14 +25,14 @@
 
 package fredboat.command.fun;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class TextCommand extends Command implements IFunCommand {
+public class TextCommand extends JCommand implements IFunCommand {
 
     public String msg;
 

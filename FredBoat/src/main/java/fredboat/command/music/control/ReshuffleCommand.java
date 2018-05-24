@@ -25,7 +25,7 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
  * <p>
  * This command allows its user to request a reshuffle of the shuffled playlist
  */
-public class ReshuffleCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class ReshuffleCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public ReshuffleCommand(String name, String... aliases) {
         super(name, aliases);

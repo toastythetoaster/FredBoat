@@ -26,7 +26,7 @@
 package fredboat.command.util;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.messaging.internal.Context;
@@ -35,7 +35,7 @@ import fredboat.util.TextUtils;
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 
-public class BrainfuckCommand extends Command implements IUtilCommand {
+public class BrainfuckCommand extends JCommand implements IUtilCommand {
 
     public BrainfuckCommand(String name, String... aliases) {
         super(name, aliases);

@@ -26,7 +26,7 @@
 package fredboat.command.admin;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
  *
  * @author frederik
  */
-public class ReviveCommand extends Command implements ICommandRestricted {
+public class ReviveCommand extends JCommand implements ICommandRestricted {
 
     public ReviveCommand(String name, String... aliases) {
         super(name, aliases);

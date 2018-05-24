@@ -30,7 +30,7 @@ import fredboat.audio.player.PlayerLimiter;
 import fredboat.audio.player.PlayerRegistry;
 import fredboat.audio.queue.IdentifierContext;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -40,7 +40,7 @@ import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class PlaySplitCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class PlaySplitCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     private final PlayerLimiter playerLimiter;
 

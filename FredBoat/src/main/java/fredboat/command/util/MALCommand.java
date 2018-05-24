@@ -26,7 +26,7 @@
 package fredboat.command.util;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.feature.metrics.Metrics;
@@ -60,7 +60,7 @@ import java.util.regex.Pattern;
  * Reworking this should also include a cache of some kind.
  */
 @Deprecated
-public class MALCommand extends Command implements IUtilCommand {
+public class MALCommand extends JCommand implements IUtilCommand {
 
     private static final Logger log = LoggerFactory.getLogger(MALCommand.class);
 

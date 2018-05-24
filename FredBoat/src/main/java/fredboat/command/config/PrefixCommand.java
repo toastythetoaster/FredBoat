@@ -28,7 +28,7 @@ package fredboat.command.config;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IConfigCommand;
 import fredboat.db.transfer.Prefix;
@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Created by napster on 19.10.17.
  */
-public class PrefixCommand extends Command implements IConfigCommand {
+public class PrefixCommand extends JCommand implements IConfigCommand {
 
     public PrefixCommand(@Nullable CacheMetricsCollector cacheMetrics, @Nonnull String name, String... aliases) {
         super(name, aliases);

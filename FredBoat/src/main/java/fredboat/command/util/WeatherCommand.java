@@ -1,7 +1,7 @@
 package fredboat.command.util;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.main.Launcher;
@@ -15,7 +15,7 @@ import net.dv8tion.jda.core.EmbedBuilder;
 import javax.annotation.Nonnull;
 import java.text.MessageFormat;
 
-public class WeatherCommand extends Command implements IUtilCommand {
+public class WeatherCommand extends JCommand implements IUtilCommand {
 
     private Weather weather;
     private static final String LOCATION_WEATHER_STRING_FORMAT = "{0} - {1}";

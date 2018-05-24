@@ -26,7 +26,7 @@
 package fredboat.command.admin;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -45,7 +45,7 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 import java.util.concurrent.*;
 
-public class EvalCommand extends Command implements ICommandRestricted {
+public class EvalCommand extends JCommand implements ICommandRestricted {
 
     private static final Logger log = LoggerFactory.getLogger(EvalCommand.class);
 

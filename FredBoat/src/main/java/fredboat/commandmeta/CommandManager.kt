@@ -106,7 +106,7 @@ class CommandManager(private val patronageChecker: PatronageChecker, private val
         }
 
         try {
-            invoked.onInvoke(context)
+            invoked(context)
         } catch (e: Exception) {
             TextUtils.handleException("Caught exception while executing a command", e, context)
         }

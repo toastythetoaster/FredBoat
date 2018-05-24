@@ -25,7 +25,7 @@
 package fredboat.command.info;
 
 import fredboat.command.fun.img.RandomImageCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.messaging.CentralMessaging;
@@ -46,7 +46,7 @@ import java.util.regex.Pattern;
  * <p>
  * Display some git related information
  */
-public class GitInfoCommand extends Command implements IInfoCommand {
+public class GitInfoCommand extends JCommand implements IInfoCommand {
 
     private RandomImageCommand octocats = new RandomImageCommand("https://imgur.com/a/sBkTj", "");
 

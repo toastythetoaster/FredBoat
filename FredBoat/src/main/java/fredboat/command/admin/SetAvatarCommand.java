@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import fredboat.command.info.HelpCommand;
 import fredboat.commandmeta.MessagingException;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -31,7 +31,7 @@ import java.util.Map;
 /**
  * This command allows a bot admin to change the avatar of FredBoat
  */
-public class SetAvatarCommand extends Command implements ICommandRestricted {
+public class SetAvatarCommand extends JCommand implements ICommandRestricted {
 
     private static final Logger log = LoggerFactory.getLogger(SetAvatarCommand.class);
 

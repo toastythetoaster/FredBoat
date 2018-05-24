@@ -25,7 +25,7 @@
 
 package fredboat.command.music.info;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
 import fredboat.main.Launcher;
@@ -35,7 +35,7 @@ import net.dv8tion.jda.core.EmbedBuilder;
 
 import javax.annotation.Nonnull;
 
-public class GensokyoRadioCommand extends Command implements IMusicCommand {
+public class GensokyoRadioCommand extends JCommand implements IMusicCommand {
 
     public GensokyoRadioCommand(String name, String... aliases) {
         super(name, aliases);

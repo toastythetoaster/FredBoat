@@ -3,7 +3,7 @@ package fredboat.command.music.control;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -20,7 +20,7 @@ import net.dv8tion.jda.core.entities.User;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-public class VoteSkipCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class VoteSkipCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     private static Map<String, Long> guildIdToLastSkip = new HashMap<>();
     private static final int SKIP_COOLDOWN = 500;

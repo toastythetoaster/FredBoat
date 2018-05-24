@@ -30,7 +30,7 @@ import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.player.VideoSelectionCache;
 import fredboat.audio.player.VideoSelectionCache.VideoSelection;
 import fredboat.audio.queue.AudioTrackContext;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -48,7 +48,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-public class SelectCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class SelectCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     private final VideoSelectionCache videoSelectionCache;
 

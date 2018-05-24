@@ -26,7 +26,7 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
-public class LeaveCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class LeaveCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     private static final Logger log = LoggerFactory.getLogger(LeaveCommand.class);
     

@@ -25,7 +25,7 @@
 
 package fredboat.command.fun;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.messaging.internal.Context;
@@ -33,7 +33,7 @@ import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
-public class RiotCommand extends Command implements IFunCommand {
+public class RiotCommand extends JCommand implements IFunCommand {
 
     public RiotCommand(String name, String... aliases) {
         super(name, aliases);

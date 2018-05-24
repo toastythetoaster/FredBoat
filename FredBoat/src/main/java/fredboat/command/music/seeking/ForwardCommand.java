@@ -29,7 +29,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -40,7 +40,7 @@ import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
-public class ForwardCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class ForwardCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public ForwardCommand(String name, String... aliases) {
         super(name, aliases);

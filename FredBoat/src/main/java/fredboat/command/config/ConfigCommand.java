@@ -26,7 +26,7 @@
 package fredboat.command.config;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IConfigCommand;
@@ -42,7 +42,7 @@ import net.dv8tion.jda.core.entities.Member;
 
 import javax.annotation.Nonnull;
 
-public class ConfigCommand extends Command implements IConfigCommand, ICommandRestricted {
+public class ConfigCommand extends JCommand implements IConfigCommand, ICommandRestricted {
 
     public ConfigCommand(String name, String... aliases) {
         super(name, aliases);

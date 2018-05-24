@@ -25,7 +25,7 @@
 
 package fredboat.command.fun.img;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.definitions.PermissionLevel;
@@ -54,7 +54,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class RandomImageCommand extends Command implements IFunCommand {
+public class RandomImageCommand extends JCommand implements IFunCommand {
 
 
     private static final Logger log = LoggerFactory.getLogger(RandomImageCommand.class);

@@ -28,7 +28,7 @@ package fredboat.command.fun;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.event.EventListenerBoat;
@@ -46,7 +46,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
-public class DanceCommand extends Command implements IFunCommand {
+public class DanceCommand extends JCommand implements IFunCommand {
 
     private final Function<Guild, ReentrantLock> locks;
 

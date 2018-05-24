@@ -33,7 +33,7 @@ import fredboat.command.music.seeking.RewindCommand;
 import fredboat.command.music.seeking.SeekCommand;
 import fredboat.commandmeta.CommandInitializer;
 import fredboat.commandmeta.CommandRegistry;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.definitions.Module;
@@ -54,7 +54,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MusicHelpCommand extends Command implements IInfoCommand {
+public class MusicHelpCommand extends JCommand implements IInfoCommand {
 
     private static final String HERE = "here";
     private static final String UPDATE = "update";
@@ -157,7 +157,7 @@ public class MusicHelpCommand extends Command implements IInfoCommand {
     }
 
     private static List<String> getSortedMusicComms(Context context) {
-        List<Command> musicCommands = CommandRegistry.getCommandModule(Module.MUSIC).getDeduplicatedCommands();
+        List<JCommand> musicCommands = CommandRegistry.getCommandModule(Module.MUSIC).getDeduplicatedCommands();
 
         //dont explicitly show the youtube and soundcloud commands in this list, since they are just castrated versions
         // of the play command, which is "good enough" for this list
@@ -171,7 +171,7 @@ public class MusicHelpCommand extends Command implements IInfoCommand {
         musicCommands.sort(new MusicCommandsComparator());
 
         List<String> musicComms = new ArrayList<>();
-        for (Command command : musicCommands) {
+        for (JCommand command : musicCommands) {
             String formattedHelp = HelpCommand.getFormattedCommandHelp(context, command, command.getName());
             musicComms.add(formattedHelp);
         }
@@ -188,9 +188,9 @@ public class MusicHelpCommand extends Command implements IInfoCommand {
     /**
      * Sort the commands in a sensible way to display them to the user
      */
-    static class MusicCommandsComparator implements Comparator<Command> {
+    static class MusicCommandsComparator implements Comparator<JCommand> {
 
-        private static final List<? extends Class<? extends Command>> commandOrdering = Arrays.asList(
+        private static final List<? extends Class<? extends JCommand>> commandOrdering = Arrays.asList(
                 PlayCommand.class,
                 ListCommand.class,
                 NowplayingCommand.class,
@@ -218,7 +218,7 @@ public class MusicHelpCommand extends Command implements IInfoCommand {
         );
 
         @Override
-        public int compare(Command o1, Command o2) {
+        public int compare(JCommand o1, JCommand o2) {
             return getCommandRank(o1) - getCommandRank(o2);
         }
 
@@ -226,7 +226,7 @@ public class MusicHelpCommand extends Command implements IInfoCommand {
          * a container of smelly code
          * http://stackoverflow.com/a/2790215
          */
-        private static int getCommandRank(Command c) {
+        private static int getCommandRank(JCommand c) {
             int rank = commandOrdering.indexOf(c.getClass());
 
             if (rank == -1) {

@@ -26,7 +26,7 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -37,7 +37,7 @@ import net.dv8tion.jda.core.entities.VoiceChannel;
 
 import javax.annotation.Nonnull;
 
-public class JoinCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class JoinCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public JoinCommand(String name, String... aliases) {
         super(name, aliases);

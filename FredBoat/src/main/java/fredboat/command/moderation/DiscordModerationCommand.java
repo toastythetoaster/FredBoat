@@ -26,7 +26,7 @@
 package fredboat.command.moderation;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IModerationCommand;
 import fredboat.feature.I18n;
@@ -72,7 +72,7 @@ import java.util.regex.Pattern;
  *
  * @param <T> Class of the return value of the AuditableRestAction of this command
  */
-public abstract class DiscordModerationCommand<T> extends Command implements IModerationCommand {
+public abstract class DiscordModerationCommand<T> extends JCommand implements IModerationCommand {
 
     private static final Logger log = LoggerFactory.getLogger(DiscordModerationCommand.class);
 

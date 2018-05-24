@@ -27,7 +27,7 @@ package fredboat.command.music.info;
 
 import fredboat.audio.player.GuildPlayer;
 import fredboat.commandmeta.MessagingException;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
 import fredboat.main.Launcher;
@@ -37,7 +37,7 @@ import fredboat.util.TextUtils;
 import javax.annotation.Nonnull;
 import java.util.stream.Collectors;
 
-public class ExportCommand extends Command implements IMusicCommand {
+public class ExportCommand extends JCommand implements IMusicCommand {
 
     public ExportCommand(String name, String... aliases) {
         super(name, aliases);

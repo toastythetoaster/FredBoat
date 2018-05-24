@@ -28,7 +28,7 @@ package fredboat.command.config;
 import fredboat.command.info.HelpCommand;
 import fredboat.commandmeta.CommandInitializer;
 import fredboat.commandmeta.CommandRegistry;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IConfigCommand;
 import fredboat.db.transfer.GuildModules;
@@ -50,7 +50,7 @@ import static fredboat.util.AsciiArtConstant.MAGICAL_LENNY;
  * <p>
  * Turn modules on and off
  */
-public class ModulesCommand extends Command implements IConfigCommand {
+public class ModulesCommand extends JCommand implements IConfigCommand {
 
     public ModulesCommand(@Nonnull String name, String... aliases) {
         super(name, aliases);

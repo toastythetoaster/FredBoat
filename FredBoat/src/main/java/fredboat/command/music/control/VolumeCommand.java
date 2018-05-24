@@ -28,7 +28,7 @@ package fredboat.command.music.control;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.player.PlayerRegistry;
 import fredboat.commandmeta.MessagingException;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -41,7 +41,7 @@ import fredboat.shared.constant.BotConstants;
 import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
-public class VolumeCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class VolumeCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public VolumeCommand(String name, String... aliases) {
         super(name, aliases);

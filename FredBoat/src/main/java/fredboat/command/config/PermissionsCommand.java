@@ -26,7 +26,7 @@
 package fredboat.command.config;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IConfigCommand;
 import fredboat.db.transfer.GuildPermissions;
@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class PermissionsCommand extends Command implements IConfigCommand {
+public class PermissionsCommand extends JCommand implements IConfigCommand {
 
     public final PermissionLevel permissionLevel;
 

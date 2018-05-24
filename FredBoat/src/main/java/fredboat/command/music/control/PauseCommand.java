@@ -26,7 +26,7 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -37,7 +37,7 @@ import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
-public class PauseCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class PauseCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public PauseCommand(String name, String... aliases) {
         super(name, aliases);

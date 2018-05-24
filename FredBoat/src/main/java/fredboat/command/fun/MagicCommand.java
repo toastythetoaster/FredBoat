@@ -25,7 +25,7 @@
 
 package fredboat.command.fun;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.messaging.internal.Context;
@@ -37,7 +37,7 @@ import javax.annotation.Nonnull;
 /**
  * Created by napster on 24.12.17.
  */
-public class MagicCommand extends Command implements IFunCommand {
+public class MagicCommand extends JCommand implements IFunCommand {
     public MagicCommand(@Nonnull String name, String... aliases) {
         super(name, aliases);
     }

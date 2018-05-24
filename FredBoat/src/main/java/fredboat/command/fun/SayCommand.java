@@ -25,7 +25,7 @@
 package fredboat.command.fun;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.event.EventListenerBoat;
@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
  *
  * @author frederik
  */
-public class SayCommand extends Command implements IFunCommand {
+public class SayCommand extends JCommand implements IFunCommand {
 
     public SayCommand(String name, String... aliases) {
         super(name, aliases);

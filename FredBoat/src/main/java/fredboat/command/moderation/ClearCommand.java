@@ -25,7 +25,7 @@
 
 package fredboat.command.moderation;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IModerationCommand;
 import fredboat.feature.metrics.Metrics;
@@ -44,7 +44,7 @@ import javax.annotation.Nonnull;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 
-public class ClearCommand extends Command implements IModerationCommand {
+public class ClearCommand extends JCommand implements IModerationCommand {
 
     public ClearCommand(String name, String... aliases) {
         super(name, aliases);

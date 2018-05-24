@@ -25,7 +25,7 @@
 
 package fredboat.command.config;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IConfigCommand;
 import fredboat.config.property.AppConfig;
@@ -43,7 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class LanguageCommand extends Command implements IConfigCommand {
+public class LanguageCommand extends JCommand implements IConfigCommand {
 
     public LanguageCommand(String name, String... aliases) {
         super(name, aliases);

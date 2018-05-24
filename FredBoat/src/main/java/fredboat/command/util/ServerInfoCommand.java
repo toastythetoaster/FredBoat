@@ -25,7 +25,7 @@
 
 package fredboat.command.util;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.messaging.CentralMessaging;
@@ -42,7 +42,7 @@ import java.time.format.DateTimeFormatter;
 /**
  * Created by midgard/Chromaryu/knight-ryu12 on 17/01/18.
  */
-public class ServerInfoCommand extends Command implements IUtilCommand {
+public class ServerInfoCommand extends JCommand implements IUtilCommand {
 
     public ServerInfoCommand(String name, String... aliases) {
         super(name, aliases);

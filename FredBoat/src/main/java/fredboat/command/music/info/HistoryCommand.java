@@ -27,7 +27,7 @@ package fredboat.command.music.info;
 
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
 import fredboat.main.Launcher;
@@ -41,7 +41,7 @@ import javax.annotation.Nonnull;
 import java.text.MessageFormat;
 import java.util.List;
 
-public class HistoryCommand extends Command implements IMusicCommand {
+public class HistoryCommand extends JCommand implements IMusicCommand {
 
   private static final int PAGE_SIZE = 10;
 

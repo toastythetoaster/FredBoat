@@ -27,7 +27,7 @@ package fredboat.command.info;
 
 import fredboat.command.config.PrefixCommand;
 import fredboat.commandmeta.CommandInitializer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.main.Launcher;
@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
 /**
  * Created by napster on 23.01.18.
  */
-public class HelloCommand extends Command implements IInfoCommand {
+public class HelloCommand extends JCommand implements IInfoCommand {
 
     public HelloCommand(@Nonnull String name, String... aliases) {
         super(name, aliases);

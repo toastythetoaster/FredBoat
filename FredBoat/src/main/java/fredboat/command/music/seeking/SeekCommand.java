@@ -28,7 +28,7 @@ package fredboat.command.music.seeking;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -39,7 +39,7 @@ import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
-public class SeekCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class SeekCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public SeekCommand(String name, String... aliases) {
         super(name, aliases);

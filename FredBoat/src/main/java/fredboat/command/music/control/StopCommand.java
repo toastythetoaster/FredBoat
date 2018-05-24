@@ -26,7 +26,7 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -36,7 +36,7 @@ import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class StopCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class StopCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public StopCommand(String name, String... aliases) {
         super(name, aliases);

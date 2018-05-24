@@ -28,7 +28,7 @@ package fredboat.command.info;
 import fredboat.command.music.control.DestroyCommand;
 import fredboat.commandmeta.CommandInitializer;
 import fredboat.commandmeta.CommandRegistry;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IInfoCommand;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * <p>
  * Display available commands
  */
-public class CommandsCommand extends Command implements IInfoCommand {
+public class CommandsCommand extends JCommand implements IInfoCommand {
 
     public CommandsCommand(String name, String... aliases) {
         super(name, aliases);
@@ -111,7 +111,7 @@ public class CommandsCommand extends Command implements IInfoCommand {
     private EmbedBuilder addModuleCommands(@Nonnull EmbedBuilder embedBuilder, @Nonnull CommandContext context,
                                            @Nonnull CommandRegistry module) {
 
-        List<Command> commands = module.getDeduplicatedCommands()
+        List<JCommand> commands = module.getDeduplicatedCommands()
                 .stream()
                 //do not show BOT_ADMIN or BOT_OWNER commands to users lower than that
                 .filter(command -> {
@@ -133,7 +133,7 @@ public class CommandsCommand extends Command implements IInfoCommand {
             sbs[1] = new StringBuilder();
             sbs[2] = new StringBuilder();
             int i = 0;
-            for (Command c : commands) {
+            for (JCommand c : commands) {
                 if (c instanceof DestroyCommand) {
                     continue;//dont want to publicly show this one
                 }
@@ -147,7 +147,7 @@ public class CommandsCommand extends Command implements IInfoCommand {
                     ;
         } else {
             StringBuilder sb = new StringBuilder();
-            for (Command c : commands) {
+            for (JCommand c : commands) {
                 sb.append(prefix).append(c.getName()).append("\n");
             }
             return embedBuilder

@@ -26,7 +26,7 @@
 package fredboat.command.music.seeking;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -37,7 +37,7 @@ import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
-public class RestartCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class RestartCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public RestartCommand(String name, String... aliases) {
         super(name, aliases);

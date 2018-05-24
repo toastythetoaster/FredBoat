@@ -25,7 +25,7 @@
 
 package fredboat.command.info;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.main.Launcher;
@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class ShardsCommand extends Command implements IInfoCommand {
+public class ShardsCommand extends JCommand implements IInfoCommand {
 
     private static final int SHARDS_PER_MESSAGE = 30;
 

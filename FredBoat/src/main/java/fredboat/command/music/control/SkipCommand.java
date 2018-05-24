@@ -28,7 +28,7 @@ package fredboat.command.music.control;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
@@ -46,7 +46,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class SkipCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class SkipCommand extends JCommand implements IMusicCommand, ICommandRestricted {
     private static final String TRACK_RANGE_REGEX = "^(0?\\d+)-(0?\\d+)$";
     private static final Pattern trackRangePattern = Pattern.compile(TRACK_RANGE_REGEX);
 

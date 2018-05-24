@@ -26,7 +26,7 @@
 package fredboat.command.util;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.messaging.internal.Context;
@@ -43,7 +43,7 @@ import static java.lang.Math.sqrt;
  * Does ~~magic~~ math
  * Okay, this was kinda hard, but it was a good learning experience, thanks Shredder <3
  */
-public class MathCommand extends Command implements IUtilCommand {
+public class MathCommand extends JCommand implements IUtilCommand {
 
     private static final BigDecimal HUNDRED = new BigDecimal("100");
 

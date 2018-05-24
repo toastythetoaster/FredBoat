@@ -25,7 +25,7 @@
 
 package fredboat.command.admin;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 import java.util.function.Consumer;
 
 
-public class LeaveServerCommand extends Command implements ICommandRestricted {
+public class LeaveServerCommand extends JCommand implements ICommandRestricted {
 
     private static final Logger log = LoggerFactory.getLogger(LeaveServerCommand.class);
 

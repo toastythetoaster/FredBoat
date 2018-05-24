@@ -25,7 +25,7 @@
 
 package fredboat.command.info;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.main.Launcher;
@@ -37,7 +37,7 @@ import net.dv8tion.jda.core.entities.User;
 
 import javax.annotation.Nonnull;
 
-public class InviteCommand extends Command implements IInfoCommand {
+public class InviteCommand extends JCommand implements IInfoCommand {
 
     public InviteCommand(String name, String... aliases) {
         super(name, aliases);

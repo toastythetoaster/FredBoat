@@ -25,7 +25,7 @@
 
 package fredboat.command.admin;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author frederik
  */
-public class ExitCommand extends Command implements ICommandRestricted {
+public class ExitCommand extends JCommand implements ICommandRestricted {
 
     public ExitCommand(String name, String... aliases) {
         super(name, aliases);

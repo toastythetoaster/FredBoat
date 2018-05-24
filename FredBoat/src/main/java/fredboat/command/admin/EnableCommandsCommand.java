@@ -28,7 +28,7 @@ package fredboat.command.admin;
 import fredboat.command.info.HelpCommand;
 import fredboat.commandmeta.CommandManager;
 import fredboat.commandmeta.CommandRegistry;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.definitions.PermissionLevel;
@@ -36,7 +36,7 @@ import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class EnableCommandsCommand extends Command implements ICommandRestricted {
+public class EnableCommandsCommand extends JCommand implements ICommandRestricted {
 
     public EnableCommandsCommand(String name, String... aliases) {
         super(name, aliases);
@@ -46,7 +46,7 @@ public class EnableCommandsCommand extends Command implements ICommandRestricted
     public void onInvoke(@Nonnull CommandContext context) {
 
         if (context.hasArguments()) {
-            Command command = CommandRegistry.findCommand(context.getArgs()[0]);
+            JCommand command = CommandRegistry.findCommand(context.getArgs()[0]);
             if (command == null) {
                 context.reply("This command doesn't exist!");
                 return;
