@@ -34,10 +34,7 @@ import fredboat.commandmeta.MessagingException
 import fredboat.feature.I18n
 import fredboat.perms.IPermissionSet
 import fredboat.perms.PermissionSet
-import fredboat.sentinel.Guild
-import fredboat.sentinel.Member
-import fredboat.sentinel.TextChannel
-import fredboat.sentinel.User
+import fredboat.sentinel.*
 import fredboat.shared.constant.BotConstants
 import fredboat.util.TextUtils
 import kotlinx.coroutines.experimental.reactive.awaitSingle
@@ -69,12 +66,14 @@ abstract class Context {
     val prefix: String
         get() = PrefixCommand.giefPrefix(guild)
 
+    val sentinel: Sentinel
+        get() = guild.sentinel
+
     // ********************************************************************************
     //                         Internal context stuff
     // ********************************************************************************
 
     private var i18n: ResourceBundle? = null
-
 
     // ********************************************************************************
     //                         Convenience reply methods
