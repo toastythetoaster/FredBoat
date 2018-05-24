@@ -43,8 +43,18 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     })
             )
 
-    fun sendAndForget(obj: Any) {
-        template.convertSendAndReceive<Any>(QueueNames.SENTINEL_REQUESTS_QUEUE, obj)
+    fun sendAndForget(request: Any) {
+        template.convertSendAndReceive<Any>(QueueNames.SENTINEL_REQUESTS_QUEUE, request)
+    }
+
+    fun <T> send(request: Any) = Mono.create<T> {
+        template.convertSendAndReceive<T>(request)
+                .addCallback(
+                        { res ->
+                            if (res != null) it.success(res) else it.success()
+                        },
+                        { exc -> it.error(exc) }
+                )
     }
 
     fun getGuilds(shard: Shard): Flux<RawGuild> = Flux.create {
