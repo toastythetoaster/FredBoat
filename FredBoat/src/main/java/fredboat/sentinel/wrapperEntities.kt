@@ -12,6 +12,8 @@ import fredboat.perms.PermissionSet
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.util.regex.Pattern
+import java.util.stream.Stream
+import kotlin.streams.toList
 
 typealias RawGuild = com.fredboat.sentinel.entities.Guild
 typealias RawMember = com.fredboat.sentinel.entities.Member
@@ -21,7 +23,8 @@ typealias RawVoiceChannel = com.fredboat.sentinel.entities.VoiceChannel
 typealias RawRole = com.fredboat.sentinel.entities.Role
 typealias RawMessage = com.fredboat.sentinel.entities.Message
 
-private val MENTION_PATTERN = Pattern.compile("<@!?([0-9]+)>", Pattern.DOTALL)
+private val MEMBER_MENTION_PATTERN = Pattern.compile("<@!?([0-9]+)>", Pattern.DOTALL)
+private val CHANNEL_MENTION_PATTERN = Pattern.compile("<#([0-9]+)>", Pattern.DOTALL)
 
 @Service
 private class WrapperEntityBeans(appConfigParam: AppConfig) {
@@ -289,19 +292,21 @@ class Message(val raw: MessageReceivedEvent) : SentinelEntity {
     val channel: TextChannel
         get() = TextChannel(raw.channel, raw.guildId)
     val mentionedMembers: List<Member>
-        get() {
-            // Technically one could mention someone who isn't a member of the guild,
-            // but we don't really care for that
-
-            val matcher = MENTION_PATTERN.matcher(content)
-            val list = mutableListOf<Member>()
-            val members = guild.membersMap
-            while (matcher.find()) {
-                members[matcher.group(1).toLong()]?.let { list.add(it) }
-            }
-
-            return list
-        }
+    // Technically one could mention someone who isn't a member of the guild,
+    // but we don't really care for that
+        get() = MEMBER_MENTION_PATTERN.matcher(content)
+                .results()
+                .flatMap<Member> {
+                    Stream.ofNullable(guild.getMember(it.group(1).toLong()))
+                }
+                .toList()
+    val mentionedChannels: List<TextChannel>
+        get() = CHANNEL_MENTION_PATTERN.matcher(content)
+                .results()
+                .flatMap<TextChannel> {
+                    Stream.ofNullable(guild.getTextChannel(it.group(1).toLong()))
+                }
+                .toList()
 
     fun delete(): Mono<Unit> = sentinel.deleteMessages(channel, listOf(id))
 }

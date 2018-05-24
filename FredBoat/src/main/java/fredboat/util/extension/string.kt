@@ -9,3 +9,6 @@ fun String.escapeAndDefuse() = TextUtils.escapeAndDefuse(this)
 fun String.defuse() = TextUtils.defuse(this)
 fun String.shorten(size: Int) = TextUtils.shorten(this, size)
 fun String.isSplitSelect() = TextUtils.isSplitSelect(this)
+
+fun String.escapeMarkdown() = TextUtils.escapeMarkdown(this)
+fun String.escapeBackticks() = TextUtils.escapeBackticks(this)
