@@ -28,7 +28,6 @@ private class WrapperEntityBeans(appConfigParam: AppConfig) {
     init {
         appConfig = appConfigParam
     }
-
 }
 
 private lateinit var appConfig: AppConfig
