@@ -77,7 +77,7 @@ public class HelloCommand extends JCommand implements IInfoCommand {
     public static String getHello(@Nonnull Guild guild) {
         String prefix = Launcher.getBotController().getAppConfig().getPrefix();
         try {
-            prefix = PrefixCommand.giefPrefix(guild);
+            prefix = PrefixCommand.Companion.giefPrefix(guild);
         } catch (Exception ignored) {
         }
 
