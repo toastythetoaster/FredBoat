@@ -28,9 +28,10 @@ package fredboat.command.admin;
 import fredboat.command.info.HelpCommand;
 import fredboat.commandmeta.CommandManager;
 import fredboat.commandmeta.CommandRegistry;
-import fredboat.commandmeta.abs.JCommand;
+import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
 import fredboat.messaging.internal.Context;
 
@@ -46,7 +47,7 @@ public class EnableCommandsCommand extends JCommand implements ICommandRestricte
     public void onInvoke(@Nonnull CommandContext context) {
 
         if (context.hasArguments()) {
-            JCommand command = CommandRegistry.findCommand(context.getArgs()[0]);
+            Command command = CommandRegistry.findCommand(context.getArgs()[0]);
             if (command == null) {
                 context.reply("This command doesn't exist!");
                 return;
