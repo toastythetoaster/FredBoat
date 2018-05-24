@@ -47,6 +47,8 @@ public class CatgirlCommand extends JCommand implements IFunCommand {
     public void onInvoke(@Nonnull CommandContext context) {
         context.sendTyping();
         Launcher.getBotController().getExecutor().submit(() -> postCatgirl(context));
+
+        // TODO: Post lewd catgirls from the API in NSFW chat
     }
 
     private void postCatgirl(CommandContext context) {

@@ -61,7 +61,7 @@ class MessageEventHandler(
     companion object {
         private val log: Logger = LoggerFactory.getLogger(MessageEventHandler::class.java)
         // messageId <-> messageId
-        private val messagesToDeleteIfIdDeleted = CacheBuilder.newBuilder()
+        val messagesToDeleteIfIdDeleted = CacheBuilder.newBuilder()
                 .recordStats()
                 .expireAfterWrite(6, TimeUnit.HOURS)
                 .build<Long, Long>()
