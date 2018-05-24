@@ -307,6 +307,8 @@ class Message(val raw: MessageReceivedEvent) : SentinelEntity {
                     Stream.ofNullable(guild.getTextChannel(it.group(1).toLong()))
                 }
                 .toList()
+    val attachments: List<String>
+        get() = raw.attachments
 
     fun delete(): Mono<Unit> = sentinel.deleteMessages(channel, listOf(id))
 }

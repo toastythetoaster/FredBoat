@@ -92,7 +92,7 @@ public class TextUtils {
     }
 
     public static String prefaceWithMention(Member member, String msg) {
-        return member.asMention()
+        return member.getAsMention()
                 + ": "
                 + ensureSpace(msg);
     }

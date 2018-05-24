@@ -1,21 +1,20 @@
 package fredboat.command.admin;
 
+import com.fredboat.sentinel.entities.SetAvatarRequest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import fredboat.command.info.HelpCommand;
 import fredboat.commandmeta.MessagingException;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.feature.metrics.Metrics;
 import fredboat.main.BotController;
-import fredboat.messaging.CentralMessaging;
 import fredboat.messaging.internal.Context;
 import fredboat.util.rest.Http;
-import net.dv8tion.jda.core.entities.Icon;
-import net.dv8tion.jda.core.entities.Message.Attachment;
 import okhttp3.Response;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Base64;
 import java.util.Map;
 
 /**
@@ -57,7 +57,7 @@ public class SetAvatarCommand extends JCommand implements ICommandRestricted {
             .build();
 
     private static Map.Entry<String, URI> entry(String name, /*relative*/ URI file) {
-        if (!checkRelativeToBrandingDir(file)) {
+        if (isNotRelativeToBrandingDir(file)) {
             log.error("An avatar is not relative",
                     new IllegalArgumentException(String.format("%s (%s) is not relative", name, file)));
         }
@@ -68,11 +68,11 @@ public class SetAvatarCommand extends JCommand implements ICommandRestricted {
     }
 
     @CheckReturnValue
-    private static boolean checkRelativeToBrandingDir(URI uri) {
+    private static boolean isNotRelativeToBrandingDir(URI uri) {
         URI resolve = BRANDING_DIR.resolve(uri);
 
         //if the relative form of the resolved URI is equal to the original, the original was relative as well
-        return BRANDING_DIR.relativize(resolve).equals(uri);
+        return !BRANDING_DIR.relativize(resolve).equals(uri);
     }
 
     public SetAvatarCommand(String name, String... aliases) {
@@ -85,8 +85,8 @@ public class SetAvatarCommand extends JCommand implements ICommandRestricted {
 
         try {
             if (!context.getMsg().getAttachments().isEmpty()) {
-                Attachment attachment = context.getMsg().getAttachments().get(0);
-                imageUrl = new URI(attachment.getUrl());
+                String attachment = context.getMsg().getAttachments().get(0);
+                imageUrl = new URI(attachment);
             } else if (context.hasArguments()) {
                 imageUrl = AVATARS.containsKey(context.getArgs()[0]) ? AVATARS.get(context.getArgs()[0]) : new URI(context.getArgs()[0]);
             }
@@ -100,12 +100,12 @@ public class SetAvatarCommand extends JCommand implements ICommandRestricted {
 
                 // clear off the 'scheme'
                 imageUrl = URI.create(imageUrl.getSchemeSpecificPart());
-                if (!checkRelativeToBrandingDir(imageUrl)) {
+                if (isNotRelativeToBrandingDir(imageUrl)) {
                     throw new MessagingException("url is not relative");
                 }
                 imageUrl = BRANDING_DIR.resolve(imageUrl);
             }
-            Icon avatar;
+            byte[] avatar;
             switch (imageUrl.getScheme()) {
                 case "http":
                 case "https":
@@ -126,12 +126,12 @@ public class SetAvatarCommand extends JCommand implements ICommandRestricted {
         HelpCommand.sendFormattedCommandHelp(context);
     }
 
-    private static Icon fetchRemote(URI uri) {
+    private static byte[] fetchRemote(URI uri) {
         try (Response response = BotController.Companion.getHTTP().get(uri.toString()).execute()) {
             if (Http.isImage(response)) {
                 //noinspection ConstantConditions
                 InputStream avatarData = response.body().byteStream();
-                return Icon.from(avatarData);
+                return IOUtils.toByteArray(avatarData);
             } else {
                 throw new IOException("Provided link/attachment is not an image.");
             }
@@ -140,25 +140,19 @@ public class SetAvatarCommand extends JCommand implements ICommandRestricted {
         }
     }
 
-    private static Icon fetchFile(URI resource) {
+    private static byte[] fetchFile(URI resource) {
         try {
-            return Icon.from(new File(resource));
+            return FileUtils.readFileToByteArray(new File(resource));
         } catch (IOException e) {
-            throw new MessagingException("Not a valid image.");
+            throw new MessagingException("Not a valid file.");
         }
     }
 
-    private void setBotAvatar(CommandContext context, Icon icon) {
-        context.getGuild().getJDA().getSelfUser().getManager().setAvatar(icon)
-                .queue(__ -> {
-                            Metrics.successfulRestActions.labels("setAvatar").inc();
-                            context.reply("Avatar has been set successfully!");
-                        },
-                        t -> {
-                            CentralMessaging.getJdaRestActionFailureHandler("Failed to set avatar").accept(t);
-                            context.reply("Error setting avatar. Please try again later.");
-                        }
-                );
+    private void setBotAvatar(CommandContext context, byte[] binary) {
+        String encoded = Base64.getEncoder().encodeToString(binary);
+        context.getSentinel().send(new SetAvatarRequest(encoded))
+                .doOnError(throwable -> context.reply("Error setting avatar. Please try again later."))
+                .subscribe(__ -> context.reply("Avatar has been set successfully!"));
     }
 
     @Nonnull
