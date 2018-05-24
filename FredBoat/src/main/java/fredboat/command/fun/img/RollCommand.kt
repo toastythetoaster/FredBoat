@@ -23,31 +23,22 @@
  *
  */
 
-package fredboat.command.fun.img;
+package fredboat.command.`fun`.img
 
-import fredboat.commandmeta.abs.CommandContext;
-import fredboat.commandmeta.abs.IFunCommand;
-import fredboat.messaging.internal.Context;
+import fredboat.commandmeta.abs.CommandContext
+import fredboat.commandmeta.abs.IFunCommand
+import fredboat.messaging.internal.Context
 
-import javax.annotation.Nonnull;
+class RollCommand(imgurAlbumUrl: String, name: String, vararg aliases: String) : RandomImageCommand(imgurAlbumUrl, name, *aliases), IFunCommand {
 
-public class RollCommand extends RandomImageCommand implements IFunCommand {
-
-    public RollCommand(String imgurAlbumUrl, String name, String... aliases) {
-        super(imgurAlbumUrl, name, aliases);
+    override suspend fun invoke(context: CommandContext) {
+        val rollMessage = ("_"
+                + context.i18nFormat("rollSuccess", context.member.asMention)
+                + "_")
+        context.replyImage(super.randomImageUrl, rollMessage)
     }
 
-    @Override
-    public void onInvoke(@Nonnull CommandContext context) {
-        String rollMessage = "_"
-                + context.i18nFormat("rollSuccess", context.getMember().getAsMention())
-                + "_";
-        context.replyImage(super.getRandomImageUrl(), rollMessage);
-    }
-
-    @Nonnull
-    @Override
-    public String help(@Nonnull Context context) {
-        return "{0}{1}\n#Roll around.";
+    override fun help(context: Context): String {
+        return "{0}{1}\n#Roll around."
     }
 }

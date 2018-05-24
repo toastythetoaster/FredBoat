@@ -29,11 +29,12 @@ import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 /**
  * Created by napster on 30.04.17.
  * <p>
- * Hug someone. Thx to Rube Rose for collecting the hug gifs.
+ * Hug someone. Thx to Ruby Rose for collecting the hug gifs.
  */
 public class HugCommand extends RandomImageCommand implements IFunCommand {
 
@@ -45,7 +46,7 @@ public class HugCommand extends RandomImageCommand implements IFunCommand {
     public void onInvoke(@Nonnull CommandContext context) {
         String hugMessage = null;
         if (!context.getMentionedMembers().isEmpty()) {
-            if (context.getMentionedMembers().get(0).getIdLong() == context.getGuild().getJDA().getSelfUser().getIdLong()) {
+            if (context.getMentionedMembers().get(0).getId() == context.getGuild().getSelfMember().getId()) {
                 hugMessage = context.i18n("hugBot");
             } else {
                 hugMessage = "_"
@@ -53,7 +54,7 @@ public class HugCommand extends RandomImageCommand implements IFunCommand {
                         + "_";
             }
         }
-        context.replyImage(super.getRandomImageUrl(), hugMessage);
+        context.replyImage(super.getRandomImageUrl(), Objects.requireNonNull(hugMessage));
     }
 
     @Nonnull

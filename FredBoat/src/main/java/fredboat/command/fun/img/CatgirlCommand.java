@@ -53,7 +53,7 @@ public class CatgirlCommand extends JCommand implements IFunCommand {
 
         try {
             String nekoUrl = BotController.Companion.getHTTP().get(BASE_URL).asJson().getString("neko");
-            context.replyImage(nekoUrl);
+            context.replyImage(nekoUrl, "");
         } catch (IOException e) {
             context.reply(context.i18nFormat("catgirlFail", BASE_URL));
         }

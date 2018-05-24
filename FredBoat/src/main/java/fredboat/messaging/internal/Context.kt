@@ -66,6 +66,11 @@ abstract class Context {
     val prefix: String
         get() = PrefixCommand.giefPrefix(guild)
 
+    /** Convenience method */
+    val selfMember: Member
+        get() = guild.selfMember
+
+    /** Convenience method */
     val sentinel: Sentinel
         get() = guild.sentinel
 

@@ -43,7 +43,7 @@ public class RemoteFileCommand extends JCommand implements IFunCommand {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        context.replyImage(url, null);
+        context.replyImage(url, "");
     }
 
     @Nonnull

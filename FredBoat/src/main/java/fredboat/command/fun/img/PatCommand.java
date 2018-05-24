@@ -30,6 +30,7 @@ import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class PatCommand extends RandomImageCommand implements IFunCommand {
 
@@ -41,7 +42,7 @@ public class PatCommand extends RandomImageCommand implements IFunCommand {
     public void onInvoke(@Nonnull CommandContext context) {
         String patMessage = null;
         if (!context.getMentionedMembers().isEmpty()) {
-            if (context.getMentionedMembers().get(0).getIdLong() == context.getMsg().getJDA().getSelfUser().getIdLong()) {
+            if (context.getMentionedMembers().get(0).getId() == context.getSelfMember().getId()) {
                 patMessage = context.i18n("patBot");
             } else {
                 patMessage = "_"
@@ -49,7 +50,7 @@ public class PatCommand extends RandomImageCommand implements IFunCommand {
                         + "_";
             }
         }
-        context.replyImage(super.getRandomImageUrl(), patMessage);
+        context.replyImage(super.getRandomImageUrl(), Objects.requireNonNull(patMessage));
     }
 
     @Nonnull
