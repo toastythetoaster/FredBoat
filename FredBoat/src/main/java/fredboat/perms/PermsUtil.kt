@@ -111,7 +111,7 @@ object PermsUtil {
             if (id == member.id.toString()) return true
 
             val role = member.guild.getRole(id.toLong())
-            if (role != null && (role.publicRole || member.roles.contains(role)))
+            if (role != null && (role.isPublicRole || member.roles.contains(role)))
                 return true
         }
 

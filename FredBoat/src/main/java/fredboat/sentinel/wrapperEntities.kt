@@ -130,6 +130,8 @@ class Member(val raw: RawMember) : IMentionable, SentinelEntity {
     /** True if this [Member] is our bot */
     val isUs: Boolean
         get() = id == sentinel.getApplicationInfo().botId
+    val avatarUrl: String
+        get() = TODO("Not being sent by Sentinel yet")
     override val asMention: String
         get() = "<@$id>"
     val user: User
@@ -266,7 +268,7 @@ class Role(val raw: RawRole, val guildId: Long) : IMentionable, SentinelEntity {
         get() = PermissionSet(raw.permissions)
     val guild: Guild
         get() = Guild(guildId)
-    val publicRole: Boolean // The @everyone role shares the ID of the guild
+    val isPublicRole: Boolean // The @everyone role shares the ID of the guild
         get() = id == guildId
     override val asMention: String
         get() = "<@$id>"
