@@ -25,17 +25,16 @@
 package fredboat.command.fun;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
-import fredboat.event.EventListenerBoat;
+import fredboat.commandmeta.abs.JCommand;
+import fredboat.event.MessageEventHandler;
 import fredboat.messaging.internal.Context;
 import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
 /**
- *
  * @author frederik
  */
 public class SayCommand extends JCommand implements IFunCommand {
@@ -50,8 +49,9 @@ public class SayCommand extends JCommand implements IFunCommand {
             HelpCommand.sendFormattedCommandHelp(context);
             return;
         }
-        context.reply(TextUtils.ZERO_WIDTH_CHAR + context.getRawArgs(),
-                message -> EventListenerBoat.messagesToDeleteIfIdDeleted.put(context.getMsg().getIdLong(), message.getIdLong())
+        context.replyMono(TextUtils.ZERO_WIDTH_CHAR + context.getRawArgs()).subscribe(
+                message -> MessageEventHandler.Companion.getMessagesToDeleteIfIdDeleted()
+                        .put(context.getMsg().getId(), message.getMessageId())
         );
 
     }
