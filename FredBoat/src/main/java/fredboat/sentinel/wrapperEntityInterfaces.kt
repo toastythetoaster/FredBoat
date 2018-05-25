@@ -1,5 +1,6 @@
 package fredboat.sentinel
 
+import fredboat.perms.IPermissionSet
 import org.springframework.stereotype.Service
 
 @Suppress("unused")
@@ -25,6 +26,8 @@ interface Channel : SentinelEntity {
     val name: String
     val guild: Guild
     val ourEffectivePermissions: Long
+    fun checkOurPermissions(permissions: IPermissionSet): Boolean =
+            ourEffectivePermissions and permissions.raw == permissions.raw
 }
 
 interface IMentionable {

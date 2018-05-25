@@ -205,9 +205,6 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
     override val asMention: String
         get() = "<#$id>"
 
-    fun checkOurPermissions(permissions: IPermissionSet): Boolean =
-            raw.ourEffectivePermissions and permissions.raw == permissions.raw
-
     fun send(str: String): Mono<SendMessageResponse> {
         return sentinel.sendMessage(raw, RawMessage(str))
     }
