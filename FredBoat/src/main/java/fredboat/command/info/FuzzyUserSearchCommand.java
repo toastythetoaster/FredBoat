@@ -25,13 +25,13 @@
 
 package fredboat.command.info;
 
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Member;
 import fredboat.util.ArgumentUtil;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.entities.Member;
 
 import javax.annotation.Nonnull;
 import java.util.List;
