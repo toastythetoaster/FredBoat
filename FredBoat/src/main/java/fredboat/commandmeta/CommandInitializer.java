@@ -124,7 +124,6 @@ public class CommandInitializer {
 
         // Moderation Module - Anything related to managing Discord guilds
         CommandRegistry moderationModule = new CommandRegistry(Module.MOD);
-        moderationModule.registerCommand(new ClearCommand("clear"));
         moderationModule.registerCommand(new HardbanCommand("hardban", "ban", "hb"));
         moderationModule.registerCommand(new UnbanCommand("unban"));
         moderationModule.registerCommand(new KickCommand("kick"));
