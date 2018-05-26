@@ -213,9 +213,20 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
         return sentinel.sendMessage(raw, message)
     }
 
+    fun editMessage(messageId: Long, message: String): Mono<Unit> =
+            sentinel.editMessage(this, messageId, RawMessage(message))
+
+    fun editMessage(messageId: Long, message: IMessage): Mono<Unit> =
+            sentinel.editMessage(this, messageId, message)
+
+    fun deleteMessage(messageId: Long) = sentinel.deleteMessages(this, listOf(messageId))
+
     fun sendTyping() {
         sentinel.sendTyping(raw)
     }
+
+    fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)
+
 
     override fun equals(other: Any?): Boolean {
         return other is TextChannel && id == other.id
@@ -224,9 +235,6 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
     override fun hashCode(): Int {
         return id.hashCode()
     }
-
-    fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)
-    fun deleteMessage(messageId: Long) = sentinel.deleteMessages(this, listOf(messageId))
 }
 
 class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
