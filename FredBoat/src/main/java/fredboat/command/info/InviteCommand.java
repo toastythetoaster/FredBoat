@@ -30,10 +30,10 @@ import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Member;
 import fredboat.shared.constant.BotConstants;
 import fredboat.util.DiscordUtil;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.entities.User;
 
 import javax.annotation.Nonnull;
 
@@ -53,9 +53,9 @@ public class InviteCommand extends JCommand implements IInfoCommand {
         } else if (botId == BotConstants.PATRON_BOT_ID) {
             invite = BotConstants.DOCS_DONATE_URL;
         } else {
-            invite = context.getGuild().getJDA().asBot().getInviteUrl();
+            invite = "https://discordapp.com/oauth2/authorize?client_id=" + botId + "&scope=bot";
         }
-        User self = context.getGuild().getJDA().getSelfUser();
+        Member self = context.getSelfMember();
         String header = context.i18nFormat("invite", TextUtils.escapeAndDefuse(self.getName()));
         context.reply(header + "\n" + invite);
     }
