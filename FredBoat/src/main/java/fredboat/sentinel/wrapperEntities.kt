@@ -72,6 +72,10 @@ class Guild(
     val selfPresent: Boolean
         get() = true //TODO
 
+    /** The routing key for the associated Sentinel */
+    val routingKey: String
+        get() = sentinel.tracker.getKey(shardId)
+
     fun getTextChannel(id: Long): TextChannel? {
         textChannels.forEach { if (it.id == id) return it }
         return null
@@ -206,11 +210,11 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
         get() = "<#$id>"
 
     fun send(str: String): Mono<SendMessageResponse> {
-        return sentinel.sendMessage(raw, RawMessage(str))
+        return sentinel.sendMessage(guild.routingKey, this, RawMessage(str))
     }
 
     fun send(message: IMessage): Mono<SendMessageResponse> {
-        return sentinel.sendMessage(raw, message)
+        return sentinel.sendMessage(guild.routingKey, this, message)
     }
 
     fun editMessage(messageId: Long, message: String): Mono<Unit> =
@@ -222,7 +226,7 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
     fun deleteMessage(messageId: Long) = sentinel.deleteMessages(this, listOf(messageId))
 
     fun sendTyping() {
-        sentinel.sendTyping(raw)
+        sentinel.sendTyping(this)
     }
 
     fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)

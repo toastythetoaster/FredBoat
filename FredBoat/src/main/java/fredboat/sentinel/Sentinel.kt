@@ -18,7 +18,8 @@ import java.util.concurrent.TimeUnit
 
 @Component
 class Sentinel(private val template: AsyncRabbitTemplate,
-               private val blockingTemplate: RabbitTemplate) {
+               private val blockingTemplate: RabbitTemplate,
+               val tracker: SentinelTracker) {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(Sentinel::class.java)
@@ -43,21 +44,42 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     init {
         // Send a hello when we start so we get SentinelHellos in return
-        sendAndForget(FredBoatHello())
+        blockingTemplate.convertAndSend(SentinelExchanges.FANOUT, FredBoatHello())
     }
 
-    fun sendAndForget(request: Any) {
-        template.convertSendAndReceive<Any>(SentinelExchanges.REQUESTS, request)
+    fun sendAndForget(routingKey: String, request: Any) {
+        blockingTemplate.convertAndSend(SentinelExchanges.REQUESTS, routingKey, request)
     }
 
-    fun <T> send(request: Any): Mono<T> = Mono.create<T> {
-        template.convertSendAndReceive<T>(request)
+    fun <T> send(guild: Guild, request: Any): Mono<T> = send(guild.routingKey, request)
+
+    fun <T> send(routingKey: String, request: Any): Mono<T> = Mono.create<T> {
+        template.convertSendAndReceive<T>(routingKey, request)
                 .addCallback(
                         { res ->
                             if (res != null) it.success(res) else it.success()
                         },
                         { exc -> it.error(exc) }
                 )
+    }
+
+    fun <R, T> genericMonoSendAndReceive(
+            exchange: String = SentinelExchanges.REQUESTS,
+            routingKey: String,
+            request: Any,
+            mayBeEmpty: Boolean = false,
+            transform: (response: R) -> T) = Mono.create<T> {
+        template.convertSendAndReceive<R?>(exchange, routingKey, request).addCallback(
+                { res ->
+                    if (res == null) {
+                        if (mayBeEmpty) it.success()
+                        else it.error(RuntimeException("RPC response was null"))
+                    } else it.success(transform(res))
+                },
+                { t ->
+                    it.error(t)
+                }
+        )
     }
 
     fun getGuilds(shard: Shard): Flux<RawGuild> = Flux.create {
@@ -77,45 +99,45 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     fun getGuild(id: Long) = guildCache.get(id)!!
 
-    fun sendMessage(channel: RawTextChannel, message: IMessage): Mono<SendMessageResponse> = Mono.create {
-        val req = SendMessageRequest(channel.id, message)
-        template.convertSendAndReceive<SendMessageResponse?>(SentinelExchanges.REQUESTS, req).addCallback(
-                { res -> it.success(res) },
-                { exc -> it.error(exc) }
-        )
-    }
+    fun sendMessage(routingKey: String, channel: TextChannel, message: IMessage): Mono<SendMessageResponse> =
+            genericMonoSendAndReceive<SendMessageResponse, SendMessageResponse>(
+                    SentinelExchanges.REQUESTS,
+                    routingKey,
+                    SendMessageRequest(channel.id, message),
+                    mayBeEmpty = false,
+                    transform = {it}
+            )
 
-    // TODO: Figure out how to route this. We don't know what Sentinel to contact!
-    fun sendPrivateMessage(user: User, message: IMessage): Mono<Unit> = Mono.create {
-        val req = SendPrivateMessageRequest(user.id, message)
-        template.convertSendAndReceive<Unit>(SentinelExchanges.REQUESTS, req).addCallback(
-                { _ -> it.success() },
-                { exc -> it.error(exc) }
-        )
-    }
+    fun sendPrivateMessage(user: User, message: IMessage): Mono<Unit> =
+            genericMonoSendAndReceive<Unit, Unit>(
+                    SentinelExchanges.REQUESTS,
+                    tracker.getKey(0),
+                    SendPrivateMessageRequest(user.id, message),
+                    mayBeEmpty = true,
+                    transform = {}
+            )
 
-    fun editMessage(channel: TextChannel, messageId: Long, message: IMessage): Mono<Unit> = Mono.create {
-        val req = EditMessageRequest(channel.id, messageId, message)
-        template.convertSendAndReceive<Unit>(SentinelExchanges.REQUESTS, req).addCallback(
-                { _ -> it.success() },
-                { exc -> it.error(exc) }
-        )
-    }
+    fun editMessage(channel: TextChannel, messageId: Long, message: IMessage): Mono<Unit> =
+            genericMonoSendAndReceive<Unit, Unit>(
+                    SentinelExchanges.REQUESTS,
+                    channel.guild.routingKey,
+                    EditMessageRequest(channel.id, messageId, message),
+                    mayBeEmpty = true,
+                    transform = {}
+            )
 
-    fun deleteMessages(channel: TextChannel, messages: List<Long>): Mono<Unit> = Mono.create<Unit> {
-        val req = MessageDeleteRequest(channel.id, messages)
-        template.convertSendAndReceive<Unit>(SentinelExchanges.REQUESTS, req).addCallback(
-                { _ -> it.success() },
-                { exc -> it.error(exc) }
-        )
-    }
+    fun deleteMessages(channel: TextChannel, messages: List<Long>): Mono<Unit> =
+            genericMonoSendAndReceive<Unit, Unit>(
+                    SentinelExchanges.REQUESTS,
+                    channel.guild.routingKey,
+                    MessageDeleteRequest(channel.id, messages),
+                    mayBeEmpty = true,
+                    transform = {}
+            )
 
-    fun sendTyping(channel: RawTextChannel) {
+    fun sendTyping(channel: TextChannel) {
         val req = SendTypingRequest(channel.id)
-        template.convertSendAndReceive<Unit>(SentinelExchanges.REQUESTS, req).addCallback(
-                {},
-                { exc -> log.error("Failed sendTyping in channel {}", channel, exc) }
-        )
+        blockingTemplate.convertAndSend(SentinelExchanges.REQUESTS, channel.guild.routingKey, req)
     }
 
     private var cachedApplicationInfo: ApplicationInfo? = null
@@ -128,15 +150,15 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     /* Permissions */
 
-    private fun checkPermissions(member: Member?, role: Role?, permissions: IPermissionSet):
-            Mono<PermissionCheckResponse> = Mono.create {
-
+    fun checkPermissions(member: Member?, role: Role?, permissions: IPermissionSet): Mono<PermissionCheckResponse> {
         val guild = member?.guild ?: role!!.guild
 
-        val req = GuildPermissionRequest(guild.id, member?.id, role?.id, permissions.raw)
-        template.convertSendAndReceive<PermissionCheckResponse>(SentinelExchanges.REQUESTS, req).addCallback(
-                { r -> it.success(r) },
-                { exc -> it.error(RuntimeException("Failed checking permissions in $guild", exc)) }
+        return genericMonoSendAndReceive<PermissionCheckResponse, PermissionCheckResponse>(
+                SentinelExchanges.REQUESTS,
+                guild.routingKey,
+                GuildPermissionRequest(guild.id, member?.id, role?.id, permissions.raw),
+                mayBeEmpty = true,
+                transform = {it}
         )
     }
 
@@ -145,13 +167,15 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     fun checkPermissions(role: Role, permissions: IPermissionSet) = checkPermissions(null, role, permissions)
 
-    private fun checkPermissions(channel: Channel, member: Member?, role: Role?, permissions: IPermissionSet):
-            Mono<PermissionCheckResponse> = Mono.create {
+    fun checkPermissions(channel: Channel, member: Member?, role: Role?, permissions: IPermissionSet): Mono<PermissionCheckResponse> {
+        val guild = member?.guild ?: role!!.guild
 
-        val req = ChannelPermissionRequest(channel.id, member?.id, role?.id, permissions.raw)
-        template.convertSendAndReceive<PermissionCheckResponse>(SentinelExchanges.REQUESTS, req).addCallback(
-                { r -> it.success(r) },
-                { exc -> it.error(RuntimeException("Failed checking permissions in $channel", exc)) }
+        return genericMonoSendAndReceive<PermissionCheckResponse, PermissionCheckResponse>(
+                SentinelExchanges.REQUESTS,
+                guild.routingKey,
+                ChannelPermissionRequest(channel.id, member?.id, role?.id, permissions.raw),
+                mayBeEmpty = true,
+                transform = {it}
         )
     }
 
