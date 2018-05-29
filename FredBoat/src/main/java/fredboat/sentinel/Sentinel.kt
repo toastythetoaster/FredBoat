@@ -1,6 +1,6 @@
 package fredboat.sentinel
 
-import com.fredboat.sentinel.QueueNames
+import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
 import com.google.common.base.Function
 import com.google.common.cache.CacheBuilder
@@ -10,7 +10,6 @@ import fredboat.perms.IPermissionSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate
-import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
@@ -18,7 +17,6 @@ import reactor.core.publisher.Mono
 import java.util.concurrent.TimeUnit
 
 @Component
-@RabbitListener(queues = [QueueNames.JDA_EVENTS_QUEUE])
 class Sentinel(private val template: AsyncRabbitTemplate,
                private val blockingTemplate: RabbitTemplate) {
 
@@ -33,7 +31,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
             .build<Long, RawGuild>(
                     CacheLoader.from(Function {
                         // TODO We need to do something about this blocking
-                        val result = blockingTemplate.convertSendAndReceive(QueueNames.SENTINEL_REQUESTS_QUEUE, GuildRequest(it!!))
+                        val result = blockingTemplate.convertSendAndReceive(SentinelExchanges.REQUESTS, GuildRequest(it!!))
 
                         if (result == null) {
                             log.warn("Requested guild $it but got null in response!")
@@ -43,11 +41,16 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     })
             )
 
-    fun sendAndForget(request: Any) {
-        template.convertSendAndReceive<Any>(QueueNames.SENTINEL_REQUESTS_QUEUE, request)
+    init {
+        // Send a hello when we start so we get SentinelHellos in return
+        sendAndForget(FredBoatHello())
     }
 
-    fun <T> send(request: Any) = Mono.create<T> {
+    fun sendAndForget(request: Any) {
+        template.convertSendAndReceive<Any>(SentinelExchanges.REQUESTS, request)
+    }
+
+    fun <T> send(request: Any): Mono<T> = Mono.create<T> {
         template.convertSendAndReceive<T>(request)
                 .addCallback(
                         { res ->
@@ -76,7 +79,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     fun sendMessage(channel: RawTextChannel, message: IMessage): Mono<SendMessageResponse> = Mono.create {
         val req = SendMessageRequest(channel.id, message)
-        template.convertSendAndReceive<SendMessageResponse?>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
+        template.convertSendAndReceive<SendMessageResponse?>(SentinelExchanges.REQUESTS, req).addCallback(
                 { res -> it.success(res) },
                 { exc -> it.error(exc) }
         )
@@ -85,7 +88,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
     // TODO: Figure out how to route this. We don't know what Sentinel to contact!
     fun sendPrivateMessage(user: User, message: IMessage): Mono<Unit> = Mono.create {
         val req = SendPrivateMessageRequest(user.id, message)
-        template.convertSendAndReceive<Unit>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
+        template.convertSendAndReceive<Unit>(SentinelExchanges.REQUESTS, req).addCallback(
                 { _ -> it.success() },
                 { exc -> it.error(exc) }
         )
@@ -93,7 +96,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     fun editMessage(channel: TextChannel, messageId: Long, message: IMessage): Mono<Unit> = Mono.create {
         val req = EditMessageRequest(channel.id, messageId, message)
-        template.convertSendAndReceive<Unit>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
+        template.convertSendAndReceive<Unit>(SentinelExchanges.REQUESTS, req).addCallback(
                 { _ -> it.success() },
                 { exc -> it.error(exc) }
         )
@@ -101,7 +104,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     fun deleteMessages(channel: TextChannel, messages: List<Long>): Mono<Unit> = Mono.create<Unit> {
         val req = MessageDeleteRequest(channel.id, messages)
-        template.convertSendAndReceive<Unit>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
+        template.convertSendAndReceive<Unit>(SentinelExchanges.REQUESTS, req).addCallback(
                 { _ -> it.success() },
                 { exc -> it.error(exc) }
         )
@@ -109,7 +112,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     fun sendTyping(channel: RawTextChannel) {
         val req = SendTypingRequest(channel.id)
-        template.convertSendAndReceive<Unit>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
+        template.convertSendAndReceive<Unit>(SentinelExchanges.REQUESTS, req).addCallback(
                 {},
                 { exc -> log.error("Failed sendTyping in channel {}", channel, exc) }
         )
@@ -131,7 +134,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         val guild = member?.guild ?: role!!.guild
 
         val req = GuildPermissionRequest(guild.id, member?.id, role?.id, permissions.raw)
-        template.convertSendAndReceive<PermissionCheckResponse>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
+        template.convertSendAndReceive<PermissionCheckResponse>(SentinelExchanges.REQUESTS, req).addCallback(
                 { r -> it.success(r) },
                 { exc -> it.error(RuntimeException("Failed checking permissions in $guild", exc)) }
         )
@@ -146,7 +149,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
             Mono<PermissionCheckResponse> = Mono.create {
 
         val req = ChannelPermissionRequest(channel.id, member?.id, role?.id, permissions.raw)
-        template.convertSendAndReceive<PermissionCheckResponse>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
+        template.convertSendAndReceive<PermissionCheckResponse>(SentinelExchanges.REQUESTS, req).addCallback(
                 { r -> it.success(r) },
                 { exc -> it.error(RuntimeException("Failed checking permissions in $channel", exc)) }
         )
@@ -169,7 +172,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         })
 
         return Flux.create { sink ->
-            template.convertSendAndReceive<BulkGuildPermissionResponse>(QueueNames.SENTINEL_REQUESTS_QUEUE, req).addCallback(
+            template.convertSendAndReceive<BulkGuildPermissionResponse>(SentinelExchanges.REQUESTS, req).addCallback(
                     { r ->
                         r!!.effectivePermissions.forEach { sink.next(it ?: 0) }
                         sink.complete()

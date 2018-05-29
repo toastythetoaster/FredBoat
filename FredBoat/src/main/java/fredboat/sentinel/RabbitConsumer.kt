@@ -1,6 +1,6 @@
 package fredboat.sentinel
 
-import com.fredboat.sentinel.QueueNames
+import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
 import fredboat.config.SentryConfiguration
 import fredboat.event.*
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
-@RabbitListener(queues = [QueueNames.JDA_EVENTS_QUEUE])
+@RabbitListener(queues = [SentinelExchanges.EVENTS])
 class RabbitConsumer(
         private val sentinel: Sentinel,
         eventLogger: EventLogger,
