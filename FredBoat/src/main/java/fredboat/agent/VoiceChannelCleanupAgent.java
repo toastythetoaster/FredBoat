@@ -85,7 +85,7 @@ public class VoiceChannelCleanupAgent extends FredBoatAgent {
 
                     if (getHumanMembersInVC(vc).size() == 0) {
                         closedVcs.incrementAndGet();
-                        VoteSkipCommand.guildSkipVotes.remove(guild.getIdLong());
+                        VoteSkipCommand.Companion.getGuildSkipVotes().remove(guild.getIdLong());
                         audioConnectionFacade.closeConnection(guild);
                         VC_LAST_USED.remove(vc.getId());
                     } else if (isBeingUsed(vc)) {
