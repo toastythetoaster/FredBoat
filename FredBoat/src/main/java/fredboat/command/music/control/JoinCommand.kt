@@ -32,7 +32,6 @@ import fredboat.commandmeta.abs.IMusicCommand
 import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
-import fredboat.sentinel.VoiceChannel
 
 class JoinCommand(name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
@@ -42,22 +41,15 @@ class JoinCommand(name: String, vararg aliases: String) : Command(name, *aliases
     override suspend fun invoke(context: CommandContext) {
         val player = Launcher.getBotController().playerRegistry.getOrCreate(context.guild)
 
-        var vcWithInvoker: VoiceChannel? = null
-        for (vc in context.guild.voiceChannels) {
-            if (vc.members.contains(context.member)) {
-                vcWithInvoker = vc
-                break
-            }
-        }
-
+        val vc = context.member.voiceChannel
         try {
-            player.joinChannel(vcWithInvoker)
-            if (vcWithInvoker != null) {
-                context.reply(context.i18nFormat("joinJoining", vcWithInvoker.name))
+            player.joinChannel(vc)
+            if (vc != null) {
+                context.reply(context.i18nFormat("joinJoining", vc.name))
             }
-        } catch (ex: IllegalStateException) {
-            if (vcWithInvoker != null) {
-                context.reply(context.i18nFormat("joinErrorAlreadyJoining", vcWithInvoker.name))
+        } catch (ex: IllegalStateException) { // This was used for JDA. Remove this?
+            if (vc != null) {
+                context.reply(context.i18nFormat("joinErrorAlreadyJoining", vc.name))
             } else {
                 throw ex
             }
