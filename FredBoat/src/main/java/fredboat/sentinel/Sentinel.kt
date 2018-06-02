@@ -63,7 +63,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                 )
     }
 
-    fun <R, T> genericMonoSendAndReceive(
+    private fun <R, T> genericMonoSendAndReceive(
             exchange: String = SentinelExchanges.REQUESTS,
             routingKey: String,
             request: Any,
@@ -150,7 +150,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     /* Permissions */
 
-    fun checkPermissions(member: Member?, role: Role?, permissions: IPermissionSet): Mono<PermissionCheckResponse> {
+    private fun checkPermissions(member: Member?, role: Role?, permissions: IPermissionSet): Mono<PermissionCheckResponse> {
         val guild = member?.guild ?: role!!.guild
 
         return genericMonoSendAndReceive<PermissionCheckResponse, PermissionCheckResponse>(
@@ -204,6 +204,30 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     { exc -> sink.error(exc) }
             )
         }
+    }
+
+    data class NamedSentinelInfoResponse(
+            val response: SentinelInfoResponse,
+            val routingKey: String
+    )
+
+    private fun getSentinelInfo(routingKey:  String) =
+            genericMonoSendAndReceive<SentinelInfoResponse, NamedSentinelInfoResponse>(
+            SentinelExchanges.REQUESTS,
+            routingKey,
+            SentinelInfoRequest(),
+            mayBeEmpty = true,
+            transform = {NamedSentinelInfoResponse(it, routingKey)}
+    )
+
+    /** Request sentinel info from each tracked shard simultaneously in the order of receiving them
+     *  Errors are delayed till all requests have either completed or failed */
+    fun getAllSentinelInfo(): Flux<NamedSentinelInfoResponse> {
+        return Flux.mergeSequentialDelayError(
+                tracker.sentinels.map { getSentinelInfo(it.key) },
+                32,
+                0 // Not sure what this is -- hardly even documented
+        )
     }
 
 }

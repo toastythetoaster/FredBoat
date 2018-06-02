@@ -20,6 +20,8 @@ class SentinelTracker(private val appConfig: AppConfig) {
 
     /** Shard id mapped to [SentinelHello] */
     private val map: ConcurrentHashMap<Int, SentinelHello> = ConcurrentHashMap()
+    val sentinels: Set<SentinelHello>
+        get() = map.values.toSet()
 
     @RabbitHandler
     fun onHello(hello: SentinelHello) = hello.run {
