@@ -26,10 +26,10 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
 import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
@@ -41,23 +41,25 @@ import javax.annotation.Nonnull;
 public class LeaveCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     private static final Logger log = LoggerFactory.getLogger(LeaveCommand.class);
-    
+
     public LeaveCommand(String name, String... aliases) {
         super(name, aliases);
     }
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        try {
-            GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.getGuild());
-            if (player != null) {
+        GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.getGuild());
+
+        if (player != null) {
+            try {
                 player.pause();
                 player.leaveVoiceChannelRequest(context, false);
+            } catch (Exception e) {
+                log.error("Something caused us to not properly leave a voice channel!", e); // TODO: Check if this is still a problem
+                player.leaveVoiceChannelRequest(context, true);
             }
-        } catch (Exception e) {
-            log.error("Something caused us to not properly leave a voice channel!", e);
-            Launcher.getBotController().getAudioConnectionFacade().closeConnection(context.getGuild());
         }
+
     }
 
     @Nonnull
