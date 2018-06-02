@@ -105,7 +105,6 @@ public class CommandInitializer {
         infoModule.registerCommand(new PingCommand("ping"));
         infoModule.registerCommand(new ShardsCommand("shards"));
         infoModule.registerCommand(new StatsCommand("stats", "uptime"));
-        infoModule.registerCommand(new VersionCommand("version"));
         infoModule.registerCommand(new TextCommand("https://github.com/Frederikam", "github"));
         infoModule.registerCommand(new TextCommand(BotConstants.GITHUB_URL, "repo"));
 
