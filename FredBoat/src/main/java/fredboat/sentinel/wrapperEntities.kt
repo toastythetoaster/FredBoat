@@ -67,6 +67,8 @@ class Guild(
         get() = raw.roles.map { Role(it, id) }
     val shardId: Int
         get() = ((id shr 22) % appConfig.shardCount.toLong()).toInt()
+    val shardString: String
+        get() = "[$shardId/${appConfig.shardCount}]"
 
     /** This is true if we are present in this [Guild]*/
     val selfPresent: Boolean
