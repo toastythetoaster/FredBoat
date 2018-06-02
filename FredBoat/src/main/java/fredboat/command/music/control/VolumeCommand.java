@@ -28,18 +28,17 @@ package fredboat.command.music.control;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.player.PlayerRegistry;
 import fredboat.commandmeta.MessagingException;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
 import fredboat.main.Launcher;
-import fredboat.messaging.CentralMessaging;
 import fredboat.messaging.internal.Context;
 import fredboat.shared.constant.BotConstants;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
 public class VolumeCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
@@ -67,9 +66,12 @@ public class VolumeCommand extends JCommand implements IMusicCommand, ICommandRe
             }
         } else {
             String out = context.i18n("volumeApology") + "\n<" + BotConstants.DOCS_DONATE_URL + ">";
-            context.replyImage("https://fred.moe/1vD.png", out, msg -> CentralMessaging.restService.schedule(
-                    () -> CentralMessaging.deleteMessage(msg), 2, TimeUnit.MINUTES));
-
+            context.replyImageMono("https://fred.moe/1vD.png", out)
+                    .subscribe(
+                            (msg) -> context.getTextChannel().deleteMessage(msg.getMessageId())
+                                            .delaySubscription(Duration.ofMinutes(2))
+                                            .subscribe()
+                    );
         }
     }
 
