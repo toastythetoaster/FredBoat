@@ -2,21 +2,27 @@ package fredboat.audio.lavalink
 
 import com.fredboat.sentinel.entities.AudioQueueRequest
 import com.fredboat.sentinel.entities.AudioQueueRequestEnum.*
+import fredboat.perms.InsufficientPermissionException
 import fredboat.perms.Permission.*
 import fredboat.perms.PermissionSet
 import fredboat.sentinel.VoiceChannel
-import fredboat.perms.InsufficientPermissionException
 import lavalink.client.io.Link
 
 class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(lavalink, guildId) {
+    private val routingKey: String
+            get() {
+                val sId = ((guildId.toLong() shr 22) % lavalink.appConfig.shardCount.toLong()).toInt()
+                return lavalink.sentinel.tracker.getKey(sId)
+            }
+
     override fun removeConnection() =
-            lavalink.sentinel.sendAndForget(AudioQueueRequest(REMOVE, guildId.toLong()))
+            lavalink.sentinel.sendAndForget(routingKey, AudioQueueRequest(REMOVE, guildId.toLong()))
 
     override fun queueAudioConnect(channelId: Long) =
-            lavalink.sentinel.sendAndForget(AudioQueueRequest(QUEUE_CONNECT, guildId.toLong(), channelId))
+            lavalink.sentinel.sendAndForget(routingKey, AudioQueueRequest(QUEUE_CONNECT, guildId.toLong(), channelId))
 
     override fun queueAudioDisconnect() =
-            lavalink.sentinel.sendAndForget(AudioQueueRequest(QUEUE_DISCONNECT, guildId.toLong()))
+            lavalink.sentinel.sendAndForget(routingKey, AudioQueueRequest(QUEUE_DISCONNECT, guildId.toLong()))
 
     fun connect(channel: VoiceChannel) {
         if (channel.guildId != guild)

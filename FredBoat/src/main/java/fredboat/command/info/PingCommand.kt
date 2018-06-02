@@ -21,7 +21,7 @@ class PingCommand(name: String, vararg aliases: String) : Command(name, *aliases
     }
 
     override suspend fun invoke(context: CommandContext) {
-        val response = context.sentinel.send<GetPingReponse>(GetPingRequest(context.guild.shardId))
+        val response = context.sentinel.send<GetPingReponse>(context.routingKey, GetPingRequest(context.guild.shardId))
                 .awaitFirst()
         context.reply(
                 "Ping of shard ${context.guild.shardId}: ${response.shardPing}ms" +

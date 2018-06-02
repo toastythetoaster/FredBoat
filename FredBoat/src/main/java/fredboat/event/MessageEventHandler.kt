@@ -147,8 +147,10 @@ class MessageEventHandler(
             //hack in / hardcode some commands; this is not meant to look clean
             val lowered = content.toLowerCase()
             if (lowered.contains("shard")) {
-                for (message in ShardsCommand.getShardStatus(content)) {
-                    author.sendPrivate(message).subscribe()
+                async {
+                    for (message in ShardsCommand.getShardStatus(author.sentinel, content)) {
+                        author.sendPrivate(message).subscribe()
+                    }
                 }
                 return
             } else if (lowered.contains("stats")) {

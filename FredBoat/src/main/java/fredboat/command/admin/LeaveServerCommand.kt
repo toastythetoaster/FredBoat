@@ -40,7 +40,7 @@ class LeaveServerCommand(name: String, vararg aliases: String) : Command(name, *
 
     override suspend fun invoke(context: CommandContext) {
         context.replyMono("Thanks for having me!").awaitFirst()
-        context.guild.sentinel.send<Unit>(LeaveGuildRequest(context.guild.id)).awaitFirst()
+        context.guild.sentinel.send<Unit>(context.routingKey, LeaveGuildRequest(context.guild.id)).awaitFirst()
     }
 
     override fun help(context: Context): String {

@@ -60,19 +60,11 @@ abstract class Context {
     abstract val member: Member
     abstract val user: User
 
-    /**
-     * Convenience property to get the prefix of the guild of this context.
-     */
-    val prefix: String
-        get() = PrefixCommand.giefPrefix(guild)
-
-    /** Convenience method */
-    val selfMember: Member
-        get() = guild.selfMember
-
-    /** Convenience method */
-    val sentinel: Sentinel
-        get() = guild.sentinel
+    /* Convenience properties */
+    val prefix: String get() = PrefixCommand.giefPrefix(guild)
+    val selfMember: Member get() = guild.selfMember
+    val sentinel: Sentinel get() = guild.sentinel
+    val routingKey: String get() = guild.routingKey
 
     // ********************************************************************************
     //                         Internal context stuff

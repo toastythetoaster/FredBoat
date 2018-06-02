@@ -53,87 +53,88 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
 
     companion object {
         private const val SHARDS_PER_MESSAGE = 30
-    }
 
-    private suspend fun getShardStatus(sentinel: Sentinel, input: String): List<RawMessage> {
-        val lines = ArrayList<String>()
+        suspend fun getShardStatus(sentinel: Sentinel, input: String): List<RawMessage> {
+            val lines = ArrayList<String>()
 
-        //do a full report? or just a summary
-        val raw = input.toLowerCase()
-        val full = raw.contains("full") || raw.contains("all")
+            //do a full report? or just a summary
+            val raw = input.toLowerCase()
+            val full = raw.contains("full") || raw.contains("all")
 
-        val shardCounter = AtomicInteger(0)
-        val borkenShards = AtomicInteger(0)
-        val healthyGuilds = AtomicLong(0)
-        val healthyUsers = AtomicLong(0)
-        val sentinelRoutingKeys = sentinel.tracker.sentinels.map { it.key }
+            val shardCounter = AtomicInteger(0)
+            val borkenShards = AtomicInteger(0)
+            val healthyGuilds = AtomicLong(0)
+            val healthyUsers = AtomicLong(0)
+            val sentinelRoutingKeys = sentinel.tracker.sentinels.map { it.key }
 
-        // Collect all the info, even if the upstream may produce an exception
-        // We will still throw an exception if we got no info (that should never happen)
-        val sentinelList = mutableListOf<NamedSentinelInfoResponse>()
-        try {
-            sentinel.getAllSentinelInfo()
-                    .doOnNext { sentinelList.add(it) }
-                    .awaitLast()
-        } catch (e: Exception) {
-            if (sentinelList.size == 0) throw e
-        }
-
-        val shards = sentinelList.flatMap { it.response.shards }
-
-        shards.forEach { shard ->
-            shardCounter.incrementAndGet()
-            if (shard.shard.status == JDA.Status.CONNECTED && !full) {
-                healthyGuilds.addAndGet(shard.guilds.toLong())
-                healthyUsers.addAndGet(shard.users.toLong())
-            } else {
-
-                lines.add((if (shard.shard.status == ShardStatus.CONNECTED) "+" else "-")
-                        + " "
-                        + shard.shard.shardString
-                        + " "
-                        + shard.shard.status
-                        + " -- Guilds: "
-                        + String.format("%04d", shard.guilds)
-                        + " -- Users: "
-                        + shard.users
-                        + "\n")
-                borkenShards.incrementAndGet()
+            // Collect all the info, even if the upstream may produce an exception
+            // We will still throw an exception if we got no info (that should never happen)
+            val sentinelList = mutableListOf<NamedSentinelInfoResponse>()
+            try {
+                sentinel.getAllSentinelInfo()
+                        .doOnNext { sentinelList.add(it) }
+                        .awaitLast()
+            } catch (e: Exception) {
+                if (sentinelList.size == 0) throw e
             }
-        }
 
-        val messages = ArrayList<RawMessage>()
+            val shards = sentinelList.flatMap { it.response.shards }
 
-        var stringBuilder = StringBuilder()
-        var lineCounter = 0
-        for (line in lines) {
-            stringBuilder.append(line)
-            lineCounter++
-            if (lineCounter % SHARDS_PER_MESSAGE == 0 || lineCounter == lines.size) {
-                messages.add(stringBuilder.toString().asCodeBlock("diff").toMessage())
-                stringBuilder = StringBuilder()
+            shards.forEach { shard ->
+                shardCounter.incrementAndGet()
+                if (shard.shard.status == JDA.Status.CONNECTED && !full) {
+                    healthyGuilds.addAndGet(shard.guilds.toLong())
+                    healthyUsers.addAndGet(shard.users.toLong())
+                } else {
+
+                    lines.add((if (shard.shard.status == ShardStatus.CONNECTED) "+" else "-")
+                            + " "
+                            + shard.shard.shardString
+                            + " "
+                            + shard.shard.status
+                            + " -- Guilds: "
+                            + String.format("%04d", shard.guilds)
+                            + " -- Users: "
+                            + shard.users
+                            + "\n")
+                    borkenShards.incrementAndGet()
+                }
             }
+
+            val messages = ArrayList<RawMessage>()
+
+            var stringBuilder = StringBuilder()
+            var lineCounter = 0
+            for (line in lines) {
+                stringBuilder.append(line)
+                lineCounter++
+                if (lineCounter % SHARDS_PER_MESSAGE == 0 || lineCounter == lines.size) {
+                    messages.add(stringBuilder.toString().asCodeBlock("diff").toMessage())
+                    stringBuilder = StringBuilder()
+                }
+            }
+
+            //healthy shards summary, contains sensible data only if we aren't doing a full report
+            if (!full) {
+                val content = String.format("+ %s of %s shards are %s -- Guilds: %s -- Users: %s", shardCounter.get() - borkenShards.get(),
+                        Launcher.getBotController().credentials.recommendedShardCount, JDA.Status.CONNECTED, healthyGuilds, healthyUsers)
+                messages.add(0, content.asCodeBlock("diff").toMessage())
+            }
+
+            // Report any unresponsive Sentinels
+            val responsive = sentinelList.map { it.routingKey }
+            val unresponsive = sentinelRoutingKeys.toMutableList()
+            unresponsive.removeAll(responsive)
+
+            if (unresponsive.isNotEmpty()) {
+                val builder = StringBuilder("The following sentinels did not respond:")
+                unresponsive.forEach { builder.append("- $it") }
+                messages.add(builder.toString().asCodeBlock("diff").toMessage())
+            }
+
+            return messages
         }
 
-        //healthy shards summary, contains sensible data only if we aren't doing a full report
-        if (!full) {
-            val content = String.format("+ %s of %s shards are %s -- Guilds: %s -- Users: %s", shardCounter.get() - borkenShards.get(),
-                    Launcher.getBotController().credentials.recommendedShardCount, JDA.Status.CONNECTED, healthyGuilds, healthyUsers)
-            messages.add(0, content.asCodeBlock("diff").toMessage())
-        }
-
-        // Report any unresponsive Sentinels
-        val responsive = sentinelList.map { it.routingKey }
-        val unresponsive = sentinelRoutingKeys.toMutableList()
-        unresponsive.removeAll(responsive)
-
-        if (unresponsive.isNotEmpty()) {
-            val builder = StringBuilder("The following sentinels did not respond:")
-            unresponsive.forEach { builder.append("- $it") }
-            messages.add(builder.toString().asCodeBlock("diff").toMessage())
-        }
-
-        return messages
     }
 
     override fun help(context: Context): String {
