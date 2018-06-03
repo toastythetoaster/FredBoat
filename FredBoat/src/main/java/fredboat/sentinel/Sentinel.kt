@@ -213,7 +213,16 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     SentinelExchanges.REQUESTS,
                     role.guild.routingKey,
                     RoleInfoRequest(role.id),
-                    mayBeEmpty = true,
+                    mayBeEmpty = false,
+                    transform = {it}
+            )
+
+    fun getGuildInfo(guild: Guild): Mono<GuildInfo> =
+            genericMonoSendAndReceive<GuildInfo, GuildInfo>(
+                    SentinelExchanges.REQUESTS,
+                    guild.routingKey,
+                    GuildInfoRequest(guild.id),
+                    mayBeEmpty = false,
                     transform = {it}
             )
 

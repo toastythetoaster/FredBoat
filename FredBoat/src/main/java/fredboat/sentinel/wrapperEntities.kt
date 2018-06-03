@@ -1,9 +1,6 @@
 package fredboat.sentinel
 
-import com.fredboat.sentinel.entities.IMessage
-import com.fredboat.sentinel.entities.MessageReceivedEvent
-import com.fredboat.sentinel.entities.RoleInfo
-import com.fredboat.sentinel.entities.SendMessageResponse
+import com.fredboat.sentinel.entities.*
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.config.property.AppConfig
 import fredboat.perms.IPermissionSet
@@ -70,6 +67,8 @@ class Guild(
         get() = ((id shr 22) % appConfig.shardCount.toLong()).toInt()
     val shardString: String
         get() = "[$shardId/${appConfig.shardCount}]"
+    val info: Mono<GuildInfo>
+        get() = sentinel.getGuildInfo(this)
 
     /** This is true if we are present in this [Guild]*/
     val selfPresent: Boolean
