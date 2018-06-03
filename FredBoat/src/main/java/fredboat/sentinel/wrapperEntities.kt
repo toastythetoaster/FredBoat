@@ -2,6 +2,7 @@ package fredboat.sentinel
 
 import com.fredboat.sentinel.entities.IMessage
 import com.fredboat.sentinel.entities.MessageReceivedEvent
+import com.fredboat.sentinel.entities.RoleInfo
 import com.fredboat.sentinel.entities.SendMessageResponse
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.config.property.AppConfig
@@ -283,6 +284,8 @@ class Role(val raw: RawRole, val guildId: Long) : IMentionable, SentinelEntity {
         get() = id == guildId
     override val asMention: String
         get() = "<@$id>"
+    val info: Mono<RoleInfo>
+        get() = sentinel.getRoleInfo(this)
 
     override fun equals(other: Any?): Boolean {
         return other is Role && id == other.id

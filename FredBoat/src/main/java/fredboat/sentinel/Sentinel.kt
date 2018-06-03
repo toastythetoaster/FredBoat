@@ -206,6 +206,19 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         }
     }
 
+    /* Extended info requests */
+
+    fun getRoleInfo(role: Role): Mono<RoleInfo> =
+            genericMonoSendAndReceive<RoleInfo, RoleInfo>(
+                    SentinelExchanges.REQUESTS,
+                    role.guild.routingKey,
+                    RoleInfoRequest(role.id),
+                    mayBeEmpty = true,
+                    transform = {it}
+            )
+
+    /* Mass requests */
+
     data class NamedSentinelInfoResponse(
             val response: SentinelInfoResponse,
             val routingKey: String
