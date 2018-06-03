@@ -27,19 +27,20 @@ package fredboat.command.music.info;
 
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.main.Launcher;
-import fredboat.messaging.CentralMessaging;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Member;
+import fredboat.util.MessageBuilder;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Member;
 
 import javax.annotation.Nonnull;
 import java.text.MessageFormat;
 import java.util.List;
+
+import static fredboat.util.MessageBuilderKt.localMessageBuilder;
 
 public class HistoryCommand extends JCommand implements IMusicCommand {
 
@@ -62,9 +63,7 @@ public class HistoryCommand extends JCommand implements IMusicCommand {
       if (context.hasArguments()) {
           try {
               page = Integer.valueOf(context.getArgs()[0]);
-          } catch (NumberFormatException e) {
-              page = 1;
-          }
+          } catch (NumberFormatException ignored) {}
       }
 
       int tracksCount = player.getTrackCountInHistory();
@@ -81,7 +80,7 @@ public class HistoryCommand extends JCommand implements IMusicCommand {
 
       List<AudioTrackContext> sublist = player.getTracksInHistory(i, listEnd);
 
-      MessageBuilder mb = CentralMessaging.getClearThreadLocalMessageBuilder()
+      MessageBuilder mb = localMessageBuilder()
               .append(context.i18n("listShowHistory"))
               .append("\n")
               .append(MessageFormat.format(context.i18n("listPageNum"), page, maxPages))
@@ -92,10 +91,10 @@ public class HistoryCommand extends JCommand implements IMusicCommand {
           String status = " ";
 
           Member member = atc.getMember();
-          String username = member != null ? member.getEffectiveName() : context.getGuild().getSelfMember().getEffectiveName();
-          mb.append("[" +
+          String username = member.getEffectiveName();
+          mb.codeBlock("[" +
               TextUtils.forceNDigits(i + 1, numberLength)
-              + "]", MessageBuilder.Formatting.BLOCK)
+              + "]", "")
               .append(status)
                   .append(context.i18nFormat("listAddedBy", TextUtils.escapeAndDefuse(atc.getEffectiveTitle()),
                           TextUtils.escapeAndDefuse(username), TextUtils.formatTime(atc.getEffectiveDuration())))
