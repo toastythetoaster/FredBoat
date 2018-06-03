@@ -140,11 +140,12 @@ class SimpleTrackProvider : AbstractTrackProvider() {
     /**
      * Returns all songs inclusively from one index till the another in a non-bitching way.
      */
-    override fun getTracksInRange(indexA: Int, indexB: Int): List<AudioTrackContext> {
+    @Suppress("NAME_SHADOWING")
+    override fun getTracksInRange(startIndex: Int, endIndex: Int): List<AudioTrackContext> {
 
         //make sure startIndex <= endIndex
-        val startIndex = if (indexA < indexB) indexA else indexB
-        val endIndex = if (indexA < indexB) indexB else indexA
+        val startIndex = if (startIndex < endIndex) startIndex else endIndex
+        val endIndex = if (startIndex < endIndex) endIndex else startIndex
 
         //Collect tracks between the two indices
         var i = 0

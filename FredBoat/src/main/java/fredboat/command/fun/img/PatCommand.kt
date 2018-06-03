@@ -23,39 +23,29 @@
  *
  */
 
-package fredboat.command.fun.img;
+package fredboat.command.`fun`.img
 
-import fredboat.commandmeta.abs.CommandContext;
-import fredboat.commandmeta.abs.IFunCommand;
-import fredboat.messaging.internal.Context;
+import fredboat.commandmeta.abs.CommandContext
+import fredboat.commandmeta.abs.IFunCommand
+import fredboat.messaging.internal.Context
+import java.util.*
 
-import javax.annotation.Nonnull;
-import java.util.Objects;
+class PatCommand(imgurAlbumUrl: String, name: String, vararg aliases: String)
+    : RandomImageCommand(imgurAlbumUrl, name, *aliases), IFunCommand {
 
-public class PatCommand extends RandomImageCommand implements IFunCommand {
-
-    public PatCommand(String imgurAlbumUrl, String name, String... aliases) {
-        super(imgurAlbumUrl, name, aliases);
-    }
-
-    @Override
-    public void onInvoke(@Nonnull CommandContext context) {
-        String patMessage = null;
-        if (!context.getMentionedMembers().isEmpty()) {
-            if (context.getMentionedMembers().get(0).getId() == context.getSelfMember().getId()) {
-                patMessage = context.i18n("patBot");
+    override suspend fun invoke(context: CommandContext) {
+        var patMessage: String? = null
+        if (!context.mentionedMembers.isEmpty()) {
+            patMessage = if (context.mentionedMembers[0].id == context.selfMember.id) {
+                context.i18n("patBot")
             } else {
-                patMessage = "_"
-                        + context.i18nFormat("patSuccess", context.getMentionedMembers().get(0).getAsMention())
-                        + "_";
+                "_${context.i18nFormat("patSuccess", context.mentionedMembers[0].asMention)}_"
             }
         }
-        context.replyImage(super.getRandomImageUrl(), Objects.requireNonNull(patMessage));
+        context.replyImage(super.randomImageUrl, Objects.requireNonNull<String>(patMessage))
     }
 
-    @Nonnull
-    @Override
-    public String help(@Nonnull Context context) {
-        return "{0}{1} @<username>\n#Pat someone.";
+    override fun help(context: Context): String {
+        return "{0}{1} @<username>\n#Pat someone."
     }
 }

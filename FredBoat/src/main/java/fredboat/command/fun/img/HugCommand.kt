@@ -20,35 +20,39 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
-package fredboat.command.fun.img;
+package fredboat.command.`fun`.img
 
-import fredboat.commandmeta.abs.CommandContext;
-import fredboat.commandmeta.abs.IFunCommand;
-import fredboat.messaging.internal.Context;
+import fredboat.commandmeta.abs.CommandContext
+import fredboat.commandmeta.abs.IFunCommand
+import fredboat.messaging.internal.Context
+import java.util.*
 
-import javax.annotation.Nonnull;
+/**
+ * Created by napster on 30.04.17.
+ *
+ *
+ * Hug someone. Thx to Ruby Rose for collecting the hug gifs.
+ */
+class HugCommand(imgurAlbumUrl: String, name: String, vararg aliases: String)
+    : RandomImageCommand(imgurAlbumUrl, name, *aliases), IFunCommand {
 
-public class FacedeskCommand extends RandomImageCommand implements IFunCommand {
-
-    public FacedeskCommand(String imgurAlbumUrl, String name, String... aliases) {
-        super(imgurAlbumUrl, name, aliases);
+    override suspend fun invoke(context: CommandContext) {
+        var hugMessage: String? = null
+        if (!context.mentionedMembers.isEmpty()) {
+            if (context.mentionedMembers[0].id == context.guild.selfMember.id) {
+                hugMessage = context.i18n("hugBot")
+            } else {
+                hugMessage = ("_"
+                        + context.i18nFormat("hugSuccess", context.mentionedMembers[0].asMention)
+                        + "_")
+            }
+        }
+        context.replyImage(super.randomImageUrl, Objects.requireNonNull<String>(hugMessage))
     }
 
-    @Override
-    public void onInvoke(@Nonnull CommandContext context) {
-        String facedeskMessage = "_"
-                + context.i18nFormat("facedeskSuccess", context.getMember().getAsMention())
-                + "_";
-
-        context.replyImage(super.getRandomImageUrl(), facedeskMessage);
-    }
-
-    @Nonnull
-    @Override
-    public String help(@Nonnull Context context) {
-        return "{0}{1}\n#Facedesk.";
+    override fun help(context: Context): String {
+        return "{0}{1} @<username>\n#Hug someone."
     }
 }

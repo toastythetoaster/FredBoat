@@ -133,7 +133,7 @@ class GuildPlayer(
         }
 
     var isShuffle: Boolean
-        get() = audioTrackProvider is AbstractTrackProvider && (audioTrackProvider as AbstractTrackProvider).isShuffle
+        get() = audioTrackProvider is AbstractTrackProvider && audioTrackProvider.isShuffle
         set(shuffle) = if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.isShuffle = shuffle
         } else {
@@ -311,7 +311,7 @@ class GuildPlayer(
 
     fun reshuffle() {
         if (audioTrackProvider is AbstractTrackProvider) {
-            (audioTrackProvider as AbstractTrackProvider).reshuffle()
+            audioTrackProvider.reshuffle()
         } else {
             throw UnsupportedOperationException("Can't reshuffle " + audioTrackProvider.javaClass)
         }
