@@ -147,6 +147,8 @@ class Member(val raw: RawMember) : IMentionable, SentinelEntity {
                 discrim,
                 isBot
         ))
+    val info: Mono<MemberInfo>
+        get() = sentinel.getMemberInfo(this)
 
     fun getPermissions(channel: Channel? = null): Mono<PermissionSet> {
         return when (channel) {
