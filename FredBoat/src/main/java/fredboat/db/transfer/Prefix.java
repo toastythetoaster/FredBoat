@@ -24,7 +24,7 @@
 
 package fredboat.db.transfer;
 
-import net.dv8tion.jda.core.entities.Guild;
+import fredboat.sentinel.Guild;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -75,7 +75,7 @@ public class Prefix implements TransferObject<Prefix.GuildBotId> {
         private long botId;
 
         public GuildBotId(Guild guild, long botId) {
-            this(guild.getIdLong(), botId);
+            this(guild.getId(), botId);
         }
 
         public GuildBotId(long guildId, long botId) {
