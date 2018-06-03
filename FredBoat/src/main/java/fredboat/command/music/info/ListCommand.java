@@ -27,20 +27,21 @@ package fredboat.command.music.info;
 
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
-import fredboat.definitions.RepeatMode;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
+import fredboat.definitions.RepeatMode;
 import fredboat.main.Launcher;
-import fredboat.messaging.CentralMessaging;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Member;
+import fredboat.util.MessageBuilder;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Member;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+
+import static fredboat.util.MessageBuilderKt.localMessageBuilder;
 
 public class ListCommand extends JCommand implements IMusicCommand {
 
@@ -61,15 +62,13 @@ public class ListCommand extends JCommand implements IMusicCommand {
             return;
         }
 
-        MessageBuilder mb = CentralMessaging.getClearThreadLocalMessageBuilder();
+        MessageBuilder mb = localMessageBuilder();
 
         int page = 1;
         if (context.hasArguments()) {
             try {
                 page = Integer.valueOf(context.getArgs()[0]);
-            } catch (NumberFormatException e) {
-                page = 1;
-            }
+            } catch (NumberFormatException ignored) {}
         }
 
         int tracksCount = player.getTrackCount();
@@ -110,10 +109,10 @@ public class ListCommand extends JCommand implements IMusicCommand {
                 status = player.isPlaying() ? " \\▶" : " \\\u23F8"; //Escaped play and pause emojis
             }
             Member member = atc.getMember();
-            String username = member != null ? member.getEffectiveName() : context.getGuild().getSelfMember().getEffectiveName();
-            mb.append("[" +
+            String username = member.getEffectiveName();
+            mb.codeBlock("[" +
                     TextUtils.forceNDigits(i + 1, numberLength)
-                    + "]", MessageBuilder.Formatting.BLOCK)
+                    + "]", "")
                     .append(status)
                     .append(context.i18nFormat("listAddedBy", TextUtils.escapeAndDefuse(atc.getEffectiveTitle()),
                             TextUtils.escapeAndDefuse(username), TextUtils.formatTime(atc.getEffectiveDuration())))
