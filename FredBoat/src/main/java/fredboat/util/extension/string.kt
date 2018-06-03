@@ -15,3 +15,9 @@ fun String.escapeMarkdown() = TextUtils.escapeMarkdown(this)
 fun String.escapeBackticks() = TextUtils.escapeBackticks(this)
 
 fun String.toMessage() = RawMessage(this)
+
+fun Float.toDecimalString(decimals: Int) = this.toString().substring(
+        0,
+        /*   Include digits   */   /* period */
+        this.toInt().toString().length + 1 + decimals
+)

@@ -49,7 +49,7 @@ public class GensokyoRadioCommand extends JCommand implements IMusicCommand {
 
     public void invoke(@Nonnull CommandContext context) {
         EmbedBuilder eb = CentralMessaging.addFooter(
-                NowplayingCommand.getGensokyoRadioEmbed(context), context.getGuild().getSelfMember());
+                NowplayingCommand.Companion.getGensokyoRadioEmbed(context), context.getGuild().getSelfMember());
         context.reply(eb.build());
     }
 
