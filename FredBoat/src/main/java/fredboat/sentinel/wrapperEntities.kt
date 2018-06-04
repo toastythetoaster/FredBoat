@@ -2,6 +2,7 @@ package fredboat.sentinel
 
 import com.fredboat.sentinel.entities.*
 import fredboat.audio.lavalink.SentinelLavalink
+import fredboat.audio.lavalink.SentinelLink
 import fredboat.config.property.AppConfig
 import fredboat.perms.IPermissionSet
 import fredboat.perms.NO_PERMISSIONS
@@ -9,6 +10,7 @@ import fredboat.perms.Permission
 import fredboat.perms.PermissionSet
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 import java.util.stream.Stream
 import kotlin.streams.toList
@@ -25,51 +27,44 @@ private val MEMBER_MENTION_PATTERN = Pattern.compile("<@!?([0-9]+)>", Pattern.DO
 private val CHANNEL_MENTION_PATTERN = Pattern.compile("<#([0-9]+)>", Pattern.DOTALL)
 
 @Service
-private class WrapperEntityBeans(appConfigParam: AppConfig) {
+private class WrapperEntityBeans(appConfigParam: AppConfig, lavalinkParam: SentinelLavalink) {
     init {
         appConfig = appConfigParam
+        lavalink = lavalinkParam
     }
 }
 
 private lateinit var appConfig: AppConfig
+private lateinit var lavalink: SentinelLavalink
 
 // TODO: These classes are rather inefficient. We should cache more things, and we should avoid duplication of Guild entities
 
-class Guild(
-        override val id: Long
-) : SentinelEntity {
-    val raw: RawGuild
-        get() = sentinel.getGuild(id)
-    val name: String
-        get() = raw.name
-    val owner: Member?
-        get() {
-            if (raw.owner != null) return Member(raw.owner!!)
-            return null
-        }
+class Guild(raw: RawGuild) : SentinelEntity {
 
-    // TODO: Make these lazy so we don't have to recompute them
-    val textChannels: List<TextChannel>
-        get() = raw.textChannels.map { TextChannel(it, id) }
-    val voiceChannels: List<VoiceChannel>
-        get() = raw.voiceChannels.map { VoiceChannel(it, id) }
-    val voiceChannelsMap: Map<Long, VoiceChannel>
-        get() = voiceChannels.associateBy { it.id }
+    init {
+        updateGuild(this, raw)
+    }
+
+    override val id = raw.id
+    lateinit var name: String
+    var owner: Member? = null // Discord has a history of null owners
+    val members = ConcurrentHashMap<Long, Member>()
+    val roles = ConcurrentHashMap<Long, Role>()
+    val textChannels = ConcurrentHashMap<Long, TextChannel>()
+    val voiceChannels = ConcurrentHashMap<Long, VoiceChannel>()
+
+    /* Helper properties */
+
     val selfMember: Member
-        get() = membersMap[sentinel.getApplicationInfo().botId]!!
-    val members: List<Member>
-        get() = raw.members.map { Member(it.value) }
-    val membersMap: Map<Long, Member>
-        get() = members.associateBy { it.id }
-    val roles: List<Role>
-        get() = raw.roles.map { Role(it, id) }
+        get() = members[sentinel.getApplicationInfo().botId]!!
     val shardId: Int
         get() = ((id shr 22) % appConfig.shardCount.toLong()).toInt()
     val shardString: String
         get() = "[$shardId/${appConfig.shardCount}]"
+    val link: SentinelLink
+        get() = lavalink.getLink(this)
     val info: Mono<GuildInfo>
         get() = sentinel.getGuildInfo(this)
-
     /** This is true if we are present in this [Guild]*/
     val selfPresent: Boolean
         get() = true //TODO
@@ -78,33 +73,28 @@ class Guild(
     val routingKey: String
         get() = sentinel.tracker.getKey(shardId)
 
-    fun getTextChannel(id: Long): TextChannel? {
-        textChannels.forEach { if (it.id == id) return it }
-        return null
-    }
+    fun getMember(id: Long): Member? = members[id]
+    fun getRole(id: Long): Role? = roles[id]
+    fun getTextChannel(id: Long): TextChannel? = textChannels[id]
+    fun getVoiceChannel(id: Long): VoiceChannel? = voiceChannels[id]
 
-    fun getVoiceChannel(id: Long): VoiceChannel? {
-        voiceChannels.forEach { if (it.id == id) return it }
-        return null
-    }
-
-    fun getRole(id: Long): Role? {
-        roles.forEach { if (it.id == id) return it }
-        return null
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return other is Guild && id == other.id
-    }
-
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
-
-    fun getMember(userId: Long): Member? = membersMap[userId]
+    override fun equals(other: Any?): Boolean = other is Guild && id == other.id
+    override fun hashCode() = id.hashCode()
 }
 
-class Member(val raw: RawMember) : IMentionable, SentinelEntity {
+// Package-level to hide this function
+fun updateGuild(guild: Guild, raw: RawGuild) = guild.apply {
+    if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+    name = raw.name
+    members.clear(); raw.members.forEach {members[it.value.id] = Member(guild, it.value)}
+    roles.clear(); raw.roles.forEach {roles[it.id] = Role(guild, it)}
+    textChannels.clear(); raw.textChannels.forEach {textChannels[it.id] = TextChannel(guild, it)}
+    voiceChannels.clear(); raw.voiceChannels.forEach {voiceChannels[it.id] = VoiceChannel(guild, it) }
+    val rawOwner = raw.owner
+    owner = if (rawOwner != null) members[rawOwner.id] else null
+}
+
+class Member(val guild: Guild, val raw: RawMember) : IMentionable, SentinelEntity {
     override val id: Long
         get() = raw.id
     val name: String
@@ -115,8 +105,6 @@ class Member(val raw: RawMember) : IMentionable, SentinelEntity {
         get() = if (raw.nickname != null) raw.nickname!! else raw.name
     val discrim: Short
         get() = raw.discrim
-    val guild: Guild
-        get() = Guild(raw.guildId)
     val guildId: Long
         get() = raw.guildId
     val isBot: Boolean
@@ -201,13 +189,11 @@ class User(val raw: RawUser) : IMentionable, SentinelEntity {
     }
 }
 
-class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentionable {
+class TextChannel(override val guild: Guild, val raw: RawTextChannel) : Channel, IMentionable {
     override val id: Long
         get() = raw.id
     override val name: String
         get() = raw.name
-    override val guild: Guild
-        get() = Guild(guildId)
     override val ourEffectivePermissions: Long
         get() = raw.ourEffectivePermissions
     override val asMention: String
@@ -224,6 +210,7 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
     fun editMessage(messageId: Long, message: String): Mono<Unit> =
             sentinel.editMessage(this, messageId, RawMessage(message))
 
+    @Suppress("unused")
     fun editMessage(messageId: Long, message: IMessage): Mono<Unit> =
             sentinel.editMessage(this, messageId, message)
 
@@ -245,13 +232,11 @@ class TextChannel(val raw: RawTextChannel, val guildId: Long) : Channel, IMentio
     }
 }
 
-class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
+class VoiceChannel(override val guild: Guild, val raw: RawVoiceChannel) : Channel {
     override val id: Long
         get() = raw.id
     override val name: String
         get() = raw.name
-    override val guild: Guild
-        get() = Guild(guildId)
     override val ourEffectivePermissions: Long
         get() = raw.ourEffectivePermissions
     val userLimit: Int
@@ -272,17 +257,15 @@ class VoiceChannel(val raw: RawVoiceChannel, val guildId: Long) : Channel {
     }
 }
 
-class Role(val raw: RawRole, val guildId: Long) : IMentionable, SentinelEntity {
+class Role(val guild: Guild, val raw: RawRole) : IMentionable, SentinelEntity {
     override val id: Long
         get() = raw.id
     val name: String
         get() = raw.name
     val permissions: PermissionSet
         get() = PermissionSet(raw.permissions)
-    val guild: Guild
-        get() = Guild(guildId)
     val isPublicRole: Boolean // The @everyone role shares the ID of the guild
-        get() = id == guildId
+        get() = id == guild.id
     override val asMention: String
         get() = "<@$id>"
     val info: Mono<RoleInfo>
@@ -297,17 +280,15 @@ class Role(val raw: RawRole, val guildId: Long) : IMentionable, SentinelEntity {
     }
 }
 
-class Message(val raw: MessageReceivedEvent) : SentinelEntity {
+class Message(val guild: Guild, val raw: MessageReceivedEvent) : SentinelEntity {
     override val id: Long
         get() = raw.id
     val content: String
         get() = raw.content
-    val member: Member
-        get() = Member(raw.author)
-    val guild: Guild
-        get() = Guild(raw.guildId)
-    val channel: TextChannel
-        get() = TextChannel(raw.channel, raw.guildId)
+    val member: Member?
+        get() = guild.getMember(raw.id)
+    val channel: TextChannel?
+        get() = guild.getTextChannel(raw.channel.id)
     val mentionedMembers: List<Member>
     // Technically one could mention someone who isn't a member of the guild,
     // but we don't really care for that
@@ -327,6 +308,5 @@ class Message(val raw: MessageReceivedEvent) : SentinelEntity {
     val attachments: List<String>
         get() = raw.attachments
 
-    fun delete(): Mono<Unit> = sentinel.deleteMessages(channel, listOf(id))
+    fun delete(): Mono<Unit> = sentinel.deleteMessages(channel!!, listOf(id))
 }
-

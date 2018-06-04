@@ -63,7 +63,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                 )
     }
 
-    private fun <R, T> genericMonoSendAndReceive(
+    internal fun <R, T> genericMonoSendAndReceive(
             exchange: String = SentinelExchanges.REQUESTS,
             routingKey: String,
             request: Any,
