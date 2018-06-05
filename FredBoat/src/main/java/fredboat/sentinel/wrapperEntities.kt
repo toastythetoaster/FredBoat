@@ -101,12 +101,12 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
     fun update(raw: RawGuild) {
         if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
         _name = raw.name
-        _members = raw.members.map { InternalMember(this, it.value) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _members = raw.members.map { InternalMember(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _roles = raw.roles.map { Role(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _textChannels = raw.textChannels.map { InternalTextChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _voiceChannels = raw.voiceChannels.map { VoiceChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         val rawOwner = raw.owner
-        _owner = if (rawOwner != null) members[rawOwner.id] else null
+        _owner = if (rawOwner != null) members[rawOwner] else null
     }
 
 }
@@ -264,12 +264,12 @@ class VoiceChannel(override val guild: Guild, val raw: RawVoiceChannel) : Channe
         get() = raw.id
     override val name: String
         get() = raw.name
-    override val ourEffectivePermissions: Long
-        get() = raw.ourEffectivePermissions
+    override val ourEffectivePermissions: IPermissionSet
+        get() = PermissionSet(raw.ourEffectivePermissions)
     val userLimit: Int
-        get() = 0 //TODO
+        get() = raw.userLimit
     val members: List<Member>
-        get() = listOf() //TODO: List of members
+        get() = listOf() //TODO
 
     override fun equals(other: Any?): Boolean {
         return other is VoiceChannel && id == other.id
