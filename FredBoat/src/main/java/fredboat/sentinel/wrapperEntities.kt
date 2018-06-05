@@ -248,6 +248,11 @@ abstract class TextChannel(override val guild: Guild, raw: RawTextChannel) : Cha
 }
 
 class InternalTextChannel(override val guild: Guild, raw: RawTextChannel) : TextChannel(guild, raw) {
+
+    init {
+        update(raw)
+    }
+
     fun update(raw: RawTextChannel) {
         _name = raw.name
         _ourEffectivePermissions = raw.ourEffectivePermissions
