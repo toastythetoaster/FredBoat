@@ -39,20 +39,33 @@ private lateinit var lavalink: SentinelLavalink
 
 // TODO: These classes are rather inefficient. We should cache more things, and we should avoid duplication of Guild entities
 
+@Suppress("PropertyName")
 abstract class Guild(raw: RawGuild) : SentinelEntity {
 
     override val id = raw.id
-    lateinit var name: String
-    var owner: Member? = null // Discord has a history of null owners
-    val members = ConcurrentHashMap<Long, Member>()
-    val roles = ConcurrentHashMap<Long, Role>()
-    val textChannels = ConcurrentHashMap<Long, TextChannel>()
-    val voiceChannels = ConcurrentHashMap<Long, VoiceChannel>()
+
+    protected lateinit var _name: String
+    val name: String get() = _name
+
+    protected var _owner: Member? = null // Discord has a history of null owners
+    val owner: Member? get() = _owner
+
+    protected var _members = ConcurrentHashMap<Long, Member>()
+    val members: Map<Long, Member> get() = _members
+
+    protected var _roles = ConcurrentHashMap<Long, Role>()
+    val roles: Map<Long, Role> get() = _roles
+
+    protected var _textChannels = ConcurrentHashMap<Long, TextChannel>()
+    val textChannels: Map<Long, TextChannel> get() = _textChannels
+
+    protected var _voiceChannels = ConcurrentHashMap<Long, VoiceChannel>()
+    val voiceChannels: Map<Long, VoiceChannel> get() = _voiceChannels
 
     /* Helper properties */
 
     val selfMember: Member
-        get() = members[sentinel.getApplicationInfo().botId]!!
+        get() = _members[sentinel.getApplicationInfo().botId]!!
     val shardId: Int
         get() = ((id shr 22) % appConfig.shardCount.toLong()).toInt()
     val shardString: String
@@ -69,10 +82,10 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     val routingKey: String
         get() = sentinel.tracker.getKey(shardId)
 
-    fun getMember(id: Long): Member? = members[id]
-    fun getRole(id: Long): Role? = roles[id]
-    fun getTextChannel(id: Long): TextChannel? = textChannels[id]
-    fun getVoiceChannel(id: Long): VoiceChannel? = voiceChannels[id]
+    fun getMember(id: Long): Member? = _members[id]
+    fun getRole(id: Long): Role? = _roles[id]
+    fun getTextChannel(id: Long): TextChannel? = _textChannels[id]
+    fun getVoiceChannel(id: Long): VoiceChannel? = _voiceChannels[id]
 
     override fun equals(other: Any?): Boolean = other is Guild && id == other.id
     override fun hashCode() = id.hashCode()
@@ -87,13 +100,13 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
 
     fun update(guild: Guild, raw: RawGuild) = guild.apply {
         if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
-        name = raw.name
-        members.clear(); raw.members.forEach {members[it.value.id] = InternalMember(guild, it.value)}
-        roles.clear(); raw.roles.forEach {roles[it.id] = Role(guild, it)}
-        textChannels.clear(); raw.textChannels.forEach {textChannels[it.id] = TextChannel(guild, it)}
-        voiceChannels.clear(); raw.voiceChannels.forEach {voiceChannels[it.id] = VoiceChannel(guild, it) }
+        _name = raw.name
+        _members = raw.members.map { InternalMember(guild, it.value) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _roles = raw.roles.map { Role(guild, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _textChannels = raw.textChannels.map { TextChannel(guild, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _voiceChannels = raw.voiceChannels.map { VoiceChannel(guild, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         val rawOwner = raw.owner
-        owner = if (rawOwner != null) members[rawOwner.id] else null
+        _owner = if (rawOwner != null) members[rawOwner.id] else null
     }
 
 }

@@ -20,7 +20,7 @@ class GuildCache(private val sentinel: Sentinel,
     }
 
     // TODO: Invalidation
-    val cache = ConcurrentHashMap<Long, Guild>()
+    val cache = ConcurrentHashMap<Long, InternalGuild>()
 
     fun get(id: Long): Mono<Guild?> = Mono.create {
         val guild = cache[id]
@@ -34,7 +34,7 @@ class GuildCache(private val sentinel: Sentinel,
                 transform = {
                     if (it == null) return@genericMonoSendAndReceive null
 
-                    val g = Guild(it)
+                    val g = InternalGuild(it)
                     cache[g.id] = g
                     g
                 }
