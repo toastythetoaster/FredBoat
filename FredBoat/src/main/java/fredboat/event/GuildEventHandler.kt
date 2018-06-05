@@ -44,10 +44,10 @@ class GuildEventHandler(
         var channel: TextChannel? = guild.getTextChannel(guild.id) //old public channel
         if (channel == null || !channel.canTalk()) {
             //find first channel that we can talk in
-            for (tc in guild.textChannels) {
+            guild.textChannels.forEach { _, tc ->
                 if (tc.canTalk()) {
                     channel = tc
-                    break
+                    return@forEach
                 }
             }
         }

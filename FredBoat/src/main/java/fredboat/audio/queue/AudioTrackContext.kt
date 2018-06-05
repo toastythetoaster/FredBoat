@@ -43,7 +43,7 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member) : Compar
         get() = member.id
 
     val guildId: Long
-        get() = member.guildId
+        get() = member.guild.id
 
     open val effectiveDuration: Long
         get() = track.duration

@@ -191,7 +191,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
      */
     fun getPermissions(guild: Guild, members: List<Member>): Flux<Long> {
         val req = BulkGuildPermissionRequest(guild.id, members.map {
-            if (it.guildId != guild.id) throw IllegalArgumentException("All members must be of the same guild")
+            if (it.guild.id != guild.id) throw IllegalArgumentException("All members must be of the same guild")
             it.id
         })
 

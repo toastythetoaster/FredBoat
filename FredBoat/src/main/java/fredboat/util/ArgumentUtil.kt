@@ -94,12 +94,12 @@ object ArgumentUtil {
 
         term = term.toLowerCase()
 
-        for (mem in guild.members) {
+        guild.members.forEach { _, mem ->
             if ((mem.name.toLowerCase() + "#" + mem.discrim).contains(term)
                     || mem.effectiveName.toLowerCase().contains(term)
                     || term.contains(mem.id.toString())) {
 
-                if (!includeBots && mem.isBot) continue
+                if (!includeBots && mem.isBot) return@forEach
                 list.add(mem)
             }
         }
@@ -115,7 +115,7 @@ object ArgumentUtil {
 
         term = term.toLowerCase()
 
-        for (role in guild.roles) {
+        guild.roles.forEach { _, role ->
             if (role.name.toLowerCase().contains(term) || term.contains(role.id.toString())) {
                 list.add(role)
             }

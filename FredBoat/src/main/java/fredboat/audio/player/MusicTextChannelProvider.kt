@@ -76,7 +76,7 @@ class MusicTextChannelProvider(credentials: Credentials, cacheMetrics: CacheMetr
             return textChannel
         } else {
             log.warn("No currentTC in guild {}! Trying to look up a channel where we can talk...", guild)
-            for (tc in guild.textChannels) {
+            for (tc in guild.textChannels.values) {
                 if (tc.canTalk()) {
                     return tc
                 }

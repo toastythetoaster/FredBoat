@@ -46,12 +46,12 @@ class AudioEventHandler(
     override fun onVoiceServerUpdate(voiceServerUpdate: VoiceServerUpdate) =
             lavalink.onVoiceServerUpdate(voiceServerUpdate)
 
-    private fun getLink(channel: VoiceChannel) = lavalink.getLink(channel.guildId.toString())
+    private fun getLink(channel: VoiceChannel) = lavalink.getLink(channel.guild.idString)
 
     private fun checkForAutoPause(channelLeft: VoiceChannel) {
         if (appConfig.continuePlayback) return
 
-        val player = playerRegistry.getExisting(channelLeft.guildId) ?: return
+        val player = playerRegistry.getExisting(channelLeft.guild.id) ?: return
 
         //are we in the channel that someone left from?
         val currentVc = player.currentVoiceChannel

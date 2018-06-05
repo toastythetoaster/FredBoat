@@ -312,10 +312,10 @@ class Message(val guild: Guild, val raw: MessageReceivedEvent) : SentinelEntity 
         get() = raw.id
     val content: String
         get() = raw.content
-    val member: Member?
-        get() = guild.getMember(raw.id)
-    val channel: TextChannel?
-        get() = guild.getTextChannel(raw.channel.id)
+    val member: Member // Maybe make this nullable?
+        get() = guild.getMember(raw.id)!!
+    val channel: TextChannel // Maybe make this nullable?
+        get() = guild.getTextChannel(raw.channel.id)!!
     val mentionedMembers: List<Member>
     // Technically one could mention someone who isn't a member of the guild,
     // but we don't really care for that

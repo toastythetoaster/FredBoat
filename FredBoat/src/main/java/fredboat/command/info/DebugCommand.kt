@@ -114,7 +114,7 @@ class DebugCommand(name: String, vararg aliases: String) : Command(name, *aliase
     private fun Embed.addAllTextChannelDebug(guild: Guild) = field {
         title = "**TextChannel Permissions - Can Talk**"
         val builder = StringBuilder()
-        for (channel in guild.textChannels) {
+        guild.textChannels.forEach { _, channel ->
             builder.append(if (channel.canTalk()) "+ " else "- ")
                     .append("#")
                     .append(channel.name)
@@ -127,7 +127,7 @@ class DebugCommand(name: String, vararg aliases: String) : Command(name, *aliase
         title = "**VoiceChannel Permissions - Can connect and speak**"
         val builder = StringBuilder()
 
-        for (channel in guild.voiceChannels) {
+        guild.voiceChannels.forEach { _, channel ->
             if (channel.checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_CONNECT)) {
                 builder.append("+ ")
             } else {
