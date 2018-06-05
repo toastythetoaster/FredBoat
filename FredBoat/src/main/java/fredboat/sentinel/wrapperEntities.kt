@@ -135,7 +135,6 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
     val effectiveName: String get() = if (_nickname != null) _nickname!! else _name
     /** True if this [Member] is our bot */
     val isUs: Boolean get() = id == sentinel.getApplicationInfo().botId
-    val avatarUrl: String get() = TODO("Not being sent by Sentinel yet")
     override val asMention: String get() = "<@$id>"
     val user: User
         get() = User(RawUser(
@@ -336,5 +335,5 @@ class Message(val guild: Guild, val raw: MessageReceivedEvent) : SentinelEntity 
     val attachments: List<String>
         get() = raw.attachments
 
-    fun delete(): Mono<Unit> = sentinel.deleteMessages(channel!!, listOf(id))
+    fun delete(): Mono<Unit> = sentinel.deleteMessages(channel, listOf(id))
 }
