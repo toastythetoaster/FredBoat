@@ -1,5 +1,6 @@
 package fredboat.event
 
+import com.fredboat.sentinel.entities.MessageReceivedEvent
 import com.fredboat.sentinel.entities.ShardLifecycleEvent
 import com.fredboat.sentinel.entities.ShardStatusChange
 import com.fredboat.sentinel.entities.VoiceServerUpdate
@@ -23,7 +24,7 @@ abstract class SentinelEventHandler {
     open fun onVoiceMove(oldChannel: VoiceChannel, newChannel: VoiceChannel, member: Member) {}
     open fun onVoiceServerUpdate(voiceServerUpdate: VoiceServerUpdate) {}
 
-    open fun onGuildMessage(channel: TextChannel, author: Member, message: Message) {}
+    open fun onGuildMessage(event: MessageReceivedEvent) {}
     open fun onGuildMessageDelete(channel: TextChannel, messageId: Long) {}
     open fun onPrivateMessage(author: User, content: String) {}
 

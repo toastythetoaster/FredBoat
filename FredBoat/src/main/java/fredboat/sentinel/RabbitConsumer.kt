@@ -87,7 +87,7 @@ class RabbitConsumer(
 
     @RabbitHandler
     fun receive(event: VoiceLeaveEvent) {
-        val guild = guildCache.getIfCached(event.guildId) ?: return
+        val guild = guildCache.getIfCached(event.guild) ?: return
         val channel = guild.getVoiceChannel(event.channel)
         val member = guild.getMember(event.member)
 
@@ -99,14 +99,14 @@ class RabbitConsumer(
 
     @RabbitHandler
     fun receive(event: VoiceMoveEvent) {
-        val guild = guildCache.getIfCached(event.guildId) ?: return
-        val old = guild.getVoiceChannel(event.oldChannel.id)
-        val new = guild.getVoiceChannel(event.newChannel.id)
-        val member = guild.getMember(event.member.id)
+        val guild = guildCache.getIfCached(event.guild) ?: return
+        val old = guild.getVoiceChannel(event.oldChannel)
+        val new = guild.getVoiceChannel(event.newChannel)
+        val member = guild.getMember(event.member)
 
-        if (old == null) throw IllegalStateException("Got VoiceMoveEvent for unknown old channel ${event.oldChannel.id}")
-        if (new == null) throw IllegalStateException("Got VoiceMoveEvent for unknown new channel ${event.newChannel.id}")
-        if (member == null) throw IllegalStateException("Got VoiceMoveEvent for unknown member ${event.member.id}")
+        if (old == null) throw IllegalStateException("Got VoiceMoveEvent for unknown old channel ${event.oldChannel}")
+        if (new == null) throw IllegalStateException("Got VoiceMoveEvent for unknown new channel ${event.newChannel}")
+        if (member == null) throw IllegalStateException("Got VoiceMoveEvent for unknown member ${event.member}")
 
         eventHandlers.forEach { it.onVoiceMove(old, new, member) }
     }
@@ -120,14 +120,11 @@ class RabbitConsumer(
 
     @RabbitHandler
     fun receive(event: MessageReceivedEvent) {
-        val channel = TextChannel(event.channel, event.guildId)
-        val author = Member(event.author)
-
         // Before execution set some variables that can help with finding traces that belong to each other
-        MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_GUILD, channel.guild.id.toString()).use {
-            MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_CHANNEL, channel.id.toString()).use {
-                MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_INVOKER, author.id.toString()).use {
-                    eventHandlers.forEach { it.onGuildMessage(channel, author, Message(event)) }
+        MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_GUILD, event.guild.toString()).use {
+            MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_CHANNEL, event.channel.toString()).use {
+                MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_INVOKER, event.author.toString()).use {
+                    eventHandlers.forEach { it.onGuildMessage(event) }
                 }
             }
         }
@@ -149,7 +146,7 @@ class RabbitConsumer(
     @RabbitHandler
     fun receive(event: MessageDeleteEvent) {
         eventHandlers.forEach { it.onGuildMessageDelete(
-                TextChannel(event.channel, event.guildId),
+                TextChannel(event.channel, event.guild),
                 event.id
         ) }
     }

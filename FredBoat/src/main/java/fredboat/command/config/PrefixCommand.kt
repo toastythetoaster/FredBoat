@@ -64,7 +64,7 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
                 .build(CacheLoader.asyncReloading(CacheLoader.from<Long, Optional<String>> { guildId -> Launcher.getBotController().prefixService.getPrefix(Prefix.GuildBotId(guildId!!, DiscordUtil.getBotId(Launcher.getBotController().credentials))) },
                         Launcher.getBotController().executor))!!
 
-        private fun giefPrefix(guildId: Long) = CacheUtil.getUncheckedUnwrapped(CUSTOM_PREFIXES, guildId)
+        fun giefPrefix(guildId: Long) = CacheUtil.getUncheckedUnwrapped(CUSTOM_PREFIXES, guildId)
                 .orElse(Launcher.getBotController().appConfig.prefix)
 
         fun giefPrefix(guild: Guild) = giefPrefix(guild.id)

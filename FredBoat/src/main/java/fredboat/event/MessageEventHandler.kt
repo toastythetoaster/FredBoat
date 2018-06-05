@@ -25,6 +25,7 @@
 
 package fredboat.event
 
+import com.fredboat.sentinel.entities.MessageReceivedEvent
 import com.google.common.cache.CacheBuilder
 import fredboat.command.info.HelpCommand
 import fredboat.command.info.ShardsCommand
@@ -38,8 +39,11 @@ import fredboat.definitions.PermissionLevel
 import fredboat.feature.metrics.Metrics
 import fredboat.perms.Permission.MESSAGE_READ
 import fredboat.perms.Permission.MESSAGE_WRITE
+import fredboat.perms.PermissionSet
 import fredboat.perms.PermsUtil
-import fredboat.sentinel.*
+import fredboat.sentinel.Sentinel
+import fredboat.sentinel.TextChannel
+import fredboat.sentinel.User
 import fredboat.util.ratelimit.Ratelimiter
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import kotlinx.coroutines.experimental.async
@@ -64,46 +68,48 @@ class MessageEventHandler(
         val messagesToDeleteIfIdDeleted = CacheBuilder.newBuilder()
                 .recordStats()
                 .expireAfterWrite(6, TimeUnit.HOURS)
-                .build<Long, Long>()
+                .build<Long, Long>()!!
     }
 
     init {
         cacheMetrics.addCache("messagesToDeleteIfIdDeleted", messagesToDeleteIfIdDeleted)
     }
 
-    override fun onGuildMessage(channel: TextChannel, author: Member, message: Message) {
-        if (ratelimiter.isBlacklisted(author.id)) {
+    override fun onGuildMessage(event: MessageReceivedEvent) {
+        if (ratelimiter.isBlacklisted(event.author)) {
             Metrics.blacklistedMessagesReceived.inc()
             return
         }
 
-        if (channel.guild.selfMember.id == author.id) log.info(message.content)
-        if (author.isBot) return
+        if (sentinel.getApplicationInfo().botId == event.author) log.info(event.content)
+        if (event.fromBot) return
 
         //Preliminary permission filter to avoid a ton of parsing
         //Let messages pass on to parsing that contain "help" since we want to answer help requests even from channels
         // where we can't talk in
-        if (!channel.checkOurPermissions(MESSAGE_READ + MESSAGE_WRITE)
-                && !message.content.contains(CommandInitializer.HELP_COMM_NAME)) return
-
-        val context = commandContextParser.parse(channel, author, message) ?: return
-        log.info(message.content)
-
-        //ignore all commands in channels where we can't write, except for the help command
-        if (!channel.checkOurPermissions(MESSAGE_READ + MESSAGE_WRITE) && context.command !is HelpCommand) {
-            log.info("Ignoring command {} because this bot cannot write in that channel", context.command.name)
-            return
-        }
-
-        Metrics.commandsReceived.labels(context.command.javaClass.simpleName).inc()
+        val permissions = PermissionSet(event.channelPermissions)
+        if (permissions hasNot (MESSAGE_READ + MESSAGE_WRITE)
+                && !event.content.contains(CommandInitializer.HELP_COMM_NAME)) return
 
         async {
+            val context = commandContextParser.parse(event) ?: return@async
+            log.info(event.content)
+
+            //ignore all commands in channels where we can't write, except for the help command
+            if (permissions hasNot (MESSAGE_READ + MESSAGE_WRITE) && context.command !is HelpCommand) {
+                log.info("Ignoring command {} because this bot cannot write in that channel", context.command.name)
+                return@async
+            }
+
+            Metrics.commandsReceived.labels(context.command.javaClass.simpleName).inc()
+
+
             //ignore commands of disabled modules for plebs
             //BOT_ADMINs can always use all commands everywhere
             val module = context.command.module
             if (module != null
                     && !context.enabledModules.contains(module)
-                    && !PermsUtil.checkPerms(PermissionLevel.BOT_ADMIN, author)) {
+                    && !PermsUtil.checkPerms(PermissionLevel.BOT_ADMIN, context.member)) {
                 log.debug("Ignoring command {} because its module {} is disabled",
                         context.command.name, module.name)
                 return@async

@@ -24,14 +24,14 @@
 
 package fredboat.commandmeta
 
+import com.fredboat.sentinel.entities.MessageReceivedEvent
 import fredboat.command.config.PrefixCommand
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.config.property.AppConfig
 import fredboat.config.property.Credentials
 import fredboat.feature.metrics.Metrics
-import fredboat.sentinel.Member
 import fredboat.sentinel.Message
-import fredboat.sentinel.TextChannel
+import fredboat.sentinel.getGuild
 import fredboat.util.DiscordUtil
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -55,8 +55,8 @@ class CommandContextParser(private val appConfig: AppConfig, private val credent
     /**
      * @return The full context for the triggered command, or null if it's not a command that we know.
      */
-    fun parse(channel: TextChannel, author: Member, message: Message): CommandContext? {
-        val content = message.content
+    suspend fun parse(event: MessageReceivedEvent): CommandContext? {
+        val content = event.content
         var input: String
         var isMention = false
         val mentionMatcher = MENTION_PREFIX.matcher(content)
@@ -66,7 +66,7 @@ class CommandContextParser(private val appConfig: AppConfig, private val credent
             input = mentionMatcher.group(3).trim { it <= ' ' }
             isMention = true
         } else {
-            val prefix = PrefixCommand.giefPrefix(channel.guild)
+            val prefix = PrefixCommand.giefPrefix(event.guild)
             val defaultPrefix = appConfig.prefix
             if (content.startsWith(prefix)) {
                 input = content.substring(prefix.length)
@@ -109,13 +109,15 @@ class CommandContextParser(private val appConfig: AppConfig, private val credent
             log.info("Unknown command:\t{}", commandTrigger)
             return null
         } else {
-
+            val guild = getGuild(event.id) ?: throw RuntimeException("Failed loading guild")
+            val channel = guild.getTextChannel(event.channel) ?: throw RuntimeException("Channel was sent in null channel")
+            val member = guild.getMember(event.author) ?: throw RuntimeException("Unknown message author")
 
             return CommandContext(
-                    channel.guild,
+                    guild,
                     channel,
-                    author,
-                    message,
+                    member,
+                    Message(guild, event),
                     isMention,
                     commandTrigger,
                     Arrays.copyOfRange(args, 1, args.size), //exclude args[0] that contains the command trigger
