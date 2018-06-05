@@ -10,6 +10,7 @@ import fredboat.perms.Permission
 import fredboat.perms.PermissionSet
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
 import java.util.stream.Stream
@@ -100,13 +101,16 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
 
     fun update(raw: RawGuild) {
         if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+
         _name = raw.name
-        _members = raw.members.map { InternalMember(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
-        _roles = raw.roles.map { Role(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
-        _textChannels = raw.textChannels.map { InternalTextChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
-        _voiceChannels = raw.voiceChannels.map { VoiceChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         val rawOwner = raw.owner
         _owner = if (rawOwner != null) members[rawOwner] else null
+
+        // Note: Roles must be loaded first as members rely on them. Then members, then channels
+        _roles = raw.roles.map { Role(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _members = raw.members.map { InternalMember(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _textChannels = raw.textChannels.map { InternalTextChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _voiceChannels = raw.voiceChannels.map { InternalVoiceChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
     }
 
 }
@@ -193,7 +197,7 @@ class InternalMember(guild: Guild, raw: RawMember) : Member(guild, raw) {
 
 /** Note: This is not cached or subject to updates */
 class User(val raw: RawUser) : IMentionable, SentinelEntity {
-   override val id: Long
+    override val id: Long
         get() = raw.id
     val name: String
         get() = raw.name
@@ -228,15 +232,15 @@ abstract class TextChannel(override val guild: Guild, raw: RawTextChannel) : Cha
 
     override val asMention: String get() = "<#$id>"
 
-    fun send(str: String): Mono<SendMessageResponse>
-            = sentinel.sendMessage(guild.routingKey, this, RawMessage(str))
-    fun send(message: IMessage): Mono<SendMessageResponse>
-            = sentinel.sendMessage(guild.routingKey, this, message)
+    fun send(str: String): Mono<SendMessageResponse> = sentinel.sendMessage(guild.routingKey, this, RawMessage(str))
+    fun send(message: IMessage): Mono<SendMessageResponse> = sentinel.sendMessage(guild.routingKey, this, message)
     fun editMessage(messageId: Long, message: String): Mono<Unit> =
             sentinel.editMessage(this, messageId, RawMessage(message))
+
     @Suppress("unused")
     fun editMessage(messageId: Long, message: IMessage): Mono<Unit> =
             sentinel.editMessage(this, messageId, message)
+
     fun deleteMessage(messageId: Long) = sentinel.deleteMessages(this, listOf(messageId))
     fun sendTyping() = sentinel.sendTyping(this)
     fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)
@@ -253,34 +257,50 @@ class InternalTextChannel(override val guild: Guild, raw: RawTextChannel) : Text
     }
 
     fun update(raw: RawTextChannel) {
+        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+
         _name = raw.name
         _ourEffectivePermissions = raw.ourEffectivePermissions
     }
 
 }
 
-class VoiceChannel(override val guild: Guild, val raw: RawVoiceChannel) : Channel {
-    override val id: Long
-        get() = raw.id
-    override val name: String
-        get() = raw.name
-    override val ourEffectivePermissions: IPermissionSet
-        get() = PermissionSet(raw.ourEffectivePermissions)
-    val userLimit: Int
-        get() = raw.userLimit
-    val members: List<Member>
-        get() = listOf() //TODO
+@Suppress("PropertyName")
+abstract class VoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : Channel {
+    override val id = raw.id
 
-    override fun equals(other: Any?): Boolean {
-        return other is VoiceChannel && id == other.id
+    protected lateinit var _name: String
+    override val name: String get() = _name
+
+    protected var _ourEffectivePermissions: Long = raw.ourEffectivePermissions
+    override val ourEffectivePermissions: IPermissionSet get() = PermissionSet(_ourEffectivePermissions)
+
+    protected var _userLimit = 0
+    val userLimit: Int get() = _userLimit
+
+    protected lateinit var _members: MutableList<Member>
+    val members: List<Member> get() = _members
+
+    fun connect() = SentinelLavalink.INSTANCE.getLink(guild).connect(this)
+    override fun equals(other: Any?) = other is VoiceChannel && id == other.id
+    override fun hashCode() = id.hashCode()
+}
+
+class InternalVoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : VoiceChannel(guild, raw) {
+
+    init {
+        update(raw)
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
+    fun update(raw: RawVoiceChannel) {
+        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
 
-    fun connect() {
-        SentinelLavalink.INSTANCE.getLink(guild).connect(this)
+        _name = raw.name
+        _ourEffectivePermissions = raw.ourEffectivePermissions
+        _userLimit = raw.userLimit
+        _members = raw.members.flatMapTo(Collections.synchronizedList(mutableListOf())) { id ->
+            listOfNotNull(guild.getMember(id))
+        }
     }
 }
 
