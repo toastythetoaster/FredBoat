@@ -39,11 +39,7 @@ private lateinit var lavalink: SentinelLavalink
 
 // TODO: These classes are rather inefficient. We should cache more things, and we should avoid duplication of Guild entities
 
-class Guild(raw: RawGuild) : SentinelEntity {
-
-    init {
-        updateGuild(this, raw)
-    }
+abstract class Guild(raw: RawGuild) : SentinelEntity {
 
     override val id = raw.id
     lateinit var name: String
@@ -82,52 +78,52 @@ class Guild(raw: RawGuild) : SentinelEntity {
     override fun hashCode() = id.hashCode()
 }
 
-// Package-level to hide this function
-fun updateGuild(guild: Guild, raw: RawGuild) = guild.apply {
-    if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
-    name = raw.name
-    members.clear(); raw.members.forEach {members[it.value.id] = Member(guild, it.value)}
-    roles.clear(); raw.roles.forEach {roles[it.id] = Role(guild, it)}
-    textChannels.clear(); raw.textChannels.forEach {textChannels[it.id] = TextChannel(guild, it)}
-    voiceChannels.clear(); raw.voiceChannels.forEach {voiceChannels[it.id] = VoiceChannel(guild, it) }
-    val rawOwner = raw.owner
-    owner = if (rawOwner != null) members[rawOwner.id] else null
+/** Has public members we want to hide */
+class InternalGuild(raw: RawGuild) : Guild(raw) {
+
+    init {
+        update(this, raw)
+    }
+
+    fun update(guild: Guild, raw: RawGuild) = guild.apply {
+        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+        name = raw.name
+        members.clear(); raw.members.forEach {members[it.value.id] = InternalMember(guild, it.value)}
+        roles.clear(); raw.roles.forEach {roles[it.id] = Role(guild, it)}
+        textChannels.clear(); raw.textChannels.forEach {textChannels[it.id] = TextChannel(guild, it)}
+        voiceChannels.clear(); raw.voiceChannels.forEach {voiceChannels[it.id] = VoiceChannel(guild, it) }
+        val rawOwner = raw.owner
+        owner = if (rawOwner != null) members[rawOwner.id] else null
+    }
+
 }
 
-class Member(val guild: Guild, val raw: RawMember) : IMentionable, SentinelEntity {
-    override val id: Long
-        get() = raw.id
-    val name: String
-        get() = raw.name
-    val nickname: String?
-        get() = raw.nickname
-    val effectiveName: String
-        get() = if (raw.nickname != null) raw.nickname!! else raw.name
-    val discrim: Short
-        get() = raw.discrim
-    val guildId: Long
-        get() = raw.guildId
-    val isBot: Boolean
-        get() = raw.bot
-    val voiceChannel: VoiceChannel?
-        get() {
-            if (raw.voiceChannel != null) return guild.getVoiceChannel(raw.voiceChannel!!)
-            return null
-        }
-    val roles: List<Role>
-        get() {
-            val list = mutableListOf<Role>()
-            val guildRoles = guild.roles
-            guildRoles.forEach { if (raw.roles.contains(it.id)) list.add(it) }
-            return list.toList()
-        }
+@Suppress("PropertyName")
+abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, SentinelEntity {
+    override val id = raw.id
+    val isBot = raw.bot
+
+    protected lateinit var _name: String
+    val name: String get() = _name
+
+    protected var _discrim: Short = 0
+    val discrim: Short get() = _discrim
+
+    protected var _nickname: String? = null
+    val nickname: String? get() = _nickname
+
+    protected var _voiceChannel: Long? = null
+    val voiceChannel: VoiceChannel? get() = _voiceChannel?.let { guild.getVoiceChannel(it) }
+
+    protected var _roles = mutableListOf<Role>()
+    val roles: List<Role> get() = _roles // Cast to immutable
+
+    /* Convenience properties */
+    val effectiveName: String get() = if (_nickname != null) _nickname!! else _name
     /** True if this [Member] is our bot */
-    val isUs: Boolean
-        get() = id == sentinel.getApplicationInfo().botId
-    val avatarUrl: String
-        get() = TODO("Not being sent by Sentinel yet")
-    override val asMention: String
-        get() = "<@$id>"
+    val isUs: Boolean get() = id == sentinel.getApplicationInfo().botId
+    val avatarUrl: String get() = TODO("Not being sent by Sentinel yet")
+    override val asMention: String get() = "<@$id>"
     val user: User
         get() = User(RawUser(
                 id,
@@ -135,8 +131,7 @@ class Member(val guild: Guild, val raw: RawMember) : IMentionable, SentinelEntit
                 discrim,
                 isBot
         ))
-    val info: Mono<MemberInfo>
-        get() = sentinel.getMemberInfo(this)
+    val info: Mono<MemberInfo> get() = sentinel.getMemberInfo(this)
 
     fun getPermissions(channel: Channel? = null): Mono<PermissionSet> {
         return when (channel) {
@@ -156,13 +151,32 @@ class Member(val guild: Guild, val raw: RawMember) : IMentionable, SentinelEntit
         }
     }
 
-    override fun equals(other: Any?): Boolean {
-        return other is Member && id == other.id
+    override fun equals(other: Any?): Boolean = other is Member && id == other.id
+    override fun hashCode(): Int = id.hashCode()
+
+}
+
+class InternalMember(guild: Guild, raw: RawMember) : Member(guild, raw) {
+
+    init {
+        update(this, raw)
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
+    fun update(member: Member, raw: RawMember) = member.apply {
+        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+
+        val newRoleList = mutableListOf<Role>()
+        raw.roles.flatMapTo(newRoleList) {
+            val role = guild.getRole(it)
+            return@flatMapTo if (role != null) listOf(role) else emptyList()
+        }
+        _roles = newRoleList
+        _name = raw.name
+        _discrim = raw.discrim
+        _nickname = raw.nickname
+        _voiceChannel = raw.voiceChannel
     }
+
 }
 
 class User(val raw: RawUser) : IMentionable, SentinelEntity {
