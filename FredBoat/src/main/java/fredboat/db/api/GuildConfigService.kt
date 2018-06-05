@@ -23,19 +23,17 @@
  * SOFTWARE.
  */
 
-package fredboat.db.api;
+package fredboat.db.api
 
-import fredboat.sentinel.Guild;
-import fredboat.db.transfer.GuildConfig;
-
-import java.util.function.Function;
+import fredboat.db.transfer.GuildConfig
+import java.util.function.Function
 
 /**
  * Created by napster on 07.02.18.
  */
-public interface GuildConfigService {
+interface GuildConfigService {
 
-    GuildConfig fetchGuildConfig(Guild guild);
+    fun fetchGuildConfig(guild: Long): GuildConfig
 
-    GuildConfig transformGuildConfig(Guild guild, Function<GuildConfig, GuildConfig> transformation);
+    fun transformGuildConfig(guild: Long, transformation: Function<GuildConfig, GuildConfig>): GuildConfig
 }

@@ -54,14 +54,22 @@ public class I18n {
 
     @Nonnull
     public static ResourceBundle get(@Nullable Guild guild) {
-        if (guild == null) {
-            return DEFAULT.getProps();
-        }
+        if (guild == null) return DEFAULT.getProps();
+        return get(guild.getId());
+    }
+
+    @Nonnull
+    public static ResourceBundle get(long guild) {
         return getLocale(guild).getProps();
     }
 
     @Nonnull
     public static FredBoatLocale getLocale(@Nonnull Guild guild) {
+        return getLocale(guild.getId());
+    }
+
+    @Nonnull
+    public static FredBoatLocale getLocale(long guild) {
         try {
             return LANGS.getOrDefault(Launcher.getBotController().getGuildConfigService().fetchGuildConfig(guild).getLang(), DEFAULT);
         } catch (DatabaseNotReadyException e) {
@@ -77,7 +85,7 @@ public class I18n {
         if (!LANGS.containsKey(lang))
             throw new LanguageNotSupportedException("Language not found");
 
-        Launcher.getBotController().getGuildConfigService().transformGuildConfig(guild, config -> config.setLang(lang));
+        Launcher.getBotController().getGuildConfigService().transformGuildConfig(guild.getId(), config -> config.setLang(lang));
     }
 
     public static class FredBoatLocale {

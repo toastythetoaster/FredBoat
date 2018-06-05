@@ -28,7 +28,6 @@ import fredboat.config.property.BackendConfig
 import fredboat.db.FriendlyEntityService.fetchUserFriendly
 import fredboat.db.api.GuildConfigService
 import fredboat.db.transfer.GuildConfig
-import fredboat.sentinel.Guild
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
@@ -39,7 +38,8 @@ import java.util.function.Function
  */
 @Component
 class RestGuildConfigService(backendConfig: BackendConfig, quarterdeckRestTemplate: RestTemplate,
-                             cacheMetrics: CacheMetricsCollector) : CachedRestService<String, GuildConfig>(
+                             cacheMetrics: CacheMetricsCollector)
+    : CachedRestService<String, GuildConfig>(
         backendConfig.quarterdeck.host + RestService.VERSION_PATH + PATH,
         GuildConfig::class.java,
         quarterdeckRestTemplate,
@@ -51,11 +51,11 @@ class RestGuildConfigService(backendConfig: BackendConfig, quarterdeckRestTempla
         const val PATH = "guildconfig/"
     }
 
-    override fun fetchGuildConfig(guild: Guild): GuildConfig {
-        return fetchUserFriendly { fetch(guild.id.toString()) }
+    override fun fetchGuildConfig(guild: Long): GuildConfig {
+        return fetchUserFriendly { fetch(guild.toString()) }
     }
 
-    override fun transformGuildConfig(guild: Guild, transformation: Function<GuildConfig, GuildConfig>): GuildConfig {
+    override fun transformGuildConfig(guild: Long, transformation: Function<GuildConfig, GuildConfig>): GuildConfig {
         return fetchUserFriendly { merge(transformation.apply(fetchGuildConfig(guild))) }
     }
 }

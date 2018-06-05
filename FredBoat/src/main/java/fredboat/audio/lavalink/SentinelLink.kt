@@ -4,7 +4,6 @@ import com.fredboat.sentinel.entities.AudioQueueRequest
 import com.fredboat.sentinel.entities.AudioQueueRequestEnum.*
 import fredboat.perms.InsufficientPermissionException
 import fredboat.perms.Permission.*
-import fredboat.perms.PermissionSet
 import fredboat.sentinel.VoiceChannel
 import lavalink.client.io.Link
 
@@ -29,7 +28,7 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
             throw IllegalArgumentException("The provided VoiceChannel is not a part of the Guild that this AudioManager " +
                     "handles. Please provide a VoiceChannel from the proper Guild")
 
-        val perms = PermissionSet(channel.ourEffectivePermissions)
+        val perms = channel.ourEffectivePermissions
 
         if (perms hasNot VOICE_CONNECT && perms hasNot VOICE_MOVE_OTHERS)
             throw InsufficientPermissionException(VOICE_CONNECT, "We do not have permission to join $channel")

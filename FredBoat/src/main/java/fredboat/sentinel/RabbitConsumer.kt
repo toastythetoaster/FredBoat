@@ -58,8 +58,8 @@ class RabbitConsumer(
 
     @RabbitHandler
     fun receive(event: GuildJoinEvent) {
-        log.info("Joined guild ${event.guildId}")
-        getGuild(event.guildId) { guild ->
+        log.info("Joined guild ${event.guild}")
+        getGuild(event.guild) { guild ->
             eventHandlers.forEach { it.onGuildJoin(guild) }
         }
 
@@ -67,20 +67,20 @@ class RabbitConsumer(
 
     @RabbitHandler
     fun receive(event: GuildLeaveEvent) {
-        log.info("Left guild ${event.guildId}")
-        eventHandlers.forEach { it.onGuildLeave(event.guildId, event.joinTime) }
+        log.info("Left guild ${event.guild}")
+        eventHandlers.forEach { it.onGuildLeave(event.guild, event.joinTime) }
     }
 
     /* Voice events */
 
     @RabbitHandler
     fun receive(event: VoiceJoinEvent) {
-        val guild = guildCache.getIfCached(event.guildId) ?: return
-        val channel = guild.getVoiceChannel(event.channel.id)
-        val member = guild.getMember(event.member.id)
+        val guild = guildCache.getIfCached(event.guild) ?: return
+        val channel = guild.getVoiceChannel(event.channel)
+        val member = guild.getMember(event.member)
 
-        if (channel == null) throw IllegalStateException("Got VoiceJoinEvent for unknown channel ${event.channel.id}")
-        if (member == null) throw IllegalStateException("Got VoiceJoinEvent for unknown member ${event.member.id}")
+        if (channel == null) throw IllegalStateException("Got VoiceJoinEvent for unknown channel ${event.channel}")
+        if (member == null) throw IllegalStateException("Got VoiceJoinEvent for unknown member ${event.member}")
 
         eventHandlers.forEach { it.onVoiceJoin(channel, member) }
     }
@@ -88,11 +88,11 @@ class RabbitConsumer(
     @RabbitHandler
     fun receive(event: VoiceLeaveEvent) {
         val guild = guildCache.getIfCached(event.guildId) ?: return
-        val channel = guild.getVoiceChannel(event.channel.id)
-        val member = guild.getMember(event.member.id)
+        val channel = guild.getVoiceChannel(event.channel)
+        val member = guild.getMember(event.member)
 
-        if (channel == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown channel ${event.channel.id}")
-        if (member == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown member ${event.member.id}")
+        if (channel == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown channel ${event.channel}")
+        if (member == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown member ${event.member}")
 
         eventHandlers.forEach { it.onVoiceLeave(channel, member) }
     }
