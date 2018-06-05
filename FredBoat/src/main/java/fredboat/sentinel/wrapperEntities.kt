@@ -38,8 +38,6 @@ private class WrapperEntityBeans(appConfigParam: AppConfig, lavalinkParam: Senti
 private lateinit var appConfig: AppConfig
 private lateinit var lavalink: SentinelLavalink
 
-// TODO: We need to update all channels if our permissions are changed
-
 @Suppress("PropertyName")
 abstract class Guild(raw: RawGuild) : SentinelEntity {
 
@@ -107,7 +105,7 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
         _owner = if (rawOwner != null) members[rawOwner] else null
 
         // Note: Roles must be loaded first as members rely on them. Then members, then channels
-        _roles = raw.roles.map { Role(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _roles = raw.roles.map { InternalRole(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _members = raw.members.map { InternalMember(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _textChannels = raw.textChannels.map { InternalTextChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _voiceChannels = raw.voiceChannels.map { InternalVoiceChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
@@ -304,26 +302,35 @@ class InternalVoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : Vo
     }
 }
 
-class Role(val guild: Guild, val raw: RawRole) : IMentionable, SentinelEntity {
-    override val id: Long
-        get() = raw.id
-    val name: String
-        get() = raw.name
-    val permissions: PermissionSet
-        get() = PermissionSet(raw.permissions)
-    val isPublicRole: Boolean // The @everyone role shares the ID of the guild
-        get() = id == guild.id
-    override val asMention: String
-        get() = "<@$id>"
-    val info: Mono<RoleInfo>
-        get() = sentinel.getRoleInfo(this)
+@Suppress("PropertyName")
+abstract class Role(open val guild: Guild, raw: RawRole) : IMentionable, SentinelEntity {
+    override val id: Long  = raw.id
 
-    override fun equals(other: Any?): Boolean {
-        return other is Role && id == other.id
+    protected lateinit var _name: String
+    val name: String get() = _name
+
+    protected var _permissions = raw.permissions
+    val permissions: PermissionSet get() = PermissionSet(_permissions)
+
+    /** The @everyone role shares the ID of the guild */
+    val isPublicRole: Boolean get() = id == guild.id
+    override val asMention: String get() = "<@$id>"
+    val info: Mono<RoleInfo> get() = sentinel.getRoleInfo(this)
+
+    override fun equals(other: Any?) = other is Role && id == other.id
+    override fun hashCode() = id.hashCode()
+}
+
+class InternalRole(override val guild: Guild, raw: RawRole) : Role(guild, raw) {
+    init {
+        update(raw)
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
+    fun update(raw: RawRole) {
+        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+
+        _name = name
+        _permissions = raw.permissions
     }
 }
 
