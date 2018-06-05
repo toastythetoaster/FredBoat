@@ -26,7 +26,6 @@
 package fredboat.db.api
 
 import fredboat.db.transfer.GuildConfig
-import java.util.function.Function
 
 /**
  * Created by napster on 07.02.18.
@@ -35,5 +34,5 @@ interface GuildConfigService {
 
     fun fetchGuildConfig(guild: Long): GuildConfig
 
-    fun transformGuildConfig(guild: Long, transformation: Function<GuildConfig, GuildConfig>): GuildConfig
+    fun transformGuildConfig(guild: Long, transformation: (GuildConfig) -> GuildConfig): GuildConfig
 }

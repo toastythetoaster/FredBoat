@@ -77,7 +77,7 @@ class AudioEventHandler(
                 && player.playingTrack != null
                 && joinedChannel.members.contains(guild.selfMember)
                 && player.humanUsersInCurrentVC.isNotEmpty()
-                && guildConfigService.fetchGuildConfig(guild).isAutoResume) {
+                && guildConfigService.fetchGuildConfig(guild.id).isAutoResume) {
             player.setPause(false)
             player.activeTextChannel?.send(I18n.get(guild).getString("eventAutoResumed"))?.subscribe()
         }

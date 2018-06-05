@@ -145,7 +145,7 @@ class GuildPlayer(
             var enabled = false
             try {
                 if (guild.selfPresent) {
-                    enabled = guildConfigService.fetchGuildConfig(guild).isTrackAnnounce
+                    enabled = guildConfigService.fetchGuildConfig(guild.id).isTrackAnnounce
                 }
             } catch (ignored: Exception) {
             }

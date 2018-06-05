@@ -31,7 +31,6 @@ import fredboat.db.transfer.GuildConfig
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
-import java.util.function.Function
 
 /**
  * Created by napster on 17.02.18.
@@ -55,7 +54,7 @@ class RestGuildConfigService(backendConfig: BackendConfig, quarterdeckRestTempla
         return fetchUserFriendly { fetch(guild.toString()) }
     }
 
-    override fun transformGuildConfig(guild: Long, transformation: Function<GuildConfig, GuildConfig>): GuildConfig {
-        return fetchUserFriendly { merge(transformation.apply(fetchGuildConfig(guild))) }
+    override fun transformGuildConfig(guild: Long, transformation: (GuildConfig) -> GuildConfig): GuildConfig {
+        return fetchUserFriendly { merge(transformation(fetchGuildConfig(guild))) }
     }
 }

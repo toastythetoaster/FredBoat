@@ -30,6 +30,7 @@ import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IConfigCommand
+import fredboat.db.transfer.GuildConfig
 import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
@@ -51,7 +52,7 @@ class ConfigCommand(name: String, vararg aliases: String) : Command(name, *alias
     }
 
     private fun printConfig(context: CommandContext) {
-        val gc = Launcher.getBotController().guildConfigService.fetchGuildConfig(context.guild)
+        val gc = Launcher.getBotController().guildConfigService.fetchGuildConfig(context.guild.id)
 
         val mb = localMessageBuilder()
                 .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
@@ -78,8 +79,9 @@ class ConfigCommand(name: String, vararg aliases: String) : Command(name, *alias
 
         if (key == "track_announce") {
             if (`val`.equals("true", ignoreCase = true) or `val`.equals("false", ignoreCase = true)) {
-                Launcher.getBotController().guildConfigService.transformGuildConfig(
-                        context.guild) { gc -> gc.setTrackAnnounce(java.lang.Boolean.valueOf(`val`)) }
+                Launcher.getBotController().guildConfigService.transformGuildConfig(context.guild.id) { gc: GuildConfig ->
+                    gc.setTrackAnnounce(java.lang.Boolean.valueOf(`val`))
+                }
                 context.replyWithName("`track_announce` " + context.i18nFormat("configSetTo", `val`))
             } else {
                 context.reply(context.i18nFormat("configMustBeBoolean", invoker.effectiveName.escapeAndDefuse()))
@@ -87,7 +89,7 @@ class ConfigCommand(name: String, vararg aliases: String) : Command(name, *alias
         } else if (key == "auto_resume") {
             if (`val`.equals("true", ignoreCase = true) or `val`.equals("false", ignoreCase = true)) {
                 Launcher.getBotController().guildConfigService.transformGuildConfig(
-                        context.guild) { gc -> gc.setAutoResume(java.lang.Boolean.valueOf(`val`)) }
+                        context.guild.id) { gc -> gc.setAutoResume(java.lang.Boolean.valueOf(`val`)) }
                 context.replyWithName("`auto_resume` " + context.i18nFormat("configSetTo", `val`))
             } else {
                 context.reply(context.i18nFormat("configMustBeBoolean", invoker.effectiveName.escapeAndDefuse()))

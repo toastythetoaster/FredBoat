@@ -23,35 +23,27 @@
  *
  */
 
-package fredboat.command.util;
+package fredboat.command.util
 
-import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.JCommand;
-import fredboat.commandmeta.abs.CommandContext;
-import fredboat.commandmeta.abs.IUtilCommand;
-import fredboat.messaging.internal.Context;
+import fredboat.command.info.HelpCommand
+import fredboat.commandmeta.abs.Command
+import fredboat.commandmeta.abs.CommandContext
+import fredboat.commandmeta.abs.IUtilCommand
+import fredboat.messaging.internal.Context
+import kotlinx.coroutines.experimental.reactive.awaitSingle
 
-import javax.annotation.Nonnull;
+class AvatarCommand(name: String, vararg aliases: String) : Command(name, *aliases), IUtilCommand {
 
-public class AvatarCommand extends JCommand implements IUtilCommand {
-
-    public AvatarCommand(String name, String... aliases) {
-        super(name, aliases);
-    }
-
-    @Override
-    public void onInvoke(@Nonnull CommandContext context) {
-        if (context.getMentionedMembers().isEmpty()) {
-            HelpCommand.sendFormattedCommandHelp(context);
+    override suspend fun invoke(context: CommandContext) {
+        if (context.mentionedMembers.isEmpty()) {
+            HelpCommand.sendFormattedCommandHelp(context)
         } else {
             context.replyWithName(context.i18nFormat("avatarSuccess",
-                    context.getMentionedMembers().get(0).getAvatarUrl()));
+                    context.mentionedMembers[0].info.awaitSingle().iconUrl))
         }
     }
 
-    @Nonnull
-    @Override
-    public String help(@Nonnull Context context) {
-        return "{0}{1} @<username>\n#" + context.i18n("helpAvatarCommand");
+    override fun help(context: Context): String {
+        return "{0}{1} @<username>\n#" + context.i18n("helpAvatarCommand")
     }
 }
