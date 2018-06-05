@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
 @RabbitListener(queues = [SentinelExchanges.EVENTS])
 class RabbitConsumer(
         private val sentinel: Sentinel,
+        private val guildCache: GuildCache,
         eventLogger: EventLogger,
         guildHandler: GuildEventHandler,
         audioHandler: AudioEventHandler,
@@ -58,36 +59,55 @@ class RabbitConsumer(
     @RabbitHandler
     fun receive(event: GuildJoinEvent) {
         log.info("Joined guild ${event.guildId}")
-        eventHandlers.forEach { it.onGuildJoin(Guild(event.guildId)) }
+        getGuild(event.guildId) { guild ->
+            eventHandlers.forEach { it.onGuildJoin(guild) }
+        }
+
     }
 
     @RabbitHandler
     fun receive(event: GuildLeaveEvent) {
         log.info("Left guild ${event.guildId}")
-        eventHandlers.forEach { it.onGuildLeave(Guild(event.guildId), event.joinTime) }
+        eventHandlers.forEach { it.onGuildLeave(event.guildId, event.joinTime) }
     }
 
     /* Voice events */
 
     @RabbitHandler
     fun receive(event: VoiceJoinEvent) {
-        val channel = VoiceChannel(event.channel, event.guildId)
-        val member = Member(event.member)
+        val guild = guildCache.getIfCached(event.guildId) ?: return
+        val channel = guild.getVoiceChannel(event.channel.id)
+        val member = guild.getMember(event.member.id)
+
+        if (channel == null) throw IllegalStateException("Got VoiceJoinEvent for unknown channel ${event.channel.id}")
+        if (member == null) throw IllegalStateException("Got VoiceJoinEvent for unknown member ${event.member.id}")
+
         eventHandlers.forEach { it.onVoiceJoin(channel, member) }
     }
 
     @RabbitHandler
     fun receive(event: VoiceLeaveEvent) {
-        val channel = VoiceChannel(event.channel, event.guildId)
-        val member = Member(event.member)
+        val guild = guildCache.getIfCached(event.guildId) ?: return
+        val channel = guild.getVoiceChannel(event.channel.id)
+        val member = guild.getMember(event.member.id)
+
+        if (channel == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown channel ${event.channel.id}")
+        if (member == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown member ${event.member.id}")
+
         eventHandlers.forEach { it.onVoiceLeave(channel, member) }
     }
 
     @RabbitHandler
     fun receive(event: VoiceMoveEvent) {
-        val old = VoiceChannel(event.oldChannel, event.guildId)
-        val new = VoiceChannel(event.newChannel, event.guildId)
-        val member = Member(event.member)
+        val guild = guildCache.getIfCached(event.guildId) ?: return
+        val old = guild.getVoiceChannel(event.oldChannel.id)
+        val new = guild.getVoiceChannel(event.newChannel.id)
+        val member = guild.getMember(event.member.id)
+
+        if (old == null) throw IllegalStateException("Got VoiceMoveEvent for unknown old channel ${event.oldChannel.id}")
+        if (new == null) throw IllegalStateException("Got VoiceMoveEvent for unknown new channel ${event.newChannel.id}")
+        if (member == null) throw IllegalStateException("Got VoiceMoveEvent for unknown member ${event.member.id}")
+
         eventHandlers.forEach { it.onVoiceMove(old, new, member) }
     }
 

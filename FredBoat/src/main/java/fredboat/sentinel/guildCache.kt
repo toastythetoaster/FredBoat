@@ -3,6 +3,7 @@ package fredboat.sentinel
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.GuildSubscribeRequest
 import fredboat.config.property.AppConfig
+import kotlinx.coroutines.experimental.reactive.awaitSingle
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.util.concurrent.ConcurrentHashMap
@@ -41,6 +42,14 @@ class GuildCache(private val sentinel: Sentinel,
         )
     }
 
+    fun getIfCached(id: Long): Guild? = cache[id] as Guild
+
     private fun calculateShardId(guildId: Long): Int = ((guildId shr 22) % appConfig.shardCount.toLong()).toInt()
 
+}
+
+suspend fun getGuild(id: Long) = GuildCache.INSTANCE.get(id).awaitSingle()
+fun getGuildMono(id: Long) = GuildCache.INSTANCE.get(id)
+fun getGuild(id: Long, callback: (Guild) -> Unit) {
+    GuildCache.INSTANCE.get(id).subscribe {callback(it!!)}
 }

@@ -25,8 +25,8 @@ class GuildEventHandler(
                 .subscribe()
     }
 
-    override fun onGuildLeave(guild: Guild, joinTime: Instant) {
-        playerRegistry.destroyPlayer(guild)
+    override fun onGuildLeave(guildId: Long, joinTime: Instant) {
+        playerRegistry.destroyPlayer(guildId)
 
         val lifespan = Instant.now().epochSecond - joinTime.epochSecond
         Metrics.guildLifespan.observe(lifespan.toDouble())

@@ -94,12 +94,12 @@ class EventLogger(
         log.info("Joined guild {} with {} users", guild, guild.members.size)
     }
 
-    override fun onGuildLeave(guild: Guild, joinTime: Instant) {
+    override fun onGuildLeave(guildId: Long, joinTime: Instant) {
         if (guildStatsWebhook == null) {
             return
         }
         guildsLeftEvents.incrementAndGet()
-        log.info("Left guild {} with {} users", guild, guild.members.size)
+        log.info("Left guild {}", guildId)
     }
 
 

@@ -6,16 +6,20 @@ import com.fredboat.sentinel.entities.VoiceServerUpdate
 import fredboat.sentinel.*
 import java.time.Instant
 
+/** Some events are only triggered when a guild is cached */
 abstract class SentinelEventHandler {
 
     open fun onShardStatusChange(event: ShardStatusChange) {}
     open fun onShardLifecycle(event: ShardLifecycleEvent) {}
 
     open fun onGuildJoin(guild: Guild) {}
-    open fun onGuildLeave(guild: Guild, joinTime: Instant) {}
+    open fun onGuildLeave(guildId: Long, joinTime: Instant) {}
 
+    /** Only triggered for cached guilds */
     open fun onVoiceJoin(channel: VoiceChannel, member: Member) {}
+    /** Only triggered for cached guilds */
     open fun onVoiceLeave(channel: VoiceChannel, member: Member) {}
+    /** Only triggered for cached guilds */
     open fun onVoiceMove(oldChannel: VoiceChannel, newChannel: VoiceChannel, member: Member) {}
     open fun onVoiceServerUpdate(voiceServerUpdate: VoiceServerUpdate) {}
 
