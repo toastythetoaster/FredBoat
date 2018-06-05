@@ -41,7 +41,7 @@ import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
 import fredboat.perms.Permission
 import fredboat.perms.PermsUtil
-import fredboat.sentinel.Guild
+import fredboat.sentinel.getGuild
 import fredboat.shared.constant.BotConstants
 import fredboat.util.Emojis
 import fredboat.util.TextUtils
@@ -110,7 +110,7 @@ class MusicHelpCommand(name: String, vararg aliases: String) : Command(name, *al
             return
         }
 
-        val fbhMusicCommandsChannel = Guild(BotConstants.FREDBOAT_HANGOUT_ID).getTextChannel(channelId)
+        val fbhMusicCommandsChannel = getGuild(BotConstants.FREDBOAT_HANGOUT_ID)?.getTextChannel(channelId)
         if (fbhMusicCommandsChannel == null) {
             context.reply("Could not find the requested channel with id $channelId")
             return

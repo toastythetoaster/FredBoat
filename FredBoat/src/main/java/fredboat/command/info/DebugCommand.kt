@@ -39,6 +39,7 @@ import fredboat.messaging.internal.Context
 import fredboat.perms.Permission
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.Guild
+import fredboat.sentinel.getGuild
 import fredboat.util.extension.asCodeBlock
 import lavalink.client.player.LavalinkPlayer
 
@@ -55,7 +56,7 @@ class DebugCommand(name: String, vararg aliases: String) : Command(name, *aliase
                 if (!PermsUtil.checkPermsWithFeedback(PermissionLevel.BOT_ADMIN, context)) {
                     return
                 }
-                Guild(context.args[0].toLong())
+                getGuild(context.args[0].toLong())
             } catch (ignored: NumberFormatException) {
                 null
             }

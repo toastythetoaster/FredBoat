@@ -44,6 +44,7 @@ import fredboat.util.TextUtils
 import fredboat.util.extension.addFooter
 import fredboat.util.extension.escapeMarkdown
 import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.experimental.reactive.awaitSingle
 import java.util.*
 
 class PermissionsCommand(
@@ -182,7 +183,7 @@ class PermissionsCommand(
             title = context.i18nFormat("permsListTitle", permissionLevel)
             author {
                 name = invoker.effectiveName
-                iconUrl = invoker.avatarUrl
+                iconUrl = invoker.info.awaitSingle().iconUrl
             }
             field {
                 title = "Roles"

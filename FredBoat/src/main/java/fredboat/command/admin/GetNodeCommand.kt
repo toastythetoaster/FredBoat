@@ -32,6 +32,7 @@ import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
 import fredboat.sentinel.Guild
+import fredboat.sentinel.getGuild
 
 class GetNodeCommand(name: String, vararg aliases: String) : Command(name, *aliases), ICommandRestricted {
 
@@ -42,8 +43,7 @@ class GetNodeCommand(name: String, vararg aliases: String) : Command(name, *alia
         var guild: Guild? = null
         if (context.hasArguments()) {
             try {
-                val guildId = java.lang.Long.parseUnsignedLong(context.args[0])
-                guild = Guild(guildId)
+                guild = getGuild(context.args[0].toLong())
             } catch (ignored: NumberFormatException) {
             }
 

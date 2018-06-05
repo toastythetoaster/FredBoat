@@ -43,6 +43,7 @@ import fredboat.messaging.internal.Context
 import fredboat.util.TextUtils
 import fredboat.util.extension.toDecimalString
 import fredboat.util.rest.YoutubeAPI
+import kotlinx.coroutines.experimental.reactive.awaitSingle
 import org.json.XML
 import java.awt.Color
 
@@ -71,7 +72,7 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
         }
         if (embed.footer != null) embed.footer {
             text = "Requested by ${atc.member.asMention}"
-            iconUrl = atc.member.avatarUrl
+            iconUrl = atc.member.info.awaitSingle().iconUrl
         }
 
         context.reply(embed)
