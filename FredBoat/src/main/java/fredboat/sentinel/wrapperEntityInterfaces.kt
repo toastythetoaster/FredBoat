@@ -38,9 +38,8 @@ interface Channel : SentinelEntity {
     override val id: Long
     val name: String
     val guild: Guild
-    val ourEffectivePermissions: Long
-    fun checkOurPermissions(permissions: IPermissionSet): Boolean =
-            ourEffectivePermissions and permissions.raw == permissions.raw
+    val ourEffectivePermissions: IPermissionSet
+    fun checkOurPermissions(permissions: IPermissionSet) = ourEffectivePermissions has permissions
 }
 
 interface IMentionable {

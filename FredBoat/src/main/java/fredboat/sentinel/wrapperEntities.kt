@@ -37,7 +37,7 @@ private class WrapperEntityBeans(appConfigParam: AppConfig, lavalinkParam: Senti
 private lateinit var appConfig: AppConfig
 private lateinit var lavalink: SentinelLavalink
 
-// TODO: These classes are rather inefficient. We should cache more things, and we should avoid duplication of Guild entities
+// TODO: We need to update all channels if our permissions are changed
 
 @Suppress("PropertyName")
 abstract class Guild(raw: RawGuild) : SentinelEntity {
@@ -95,16 +95,16 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
 class InternalGuild(raw: RawGuild) : Guild(raw) {
 
     init {
-        update(this, raw)
+        update(raw)
     }
 
-    fun update(guild: Guild, raw: RawGuild) = guild.apply {
+    fun update(raw: RawGuild) {
         if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
         _name = raw.name
-        _members = raw.members.map { InternalMember(guild, it.value) }.associateByTo(ConcurrentHashMap()) { it.id }
-        _roles = raw.roles.map { Role(guild, it) }.associateByTo(ConcurrentHashMap()) { it.id }
-        _textChannels = raw.textChannels.map { TextChannel(guild, it) }.associateByTo(ConcurrentHashMap()) { it.id }
-        _voiceChannels = raw.voiceChannels.map { VoiceChannel(guild, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _members = raw.members.map { InternalMember(this, it.value) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _roles = raw.roles.map { Role(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _textChannels = raw.textChannels.map { InternalTextChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        _voiceChannels = raw.voiceChannels.map { VoiceChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         val rawOwner = raw.owner
         _owner = if (rawOwner != null) members[rawOwner.id] else null
     }
@@ -172,10 +172,10 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
 class InternalMember(guild: Guild, raw: RawMember) : Member(guild, raw) {
 
     init {
-        update(this, raw)
+        update(raw)
     }
 
-    fun update(member: Member, raw: RawMember) = member.apply {
+    fun update(raw: RawMember) {
         if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
 
         val newRoleList = mutableListOf<Role>()
@@ -192,6 +192,7 @@ class InternalMember(guild: Guild, raw: RawMember) : Member(guild, raw) {
 
 }
 
+/** Note: This is not cached or subject to updates */
 class User(val raw: RawUser) : IMentionable, SentinelEntity {
    override val id: Long
         get() = raw.id
@@ -216,47 +217,42 @@ class User(val raw: RawUser) : IMentionable, SentinelEntity {
     }
 }
 
-class TextChannel(override val guild: Guild, val raw: RawTextChannel) : Channel, IMentionable {
-    override val id: Long
-        get() = raw.id
-    override val name: String
-        get() = raw.name
-    override val ourEffectivePermissions: Long
-        get() = raw.ourEffectivePermissions
-    override val asMention: String
-        get() = "<#$id>"
+@Suppress("PropertyName")
+abstract class TextChannel(override val guild: Guild, raw: RawTextChannel) : Channel, IMentionable {
+    override val id = raw.id
 
-    fun send(str: String): Mono<SendMessageResponse> {
-        return sentinel.sendMessage(guild.routingKey, this, RawMessage(str))
-    }
+    protected lateinit var _name: String
+    override val name: String get() = _name
 
-    fun send(message: IMessage): Mono<SendMessageResponse> {
-        return sentinel.sendMessage(guild.routingKey, this, message)
-    }
+    protected var _ourEffectivePermissions: Long = raw.ourEffectivePermissions
+    override val ourEffectivePermissions: IPermissionSet get() = PermissionSet(_ourEffectivePermissions)
 
+    override val asMention: String get() = "<#$id>"
+
+    fun send(str: String): Mono<SendMessageResponse>
+            = sentinel.sendMessage(guild.routingKey, this, RawMessage(str))
+    fun send(message: IMessage): Mono<SendMessageResponse>
+            = sentinel.sendMessage(guild.routingKey, this, message)
     fun editMessage(messageId: Long, message: String): Mono<Unit> =
             sentinel.editMessage(this, messageId, RawMessage(message))
-
     @Suppress("unused")
     fun editMessage(messageId: Long, message: IMessage): Mono<Unit> =
             sentinel.editMessage(this, messageId, message)
-
     fun deleteMessage(messageId: Long) = sentinel.deleteMessages(this, listOf(messageId))
-
-    fun sendTyping() {
-        sentinel.sendTyping(this)
-    }
-
+    fun sendTyping() = sentinel.sendTyping(this)
     fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)
 
 
-    override fun equals(other: Any?): Boolean {
-        return other is TextChannel && id == other.id
+    override fun equals(other: Any?) = other is TextChannel && id == other.id
+    override fun hashCode() = id.hashCode()
+}
+
+class InternalTextChannel(override val guild: Guild, raw: RawTextChannel) : TextChannel(guild, raw) {
+    fun update(raw: RawTextChannel) {
+        _name = raw.name
+        _ourEffectivePermissions = raw.ourEffectivePermissions
     }
 
-    override fun hashCode(): Int {
-        return id.hashCode()
-    }
 }
 
 class VoiceChannel(override val guild: Guild, val raw: RawVoiceChannel) : Channel {
