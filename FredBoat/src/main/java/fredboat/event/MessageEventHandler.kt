@@ -42,8 +42,8 @@ import fredboat.perms.Permission.MESSAGE_WRITE
 import fredboat.perms.PermissionSet
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.Sentinel
-import fredboat.sentinel.TextChannel
 import fredboat.sentinel.User
+import fredboat.sentinel.getGuild
 import fredboat.util.ratelimit.Ratelimiter
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import kotlinx.coroutines.experimental.async
@@ -168,10 +168,13 @@ class MessageEventHandler(
         HelpCommand.sendGeneralHelp(author, content)
     }
 
-    override fun onGuildMessageDelete(channel: TextChannel, messageId: Long) {
+    override fun onGuildMessageDelete(guildId: Long, channelId: Long, messageId: Long) {
         val toDelete = messagesToDeleteIfIdDeleted.getIfPresent(messageId) ?: return
         messagesToDeleteIfIdDeleted.invalidate(toDelete)
-        channel.sentinel.deleteMessages(channel, listOf(toDelete)).subscribe()
+        getGuild(guildId) { guild ->
+            val channel = guild.getTextChannel(channelId) ?: return@getGuild
+            sentinel.deleteMessages(channel, listOf(toDelete)).subscribe()
+        }
     }
 
 }

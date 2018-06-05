@@ -4,7 +4,10 @@ import com.fredboat.sentinel.entities.MessageReceivedEvent
 import com.fredboat.sentinel.entities.ShardLifecycleEvent
 import com.fredboat.sentinel.entities.ShardStatusChange
 import com.fredboat.sentinel.entities.VoiceServerUpdate
-import fredboat.sentinel.*
+import fredboat.sentinel.Guild
+import fredboat.sentinel.Member
+import fredboat.sentinel.User
+import fredboat.sentinel.VoiceChannel
 import java.time.Instant
 
 /** Some events are only triggered when a guild is cached */
@@ -25,7 +28,7 @@ abstract class SentinelEventHandler {
     open fun onVoiceServerUpdate(voiceServerUpdate: VoiceServerUpdate) {}
 
     open fun onGuildMessage(event: MessageReceivedEvent) {}
-    open fun onGuildMessageDelete(channel: TextChannel, messageId: Long) {}
+    open fun onGuildMessageDelete(guildId: Long, channelId: Long, messageId: Long) {}
     open fun onPrivateMessage(author: User, content: String) {}
 
 }

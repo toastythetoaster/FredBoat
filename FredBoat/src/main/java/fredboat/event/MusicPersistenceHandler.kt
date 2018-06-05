@@ -40,8 +40,7 @@ import fredboat.config.property.AppConfig
 import fredboat.config.property.Credentials
 import fredboat.definitions.RepeatMode
 import fredboat.feature.I18n
-import fredboat.jda.JdaEntityProvider
-import fredboat.sentinel.Guild
+import fredboat.sentinel.getGuild
 import fredboat.shared.constant.DistributionEnum
 import fredboat.shared.constant.ExitCodes
 import kotlinx.coroutines.experimental.async
@@ -65,7 +64,6 @@ import java.util.function.BiConsumer
 @Component
 class MusicPersistenceHandler(private val playerRegistry: PlayerRegistry, private val credentials: Credentials,
                               private val musicTextChannelProvider: MusicTextChannelProvider,
-                              private val jdaEntityProvider: JdaEntityProvider,
                               @param:Qualifier("loadAudioPlayerManager") private val audioPlayerManager: AudioPlayerManager,
                               private val appConfig: AppConfig, private val allPlayerManagers: Set<AudioPlayerManager>
 ) : SentinelEventHandler() {
@@ -190,16 +188,17 @@ class MusicPersistenceHandler(private val playerRegistry: PlayerRegistry, privat
 
         //the current implementation of music persistence is not a good idea on big bots
         if (credentials.recommendedShardCount <= 10 && appConfig.distribution != DistributionEnum.MUSIC) {
-            try {
-                reloadPlaylists(event.shard)
-            } catch (e: Exception) {
-                log.error("Uncaught exception when dispatching ready event to music persistence handler", e)
+            async {
+                try {
+                    reloadPlaylists(event.shard)
+                } catch (e: Exception) {
+                    log.error("Uncaught exception when dispatching ready event to music persistence handler", e)
+                }
             }
-
         }
     }
 
-    private fun reloadPlaylists(shard: Shard) {
+    private suspend fun reloadPlaylists(shard: Shard) {
         val dir = File("music_persistence")
 
         if (appConfig.isMusicDistribution) {
@@ -220,7 +219,7 @@ class MusicPersistenceHandler(private val playerRegistry: PlayerRegistry, privat
 
         for (file in files) {
             try {
-                val guild = Guild(file.name.toLong())
+                val guild = getGuild(file.name.toLong()) ?: continue
 
                 if (guild.shardId != shard.id || !guild.selfPresent) continue
 

@@ -51,14 +51,10 @@ class GuildEventHandler(
                 }
             }
         }
-        if (channel == null) {
-            //no channel found to talk in
-            return
-        }
 
         //send actual hello message and persist on success
-        channel.send(HelloCommand.getHello(guild))
-                .doOnSuccess { guildDataService.transformGuildData(guild, { it.helloSent() }) }
-                .subscribe()
+        channel?.send(HelloCommand.getHello(guild))
+                ?.doOnSuccess { guildDataService.transformGuildData(guild, { it.helloSent() }) }
+                ?.subscribe()
     }
 }

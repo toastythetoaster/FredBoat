@@ -146,7 +146,8 @@ class RabbitConsumer(
     @RabbitHandler
     fun receive(event: MessageDeleteEvent) {
         eventHandlers.forEach { it.onGuildMessageDelete(
-                TextChannel(event.channel, event.guild),
+                event.guild,
+                event.channel,
                 event.id
         ) }
     }
