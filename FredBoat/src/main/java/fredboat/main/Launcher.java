@@ -75,6 +75,7 @@ public class Launcher implements ApplicationRunner {
     private final PlayerLimiter playerLimiter;
     private final YoutubeAPI youtubeAPI;
     private final GuildCacheInvalidationAgent invalidationAgent;
+    private final VoiceChannelCleanupAgent voiceChannelCleanupAgent;
 
     public static void main(String[] args) throws IllegalArgumentException {
         //just post the info to the console
@@ -125,7 +126,7 @@ public class Launcher implements ApplicationRunner {
                     BotMetrics botMetrics, Weather weather, TrackSearcher trackSearcher,
                     VideoSelectionCache videoSelectionCache, ShardProvider shardProvider, GuildProvider guildProvider,
                     SentryConfiguration sentryConfiguration, PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI,
-                    GuildCacheInvalidationAgent invalidationAgent) {
+                    GuildCacheInvalidationAgent invalidationAgent, VoiceChannelCleanupAgent voiceChannelCleanupAgent) {
         Launcher.BC = botController;
         this.configProvider = configProvider;
         this.executor = executor;
@@ -142,6 +143,7 @@ public class Launcher implements ApplicationRunner {
         this.playerLimiter = playerLimiter;
         this.youtubeAPI = youtubeAPI;
         this.invalidationAgent = invalidationAgent;
+        this.voiceChannelCleanupAgent = voiceChannelCleanupAgent;
     }
 
     @Override
@@ -156,7 +158,7 @@ public class Launcher implements ApplicationRunner {
 
         if (!configProvider.getAppConfig().isPatronDistribution()) {
             log.info("Starting VoiceChannelCleanupAgent.");
-            FredBoatAgent.start(new VoiceChannelCleanupAgent(playerRegistry, guildProvider));
+            FredBoatAgent.start(voiceChannelCleanupAgent);
         } else {
             log.info("Skipped setting up the VoiceChannelCleanupAgent, " +
                     "either running Patron distro or overridden by temp config");

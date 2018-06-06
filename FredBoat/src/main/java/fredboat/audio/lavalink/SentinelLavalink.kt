@@ -28,6 +28,7 @@ class SentinelLavalink(
     override fun buildNewLink(guildId: String) = SentinelLink(this, guildId)
 
     fun getLink(guild: Guild) = getLink(guild.id.toString())
+    fun getExistingLink(guild: Guild) = getExistingLink(guild.idString)
 
     fun onVoiceServerUpdate(update: VoiceServerUpdate) {
         val json = JSONObject(update.raw)

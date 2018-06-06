@@ -71,6 +71,8 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
         get() = "[$shardId/${appConfig.shardCount}]"
     val link: SentinelLink
         get() = lavalink.getLink(this)
+    val existingLink: SentinelLink?
+        get() = lavalink.getExistingLink(this)
     val info: Mono<GuildInfo>
         get() = sentinel.getGuildInfo(this)
     /** This is true if we are present in this [Guild]*/
