@@ -26,6 +26,7 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
                 .doOnComplete {
                     sink.success(Counts(guilds, roles, textChannels, voiceChannels, categories, emotes))
                 }
+                .doOnError { sink.error(it) }
                 .subscribe {
                     guilds += it.response.guilds
                     roles += it.response.roles
@@ -43,6 +44,7 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
         val set = LongOpenHashSet(estimatedUsers)
         sentinel.getAllSentinelInfo()
                 .doOnComplete { sink.success(set.size) }
+                .doOnError { sink.error(it) }
                 .subscribe { set.add(it) }
     }
 
