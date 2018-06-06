@@ -3,6 +3,8 @@ package fredboat.agent
 import fredboat.sentinel.GuildCache
 import fredboat.sentinel.InternalGuild
 import lavalink.client.io.Link
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
 import java.util.concurrent.TimeUnit
 
@@ -13,14 +15,22 @@ class GuildCacheInvalidationAgent(
 
     companion object {
         private const val TIMEOUT_MILLIS: Long = 30 * 60 * 1000 // 30 minutes
+        private val log: Logger = LoggerFactory.getLogger(GuildCacheInvalidationAgent::class.java)
     }
 
     override fun doRun() {
-        val keysToRemove = mutableListOf<Long>()
-        guildCache.cache.forEach { key, guild ->
+        val keysToRemove = mutableListOf<InternalGuild>()
+        guildCache.cache.forEach { _, guild ->
             if (!guild.shouldInvalidate()) return@forEach
-            keysToRemove.add(key)
-            guild.doBeforeInvalidation()
+            keysToRemove.add(guild)
+        }
+        keysToRemove.forEach {
+            try {
+                it.beforeInvalidation()
+                guildCache.cache.remove(it.id)
+            } catch (e: Exception) {
+                log.error("Exception while invalidating guild $it")
+            }
         }
     }
 
@@ -35,7 +45,7 @@ class GuildCacheInvalidationAgent(
         return true
     }
 
-    private fun InternalGuild.doBeforeInvalidation() {
+    private fun InternalGuild.beforeInvalidation() {
         link.destroy()
     }
 

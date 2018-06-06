@@ -19,7 +19,7 @@ class GuildCache(private val sentinel: Sentinel,
     companion object {
         lateinit var INSTANCE: GuildCache
     }
-    
+
     val cache = ConcurrentHashMap<Long, InternalGuild>()
 
     fun get(id: Long): Mono<Guild?> = Mono.create {
