@@ -25,45 +25,21 @@
 
 package fredboat.util;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import fredboat.config.property.AppConfig;
 import fredboat.config.property.Credentials;
-import fredboat.feature.metrics.Metrics;
-import fredboat.main.BotController;
+import fredboat.sentinel.Member;
+import fredboat.sentinel.Role;
 import fredboat.shared.constant.BotConstants;
-import fredboat.util.rest.CacheUtil;
-import fredboat.util.rest.Http;
-import net.dv8tion.jda.bot.entities.ApplicationInfo;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.requests.Requester;
-import okhttp3.Response;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.List;
 
 public class DiscordUtil {
 
     private static final Logger log = LoggerFactory.getLogger(DiscordUtil.class);
-    private static final String USER_AGENT = String.format("DiscordBot (%s, %s)",
-            BotConstants.GITHUB_URL, AppInfo.getAppInfo().getVersionBuild());
 
-    private static volatile DiscordAppInfo selfDiscordAppInfo; //access this object through getApplicationInfo(jda)
-    private static final Object selfDiscordAppInfoLock = new Object();
-
-    private DiscordUtil() {
-    }
-
-    public static long getOwnerId(@Nonnull JDA jda) {
-        return getApplicationInfo(jda).ownerIdLong;
-    }
+    private DiscordUtil() {}
 
     public static int getHighestRolePosition(Member member) {
         List<Role> roles = member.getRoles();
@@ -82,96 +58,6 @@ public class DiscordUtil {
     }
 
     /**
-     * Will be calculated (=fetched from Discord) exactly once
-     * access this through {@link Credentials#getRecommendedShardCount()}
-     */
-    public static final LoadingCache<String, Integer> shardCount = CacheBuilder.newBuilder()
-            .build(CacheLoader.from(DiscordUtil::getRecommendedShardCount));
-
-    private static int getRecommendedShardCount(@Nonnull String token) {
-        Http.SimpleRequest request = BotController.Companion.getHTTP().get(Requester.DISCORD_API_PREFIX + "gateway/bot")
-                .auth("Bot " + token)
-                .header("User-agent", USER_AGENT);
-
-        try (Response response = request.execute()) {
-            if (response.code() == 401) {
-                throw new IllegalArgumentException("Invalid discord bot token provided!");
-            } else if (!response.isSuccessful()) {
-                log.error("Unexpected response from discord: {} {}", response.code(), response.toString());
-            }
-            //noinspection ConstantConditions
-            int shards = new JSONObject(response.body().string()).getInt("shards");
-            log.info("Discord recommends " + shards + " shard(s)");
-            return shards;
-        } catch (IOException | JSONException e) {
-            throw new RuntimeException("Something went wrong fetching the shard count from Discord", e);
-        }
-    }
-
-    @Nonnull
-    public static DiscordAppInfo getApplicationInfo(@Nonnull JDA jda) {
-        //double checked lock pattern
-        DiscordAppInfo info = selfDiscordAppInfo;
-        if (info == null) {
-            synchronized (selfDiscordAppInfoLock) {
-                info = selfDiscordAppInfo;
-                if (info == null) {
-                    //todo this method can be improved by reloading the info regularly. possibly some async loading guava cache?
-                    selfDiscordAppInfo = info = new DiscordAppInfo(jda.asBot().getApplicationInfo().complete());
-                    Metrics.successfulRestActions.labels("getApplicationInfo").inc();
-                }
-            }
-        }
-        return info;
-    }
-
-    //token <-> botid
-    @Nonnull
-    public static final LoadingCache<String, Long> BOT_ID = CacheBuilder.newBuilder()
-            .build(CacheLoader.from(DiscordUtil::getUserId));
-
-
-    //uses our configured bot token to retrieve our own userid
-    public static long getBotId(Credentials credentials) {
-        return CacheUtil.getUncheckedUnwrapped(BOT_ID, credentials.getBotToken());
-    }
-
-    private static long getUserId(@Nonnull String token) {
-        Http.SimpleRequest request = BotController.Companion.getHTTP().get(Requester.DISCORD_API_PREFIX + "/users/@me")
-                .auth("Bot " + token)
-                .header("User-agent", USER_AGENT);
-
-        String result = "";
-        int attempt = 0;
-        while (result.isEmpty() && attempt++ < 5) {
-            try {
-                result = request.asJson().getString("id");
-            } catch (Exception e) {
-                log.error("Could not request my own userId from Discord, will retry a few times", e);
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException ignored) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-        if (result.isEmpty()) {
-            throw new RuntimeException("Failed to retrieve my own userId from Discord, the result is empty");
-        }
-
-        long botId;
-        try {
-            botId = Long.parseUnsignedLong(result);
-        } catch (NumberFormatException e) {
-            //logging the error and rethrowing a new one, because it might expose information that we dont want users to see
-            log.error("Failed to retrieve my own userId from Discord", e);
-            throw new RuntimeException("Failed to retrieve my own userId from Discord, see error log for more information.");
-        }
-
-        return botId;
-    }
-
-    /**
      * @return true if this bot account is an "official" fredboat (music, patron, CE, etc).
      * This is useful to lock down features that we only need internally, like polling the docker hub for pull stats.
      */
@@ -185,40 +71,7 @@ public class DiscordUtil {
     }
 
     //https://discordapp.com/developers/docs/topics/gateway#sharding
-    public static int getShardId(long guildId, Credentials credentials) {
-        return (int) ((guildId >> 22) % credentials.getRecommendedShardCount());
-    }
-
-    //like JDAs ApplicationInfo but without any references to JDA objects to prevent leaks
-    //use this to cache the app info
-    public static class DiscordAppInfo {
-        public final boolean doesBotRequireCodeGrant;
-        public final boolean isBotPublic;
-        //public final long botIdLong;
-        //public final String botId;
-        public final String iconId;
-        public final String description;
-        public final String appName;
-        public final long ownerIdLong;
-        public final String ownerId;
-        public final String ownerName;
-
-        public DiscordAppInfo(ApplicationInfo applicationInfo) {
-            this.doesBotRequireCodeGrant = applicationInfo.doesBotRequireCodeGrant();
-            this.isBotPublic = applicationInfo.isBotPublic();
-            //for old accounts, like the public FredBoat♪♪ one, this does not return the public bot id that one gets
-            // when rightclick -> copy Id or mentioning, but a different one, an application id. due to risks of
-            // introducing bugs on the public boat when using this (as happened with the mention prefix) it has been
-            // commented out and shall stay this way as a warning to not use it. Usually the JDA#getSelfUser() method is
-            // accessible to gain access to our own bot id, otherwise use DiscordUtil.getDefaultBotId()
-            //this.botIdLong = applicationInfo.getIdLong();
-            //this.botId = applicationInfo.getId();
-            this.iconId = applicationInfo.getIconId();
-            this.description = applicationInfo.getDescription();
-            this.appName = applicationInfo.getName();
-            this.ownerIdLong = applicationInfo.getOwner().getIdLong();
-            this.ownerId = applicationInfo.getOwner().getId();
-            this.ownerName = applicationInfo.getOwner().getName();
-        }
+    public static int getShardId(long guildId, AppConfig appConfig) {
+        return (int) ((guildId >> 22) % appConfig.getShardCount());
     }
 }

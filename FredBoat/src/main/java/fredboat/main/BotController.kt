@@ -10,7 +10,6 @@ import fredboat.db.api.GuildPermsService
 import fredboat.db.api.PrefixService
 import fredboat.feature.metrics.BotMetrics
 import fredboat.feature.metrics.Metrics
-import fredboat.jda.JdaEntityProvider
 import fredboat.metrics.OkHttpEventMetrics
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.Http
@@ -26,7 +25,6 @@ class BotController(private val configProvider: ConfigPropertiesProvider,
                     val shutdownHandler: ShutdownHandler,
                     val executor: ExecutorService,
                     val playerRegistry: PlayerRegistry,
-                    val jdaEntityProvider: JdaEntityProvider,
                     val botMetrics: BotMetrics,
                     @param:Qualifier("loadAudioPlayerManager") val audioPlayerManager: AudioPlayerManager,
                     val ratelimiter: Ratelimiter,

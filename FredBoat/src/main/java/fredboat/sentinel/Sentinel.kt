@@ -196,7 +196,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         })
 
         return Flux.create { sink ->
-            template.convertSendAndReceive<BulkGuildPermissionResponse>(SentinelExchanges.REQUESTS, req).addCallback(
+            template.convertSendAndReceive<BulkGuildPermissionResponse>(SentinelExchanges.REQUESTS, guild.routingKey, req).addCallback(
                     { r ->
                         r!!.effectivePermissions.forEach { sink.next(it ?: 0) }
                         sink.complete()
@@ -262,7 +262,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
     }
 
     private fun getSentinelUserList(routingKey: String): Flux<Long> = Flux.create { sink ->
-        template.convertSendAndReceive<List<Long>>(UserListRequest()).addCallback(
+        template.convertSendAndReceive<List<Long>>(SentinelExchanges.REQUESTS, routingKey, UserListRequest()).addCallback(
                 {list ->
                     if (list == null) sink.error(NullPointerException())
                     list!!.forEach { sink.next(it) }
@@ -274,7 +274,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     /** Request user IDs from each tracked Sentinel simultaneously in the order of receiving them
      *  Errors are delayed till all requests have either completed or failed */
-    fun getAllSentinelInfo(): Flux<Long> {
+    fun getFullSentinelUserList(): Flux<Long> {
         return Flux.mergeSequentialDelayError(
                 tracker.sentinels.map { getSentinelUserList(it.key) },
                 1,

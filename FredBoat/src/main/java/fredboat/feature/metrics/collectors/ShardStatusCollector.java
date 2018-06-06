@@ -24,10 +24,9 @@
 
 package fredboat.feature.metrics.collectors;
 
-import fredboat.jda.ShardProvider;
+import fredboat.sentinel.Sentinel;
 import io.prometheus.client.Collector;
 import io.prometheus.client.GaugeMetricFamily;
-import net.dv8tion.jda.core.JDA;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -40,11 +39,8 @@ import java.util.List;
 @Component
 public class ShardStatusCollector extends Collector {
 
-    private final ShardProvider shardProvider;
-
-    public ShardStatusCollector(ShardProvider shardProvider) {
+    public ShardStatusCollector(Sentinel sentinel) {
         super();
-        this.shardProvider = shardProvider;
     }
 
     @Override

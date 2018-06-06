@@ -3,7 +3,6 @@ package fredboat.main;
 import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary;
 import fredboat.agent.*;
 import fredboat.audio.player.PlayerLimiter;
-import fredboat.audio.player.PlayerRegistry;
 import fredboat.audio.player.VideoSelectionCache;
 import fredboat.commandmeta.CommandInitializer;
 import fredboat.commandmeta.CommandRegistry;
@@ -11,8 +10,6 @@ import fredboat.config.SentryConfiguration;
 import fredboat.config.property.ConfigPropertiesProvider;
 import fredboat.feature.I18n;
 import fredboat.feature.metrics.BotMetrics;
-import fredboat.jda.GuildProvider;
-import fredboat.jda.ShardProvider;
 import fredboat.util.AppInfo;
 import fredboat.util.GitRepoState;
 import fredboat.util.TextUtils;
@@ -21,7 +18,6 @@ import fredboat.util.rest.TrackSearcher;
 import fredboat.util.rest.Weather;
 import fredboat.util.rest.YoutubeAPI;
 import io.prometheus.client.guava.cache.CacheMetricsCollector;
-import net.dv8tion.jda.core.JDAInfo;
 import okhttp3.Credentials;
 import okhttp3.Response;
 import org.json.JSONObject;
@@ -63,14 +59,11 @@ public class Launcher implements ApplicationRunner {
     private final ConfigPropertiesProvider configProvider;
     private final ExecutorService executor;
     private final CacheMetricsCollector cacheMetrics;
-    private final PlayerRegistry playerRegistry;
     private final StatsAgent statsAgent;
     private final BotMetrics botMetrics;
     private final Weather weather;
     private final TrackSearcher trackSearcher;
     private final VideoSelectionCache videoSelectionCache;
-    private final ShardProvider shardProvider;
-    private final GuildProvider guildProvider;
     private final SentryConfiguration sentryConfiguration;
     private final PlayerLimiter playerLimiter;
     private final YoutubeAPI youtubeAPI;
@@ -122,23 +115,20 @@ public class Launcher implements ApplicationRunner {
     }
 
     public Launcher(BotController botController, ConfigPropertiesProvider configProvider, ExecutorService executor,
-                    CacheMetricsCollector cacheMetrics, PlayerRegistry playerRegistry, StatsAgent statsAgent,
+                    CacheMetricsCollector cacheMetrics, StatsAgent statsAgent,
                     BotMetrics botMetrics, Weather weather, TrackSearcher trackSearcher,
-                    VideoSelectionCache videoSelectionCache, ShardProvider shardProvider, GuildProvider guildProvider,
+                    VideoSelectionCache videoSelectionCache,
                     SentryConfiguration sentryConfiguration, PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI,
                     GuildCacheInvalidationAgent invalidationAgent, VoiceChannelCleanupAgent voiceChannelCleanupAgent) {
         Launcher.BC = botController;
         this.configProvider = configProvider;
         this.executor = executor;
         this.cacheMetrics = cacheMetrics;
-        this.playerRegistry = playerRegistry;
         this.statsAgent = statsAgent;
         this.botMetrics = botMetrics;
         this.weather = weather;
         this.trackSearcher = trackSearcher;
         this.videoSelectionCache = videoSelectionCache;
-        this.shardProvider = shardProvider;
-        this.guildProvider = guildProvider;
         this.sentryConfiguration = sentryConfiguration;
         this.playerLimiter = playerLimiter;
         this.youtubeAPI = youtubeAPI;
@@ -252,8 +242,7 @@ public class Launcher implements ApplicationRunner {
 
     //returns true if all registered shards are reporting back as CONNECTED, false otherwise
     private boolean areThereNotConnectedShards() {
-        // todo
-        return false;
+        return TODO();
         //return shardProvider.streamShards()
         //        .anyMatch(shard -> shard.getStatus() != JDA.Status.CONNECTED);
     }
@@ -272,7 +261,6 @@ public class Launcher implements ApplicationRunner {
                 + "\n\tCommit:        " + GitRepoState.getGitRepositoryState().commitIdAbbrev + " (" + GitRepoState.getGitRepositoryState().branch + ")"
                 + "\n\tCommit time:   " + TextUtils.asTimeInCentralEurope(GitRepoState.getGitRepositoryState().commitTime * 1000)
                 + "\n\tJVM:           " + System.getProperty("java.version")
-                + "\n\tJDA:           " + JDAInfo.VERSION
                 + "\n\tLavaplayer     " + PlayerLibrary.VERSION
                 + "\n";
     }

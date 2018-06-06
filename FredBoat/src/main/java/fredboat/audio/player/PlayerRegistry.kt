@@ -28,7 +28,6 @@ package fredboat.audio.player
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.db.api.GuildConfigService
-import fredboat.jda.JdaEntityProvider
 import fredboat.sentinel.Guild
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
@@ -39,7 +38,7 @@ import java.util.function.BiConsumer
 import kotlin.streams.toList
 
 @Component
-class PlayerRegistry(private val musicTextChannelProvider: MusicTextChannelProvider, private val jdaEntityProvider: JdaEntityProvider,
+class PlayerRegistry(private val musicTextChannelProvider: MusicTextChannelProvider,
                      private val guildConfigService: GuildConfigService, private val lavalink: SentinelLavalink,
                      @param:Qualifier("loadAudioPlayerManager") private val audioPlayerManager: AudioPlayerManager,
                      private val ratelimiter: Ratelimiter, private val youtubeAPI: YoutubeAPI) {
