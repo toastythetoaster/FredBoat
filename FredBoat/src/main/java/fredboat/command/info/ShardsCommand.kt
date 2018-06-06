@@ -70,14 +70,14 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
             // We will still throw an exception if we got no info (that should never happen)
             val sentinelList = mutableListOf<NamedSentinelInfoResponse>()
             try {
-                sentinel.getAllSentinelInfo()
+                sentinel.getAllSentinelInfo(includeShards = true)
                         .doOnNext { sentinelList.add(it) }
                         .awaitLast()
             } catch (e: Exception) {
                 if (sentinelList.size == 0) throw e
             }
 
-            val shards = sentinelList.flatMap { it.response.shards }
+            val shards = sentinelList.flatMap { it.response.shards!! }
 
             shards.forEach { shard ->
                 shardCounter.incrementAndGet()

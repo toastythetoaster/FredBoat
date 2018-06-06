@@ -242,21 +242,42 @@ class Sentinel(private val template: AsyncRabbitTemplate,
             val routingKey: String
     )
 
-    private fun getSentinelInfo(routingKey:  String) =
+    private fun getSentinelInfo(routingKey: String, includeShards: Boolean = false) =
             genericMonoSendAndReceive<SentinelInfoResponse, NamedSentinelInfoResponse>(
             SentinelExchanges.REQUESTS,
             routingKey,
-            SentinelInfoRequest(),
+            SentinelInfoRequest(includeShards),
             mayBeEmpty = true,
             transform = {NamedSentinelInfoResponse(it, routingKey)}
     )
 
-    /** Request sentinel info from each tracked shard simultaneously in the order of receiving them
+    /** Request sentinel info from each tracked Sentinel simultaneously in the order of receiving them
      *  Errors are delayed till all requests have either completed or failed */
-    fun getAllSentinelInfo(): Flux<NamedSentinelInfoResponse> {
+    fun getAllSentinelInfo(includeShards: Boolean = false): Flux<NamedSentinelInfoResponse> {
         return Flux.mergeSequentialDelayError(
-                tracker.sentinels.map { getSentinelInfo(it.key) },
-                32,
+                tracker.sentinels.map { getSentinelInfo(it.key, includeShards) },
+                2,
+                0 // Not sure what this is -- hardly even documented
+        )
+    }
+
+    private fun getSentinelUserList(routingKey: String): Flux<Long> = Flux.create { sink ->
+        template.convertSendAndReceive<List<Long>>(UserListRequest()).addCallback(
+                {list ->
+                    if (list == null) sink.error(NullPointerException())
+                    list!!.forEach { sink.next(it) }
+                    sink.complete()
+                },
+                { e -> sink.error(e) }
+        )
+    }
+
+    /** Request user IDs from each tracked Sentinel simultaneously in the order of receiving them
+     *  Errors are delayed till all requests have either completed or failed */
+    fun getAllSentinelInfo(): Flux<Long> {
+        return Flux.mergeSequentialDelayError(
+                tracker.sentinels.map { getSentinelUserList(it.key) },
+                1,
                 0 // Not sure what this is -- hardly even documented
         )
     }
