@@ -1,7 +1,7 @@
 allprojects {
     repositories {
         mavenCentral()                     // main maven repo
-        jcenter()                          // JDA and some other stuff
+        jcenter()                          // some other stuff
         maven { url 'https://dl.bintray.com/napster/SqlSauce' }
         mavenLocal()                       // useful for developing
         maven { url "https://jitpack.io" } // build projects directly from github
@@ -63,8 +63,7 @@ subprojects {
 
         //audio deps
         lavaplayerVersion           = '1.2.62'
-        jdaNasVersion               = '1.0.6'
-        lavalinkVersion             = '8a2a8378dca'
+        lavalinkVersion             = '4d49cb5f56a'
 
         //utility deps
         jsonOrgVersion              = '20180130'

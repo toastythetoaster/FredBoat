@@ -37,7 +37,6 @@ import fredboat.sentinel.Sentinel.NamedSentinelInfoResponse
 import fredboat.util.extension.asCodeBlock
 import fredboat.util.extension.toMessage
 import kotlinx.coroutines.experimental.reactive.awaitLast
-import net.dv8tion.jda.core.JDA
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -82,7 +81,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
 
             shards.forEach { shard ->
                 shardCounter.incrementAndGet()
-                if (shard.shard.status == JDA.Status.CONNECTED && !full) {
+                if (shard.shard.status == ShardStatus.CONNECTED && !full) {
                     healthyGuilds.addAndGet(shard.guilds.toLong())
                     healthyUsers.addAndGet(shard.users.toLong())
                 } else {
@@ -117,7 +116,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
             //healthy shards summary, contains sensible data only if we aren't doing a full report
             if (!full) {
                 val content = String.format("+ %s of %s shards are %s -- Guilds: %s -- Users: %s", shardCounter.get() - borkenShards.get(),
-                        Launcher.getBotController().credentials.recommendedShardCount, JDA.Status.CONNECTED, healthyGuilds, healthyUsers)
+                        Launcher.getBotController().credentials.recommendedShardCount, ShardStatus.CONNECTED, healthyGuilds, healthyUsers)
                 messages.add(0, content.asCodeBlock("diff").toMessage())
             }
 

@@ -39,7 +39,6 @@ dependencies {
     compile project(':Shared')
     compile group: 'com.github.FredBoat.sentinel', name: 'sentinel-shared', version: sentinelVersion
     compile group: 'com.sedmelluq', name: 'lavaplayer', version: lavaplayerVersion
-    compile group: 'com.sedmelluq', name: 'jda-nas', version: jdaNasVersion
 
     if (System.getenv('dev') == 'true') {
         compile(group: 'lavalink', name: 'Lavalink-Client', version: '-SNAPSHOT')
