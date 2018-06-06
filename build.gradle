@@ -60,8 +60,6 @@ subprojects {
         sentinelVersion             = '6f97b7ef0d'
         springBootVersion           = "${springBootVersion}"
         kotlinVersion               = "${kotlinVersion}"
-        //discord deps
-        jdaVersion                  = '3.6.0_354'
 
         //audio deps
         lavaplayerVersion           = '1.2.62'
