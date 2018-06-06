@@ -41,6 +41,7 @@ import fredboat.perms.Permission.MESSAGE_READ
 import fredboat.perms.Permission.MESSAGE_WRITE
 import fredboat.perms.PermissionSet
 import fredboat.perms.PermsUtil
+import fredboat.sentinel.InternalGuild
 import fredboat.sentinel.Sentinel
 import fredboat.sentinel.User
 import fredboat.sentinel.getGuild
@@ -93,6 +94,9 @@ class MessageEventHandler(
 
         async {
             val context = commandContextParser.parse(event) ?: return@async
+
+            // Renew the time to prevent invalidation
+            (context.guild as InternalGuild).lastUsed = System.currentTimeMillis()
             log.info(event.content)
 
             //ignore all commands in channels where we can't write, except for the help command

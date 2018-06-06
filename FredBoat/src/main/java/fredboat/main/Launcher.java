@@ -1,10 +1,7 @@
 package fredboat.main;
 
 import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary;
-import fredboat.agent.CarbonitexAgent;
-import fredboat.agent.FredBoatAgent;
-import fredboat.agent.StatsAgent;
-import fredboat.agent.VoiceChannelCleanupAgent;
+import fredboat.agent.*;
 import fredboat.audio.player.PlayerLimiter;
 import fredboat.audio.player.PlayerRegistry;
 import fredboat.audio.player.VideoSelectionCache;
@@ -77,6 +74,7 @@ public class Launcher implements ApplicationRunner {
     private final SentryConfiguration sentryConfiguration;
     private final PlayerLimiter playerLimiter;
     private final YoutubeAPI youtubeAPI;
+    private final GuildCacheInvalidationAgent invalidationAgent;
 
     public static void main(String[] args) throws IllegalArgumentException {
         //just post the info to the console
@@ -126,7 +124,8 @@ public class Launcher implements ApplicationRunner {
                     CacheMetricsCollector cacheMetrics, PlayerRegistry playerRegistry, StatsAgent statsAgent,
                     BotMetrics botMetrics, Weather weather, TrackSearcher trackSearcher,
                     VideoSelectionCache videoSelectionCache, ShardProvider shardProvider, GuildProvider guildProvider,
-                    SentryConfiguration sentryConfiguration, PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI) {
+                    SentryConfiguration sentryConfiguration, PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI,
+                    GuildCacheInvalidationAgent invalidationAgent) {
         Launcher.BC = botController;
         this.configProvider = configProvider;
         this.executor = executor;
@@ -142,6 +141,7 @@ public class Launcher implements ApplicationRunner {
         this.sentryConfiguration = sentryConfiguration;
         this.playerLimiter = playerLimiter;
         this.youtubeAPI = youtubeAPI;
+        this.invalidationAgent = invalidationAgent;
     }
 
     @Override
@@ -169,6 +169,7 @@ public class Launcher implements ApplicationRunner {
         executor.submit(this::hasValidImgurCredentials);
 
         FredBoatAgent.start(statsAgent);
+        FredBoatAgent.start(invalidationAgent);
 
         String carbonKey = configProvider.getCredentials().getCarbonKey();
         if (configProvider.getAppConfig().isMusicDistribution() && !carbonKey.isEmpty()) {

@@ -97,6 +97,13 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
         update(raw)
     }
 
+
+    /** Last time we really needed this [Guild].
+     *  If this value becomes too old, the [Guild] may be invalidated.
+     *  Refreshed on command invocation
+     */
+    var lastUsed: Long = System.currentTimeMillis()
+
     fun update(raw: RawGuild) {
         if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
 
