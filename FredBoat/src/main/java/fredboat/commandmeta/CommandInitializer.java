@@ -31,7 +31,6 @@ import fredboat.command.config.*;
 import fredboat.command.fun.*;
 import fredboat.command.fun.img.*;
 import fredboat.command.info.*;
-import fredboat.command.moderation.*;
 import fredboat.command.music.control.*;
 import fredboat.command.music.info.*;
 import fredboat.command.music.seeking.ForwardCommand;
@@ -122,11 +121,11 @@ public class CommandInitializer {
 
 
         // Moderation Module - Anything related to managing Discord guilds
-        CommandRegistry moderationModule = new CommandRegistry(Module.MOD);
+        CommandRegistry moderationModule = new CommandRegistry(Module.MOD);/*
         moderationModule.registerCommand(new HardbanCommand("hardban", "ban", "hb"));
         moderationModule.registerCommand(new UnbanCommand("unban"));
         moderationModule.registerCommand(new KickCommand("kick"));
-        moderationModule.registerCommand(new SoftbanCommand("softban", "sb"));
+        moderationModule.registerCommand(new SoftbanCommand("softban", "sb"));*/
 
 
         // Utility Module - Like Fun commands but without the fun ¯\_(ツ)_/¯
