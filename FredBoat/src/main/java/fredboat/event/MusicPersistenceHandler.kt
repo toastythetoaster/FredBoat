@@ -187,7 +187,7 @@ class MusicPersistenceHandler(private val playerRegistry: PlayerRegistry, privat
         if (event.change != LifecycleEventEnum.READIED) return
 
         //the current implementation of music persistence is not a good idea on big bots
-        if (credentials.recommendedShardCount <= 10 && appConfig.distribution != DistributionEnum.MUSIC) {
+        if (appConfig.shardCount <= 10 && appConfig.distribution != DistributionEnum.MUSIC) {
             async {
                 try {
                     reloadPlaylists(event.shard)

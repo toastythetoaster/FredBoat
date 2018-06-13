@@ -28,7 +28,7 @@ import com.fredboat.sentinel.entities.LifecycleEventEnum.READIED
 import com.fredboat.sentinel.entities.LifecycleEventEnum.SHUTDOWN
 import com.fredboat.sentinel.entities.ShardLifecycleEvent
 import fredboat.audio.player.PlayerRegistry
-import fredboat.config.property.Credentials
+import fredboat.config.property.AppConfig
 import fredboat.sentinel.Guild
 import fredboat.util.DiscordUtil
 import org.slf4j.LoggerFactory
@@ -44,7 +44,7 @@ import java.util.stream.Stream
 @Component
 class ShardReviveHandler(
         private val playerRegistry: PlayerRegistry,
-        private val credentials: Credentials
+        private val appConfig: AppConfig
 ) : SentinelEventHandler() {
 
     companion object {
@@ -73,7 +73,7 @@ class ShardReviveHandler(
                 try {
                     val shardId = event.shard.id
                     channelsToRejoin[shardId] = playerRegistry.playingPlayers.stream()
-                            .filter { DiscordUtil.getShardId(it.guildId, credentials) == shardId }
+                            .filter { DiscordUtil.getShardId(it.guildId, appConfig) == shardId }
                             .flatMap {
                                 val channel = it.currentVoiceChannel ?: return@flatMap Stream.empty<ChannelReference>()
                                 return@flatMap Stream.of(ChannelReference(channel.guild, channel.id))

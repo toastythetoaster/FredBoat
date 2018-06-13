@@ -36,7 +36,6 @@ import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.Guild
-import fredboat.util.DiscordUtil
 import fredboat.util.rest.CacheUtil
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import java.util.*
@@ -52,6 +51,7 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
     }
 
     companion object {
+        val botId = Launcher.getBotController().sentinel.getApplicationInfo().botId
         val CUSTOM_PREFIXES = CacheBuilder.newBuilder()
                 //it is fine to check the db for updates occasionally, as we currently dont have any use case where we change
                 //the value saved there through other means. in case we add such a thing (like a dashboard), consider lowering
@@ -60,8 +60,13 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
                 .recordStats()
                 .refreshAfterWrite(1, TimeUnit.MINUTES) //NOTE: never use refreshing without async reloading, because Guavas cache uses the thread calling it to do cleanup tasks (including refreshing)
                 .expireAfterAccess(1, TimeUnit.MINUTES) //evict inactive guilds
-                .concurrencyLevel(Launcher.getBotController().credentials.recommendedShardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
-                .build(CacheLoader.asyncReloading(CacheLoader.from<Long, Optional<String>> { guildId -> Launcher.getBotController().prefixService.getPrefix(Prefix.GuildBotId(guildId!!, DiscordUtil.getBotId(Launcher.getBotController().credentials))) },
+                .concurrencyLevel(Launcher.getBotController().appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
+                .build(CacheLoader.asyncReloading(CacheLoader.from<Long, Optional<String>> {
+                    guildId -> Launcher.getBotController().prefixService.getPrefix(Prefix.GuildBotId(
+                        guildId!!,
+                        botId
+                ))
+                },
                         Launcher.getBotController().executor))!!
 
         fun giefPrefix(guildId: Long) = CacheUtil.getUncheckedUnwrapped(CUSTOM_PREFIXES, guildId)

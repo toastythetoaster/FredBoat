@@ -26,18 +26,19 @@ package fredboat.audio.player
 
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
-import fredboat.config.property.Credentials
+import fredboat.config.property.AppConfig
 import fredboat.sentinel.Guild
 import fredboat.sentinel.TextChannel
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by napster on 24.02.18.
  */
 @Component
-class MusicTextChannelProvider(credentials: Credentials, cacheMetrics: CacheMetricsCollector) {
+class MusicTextChannelProvider(appConfig: AppConfig, cacheMetrics: CacheMetricsCollector) {
 
     companion object {
         private val log = LoggerFactory.getLogger(MusicTextChannelProvider::class.java)
@@ -46,8 +47,8 @@ class MusicTextChannelProvider(credentials: Credentials, cacheMetrics: CacheMetr
     //guild id <-> channel id
     private val musicTextChannels: Cache<Long, Long> = CacheBuilder.newBuilder()
             .recordStats()
-            .concurrencyLevel(credentials.recommendedShardCount)
-            //todo: evict after some time?
+            .concurrencyLevel(appConfig.shardCount)
+            .expireAfterAccess(1, TimeUnit.DAYS)
             .build()
 
     init {

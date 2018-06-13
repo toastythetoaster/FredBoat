@@ -11,6 +11,7 @@ import fredboat.db.api.PrefixService
 import fredboat.feature.metrics.BotMetrics
 import fredboat.feature.metrics.Metrics
 import fredboat.metrics.OkHttpEventMetrics
+import fredboat.sentinel.Sentinel
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.Http
 import org.springframework.beans.factory.annotation.Qualifier
@@ -31,7 +32,8 @@ class BotController(private val configProvider: ConfigPropertiesProvider,
                     val guildConfigService: GuildConfigService,
                     val guildModulesService: GuildModulesService,
                     val guildPermsService: GuildPermsService,
-                    val prefixService: PrefixService) {
+                    val prefixService: PrefixService,
+                    val sentinel: Sentinel) {
 
     companion object {
         @JvmStatic

@@ -143,7 +143,7 @@ public class Launcher implements ApplicationRunner {
 
         //Commands
         CommandInitializer.initCommands(cacheMetrics, weather, trackSearcher, videoSelectionCache, sentryConfiguration,
-                playerLimiter, youtubeAPI);
+                playerLimiter, youtubeAPI, BC.getSentinel());
         log.info("Loaded commands, registry size is " + CommandRegistry.getTotalSize());
 
         if (!configProvider.getAppConfig().isPatronDistribution()) {
@@ -165,7 +165,7 @@ public class Launcher implements ApplicationRunner {
 
         String carbonKey = configProvider.getCredentials().getCarbonKey();
         if (configProvider.getAppConfig().isMusicDistribution() && !carbonKey.isEmpty()) {
-            FredBoatAgent.start(new CarbonitexAgent(configProvider.getCredentials(), botMetrics, shardProvider));
+            FredBoatAgent.start(new CarbonitexAgent(configProvider.getCredentials(), botMetrics));
         }
 
         //force a count once all shards are up, this speeds up the stats availability on small boats

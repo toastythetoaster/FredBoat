@@ -25,6 +25,7 @@
 
 package fredboat.command.info
 
+import com.fredboat.sentinel.entities.ApplicationInfo
 import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary
 import fredboat.agent.FredBoatAgent
 import fredboat.commandmeta.CommandManager
@@ -40,7 +41,15 @@ import fredboat.util.TextUtils
 import java.text.MessageFormat
 import java.util.*
 
-class StatsCommand(name: String, vararg aliases: String) : Command(name, *aliases), IInfoCommand {
+class StatsCommand(
+        name: String,
+        applicationInfo: ApplicationInfo,
+        vararg aliases: String
+) : Command(name, *aliases), IInfoCommand {
+
+    init {
+        botId = applicationInfo.botId
+    }
 
     override suspend fun invoke(context: CommandContext) {
         context.reply(getStats(context))
@@ -51,6 +60,8 @@ class StatsCommand(name: String, vararg aliases: String) : Command(name, *aliase
     }
 
     companion object {
+        private var botId = 0L
+
         fun getStats(context: Context?): String {
             val totalSecs = (System.currentTimeMillis() - Launcher.START_TIME) / 1000
             val days = (totalSecs / (60 * 60 * 24)).toInt()
@@ -100,7 +111,7 @@ class StatsCommand(name: String, vararg aliases: String) : Command(name, *aliase
             content += "Lavaplayer version:             " + PlayerLibrary.VERSION + "\n"
 
             content += "\n----------\n\n"
-            if (DiscordUtil.isOfficialBot(Launcher.getBotController().credentials)) {
+            if (DiscordUtil.isOfficialBot(botId)) {
                 val dockerStats = botMetrics.dockerStats
                 content += "Docker pulls:\n"
                 content += "    FredBoat image:             " + dockerStats.dockerPullsBot + "\n"

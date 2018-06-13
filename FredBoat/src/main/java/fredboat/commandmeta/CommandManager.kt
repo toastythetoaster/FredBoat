@@ -26,12 +26,12 @@
 package fredboat.commandmeta
 
 
+import com.fredboat.sentinel.entities.ApplicationInfo
 import fredboat.audio.player.MusicTextChannelProvider
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IMusicCommand
-import fredboat.config.property.Credentials
 import fredboat.definitions.PermissionLevel
 import fredboat.feature.PatronageChecker
 import fredboat.feature.metrics.Metrics
@@ -47,7 +47,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class CommandManager(private val patronageChecker: PatronageChecker, private val musicTextChannelProvider: MusicTextChannelProvider,
-                     private val credentials: Credentials) {
+                     private val applicationInfo: ApplicationInfo) {
 
     companion object {
         val disabledCommands: Set<Command> = HashSet(0)
@@ -77,7 +77,7 @@ class CommandManager(private val patronageChecker: PatronageChecker, private val
         }
 
         //Hardcode music commands in FredBoatHangout. Blacklist any channel that isn't #spam_and_music or #staff, but whitelist Admins
-        if (guild.id == BotConstants.FREDBOAT_HANGOUT_ID && DiscordUtil.isOfficialBot(credentials)) {
+        if (guild.id == BotConstants.FREDBOAT_HANGOUT_ID && DiscordUtil.isOfficialBot(applicationInfo.botId)) {
             if (channel.id != 174821093633294338L // #spam_and_music
                     && channel.id != 217526705298866177L // #staff
                     && !PermsUtil.checkPerms(PermissionLevel.ADMIN, invoker)) {

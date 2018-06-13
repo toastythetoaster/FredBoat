@@ -25,16 +25,16 @@
 
 package fredboat.agent
 
+import com.fredboat.sentinel.entities.ShardStatus
+import fredboat.config.property.AppConfig
 import fredboat.config.property.Credentials
 import fredboat.feature.metrics.BotMetrics
 import fredboat.main.BotController
-import fredboat.sentinel.Sentinel
 import fredboat.util.SentinelCountingService
 import fredboat.util.rest.Http
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.reactive.awaitSingle
 import org.slf4j.LoggerFactory
-
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicInteger
 class CarbonitexAgent(
         private val credentials: Credentials,
         private val botMetrics: BotMetrics,
-        private val sentinel: Sentinel,
+        private val appConfig: AppConfig,
         private val counting: SentinelCountingService
 ) : FredBoatAgent("carbonitex", 30, TimeUnit.MINUTES) {
 
@@ -56,9 +56,9 @@ class CarbonitexAgent(
         val allConnected = AtomicBoolean(true)
         val shardCounter = AtomicInteger(0)
         val counts = counting.getCounts().awaitSingle()
-        shardProvider.streamShards().forEach { shard ->
+        counts.shards.forEach { shard ->
             shardCounter.incrementAndGet()
-            if (shard.getStatus() !== JDA.Status.CONNECTED) {
+            if (shard.shard.status != ShardStatus.CONNECTED) {
                 allConnected.set(false)
             }
         }
@@ -67,7 +67,7 @@ class CarbonitexAgent(
             return
         }
 
-        if (shardCounter.get() < credentials.getRecommendedShardCount()) {
+        if (shardCounter.get() < appConfig.shardCount) {
             log.warn("Skipping posting stats because not all shards initialized!")
             return
         }

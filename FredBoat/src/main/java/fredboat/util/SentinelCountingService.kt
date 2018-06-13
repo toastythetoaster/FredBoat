@@ -1,5 +1,6 @@
 package fredboat.util
 
+import com.fredboat.sentinel.entities.ExtendedShardInfo
 import fredboat.config.property.AppConfig
 import fredboat.sentinel.Sentinel
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
@@ -13,7 +14,7 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
     /** Rough average users per shard + 5000 (for good measure) all timed the max number of shards */
     private val estimatedUsers = (30000 + 5000) * appConfig.shardCount
 
-    private var cachedCounts: Counts = Counts(0,0,0,0,0,0)
+    private var cachedCounts: Counts = Counts(0,0,0,0,0,0, emptyList())
     private var cachedUserCount = 0
     private var countsCacheTime = 0L
     private var userCountCacheTime = 0L
@@ -33,10 +34,11 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
             var voiceChannels = 0L
             var categories = 0L
             var emotes = 0L
+            val shards = mutableListOf<ExtendedShardInfo>()
 
-            sentinel.getAllSentinelInfo(includeShards = false)
+            sentinel.getAllSentinelInfo(includeShards = true)
                     .doOnComplete {
-                        sink.success(Counts(guilds, roles, textChannels, voiceChannels, categories, emotes))
+                        sink.success(Counts(guilds, roles, textChannels, voiceChannels, categories, emotes, shards))
                     }
                     .doOnError { sink.error(it) }
                     .subscribe {
@@ -46,6 +48,7 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
                         voiceChannels += it.response.voiceChannels
                         categories += it.response.categories
                         emotes += it.response.emotes
+                        shards.addAll(it.response.shards!!)
                     }
         }
     }
@@ -71,6 +74,7 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
             val textChannels: Long,
             val voiceChannels: Long,
             val categories: Long,
-            val emotes: Long
+            val emotes: Long,
+            val shards: List<ExtendedShardInfo>
     )
 }

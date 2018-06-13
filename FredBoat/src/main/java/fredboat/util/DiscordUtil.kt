@@ -26,7 +26,6 @@
 package fredboat.util
 
 import fredboat.config.property.AppConfig
-import fredboat.config.property.Credentials
 import fredboat.sentinel.Member
 import fredboat.shared.constant.BotConstants
 import reactor.core.publisher.Flux
@@ -47,8 +46,7 @@ object DiscordUtil {
      * @return true if this bot account is an "official" fredboat (music, patron, CE, etc).
      * This is useful to lock down features that we only need internally, like polling the docker hub for pull stats.
      */
-    fun isOfficialBot(credentials: Credentials): Boolean {
-        val botId = getBotId(credentials)
+    fun isOfficialBot(botId: Long): Boolean {
         return (botId == BotConstants.MUSIC_BOT_ID
                 || botId == BotConstants.PATRON_BOT_ID
                 || botId == BotConstants.CUTTING_EDGE_BOT_ID
@@ -57,7 +55,5 @@ object DiscordUtil {
     }
 
     //https://discordapp.com/developers/docs/topics/gateway#sharding
-    fun getShardId(guildId: Long, appConfig: AppConfig): Int {
-        return ((guildId shr 22) % appConfig.shardCount).toInt()
-    }
+    fun getShardId(guildId: Long, appConfig: AppConfig) = ((guildId shr 22) % appConfig.shardCount).toInt()
 }

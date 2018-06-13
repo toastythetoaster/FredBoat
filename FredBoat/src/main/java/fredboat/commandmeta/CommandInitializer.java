@@ -42,6 +42,7 @@ import fredboat.config.SentryConfiguration;
 import fredboat.definitions.Module;
 import fredboat.definitions.PermissionLevel;
 import fredboat.definitions.SearchProvider;
+import fredboat.sentinel.Sentinel;
 import fredboat.shared.constant.BotConstants;
 import fredboat.util.AsciiArtConstant;
 import fredboat.util.rest.TrackSearcher;
@@ -70,7 +71,7 @@ public class CommandInitializer {
 
     public static void initCommands(@Nullable CacheMetricsCollector cacheMetrics, Weather weather, TrackSearcher trackSearcher,
                                     VideoSelectionCache videoSelectionCache, SentryConfiguration sentryConfiguration,
-                                    PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI) {
+                                    PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI, Sentinel sentinel) {
 
         // Administrative Module - always on (as in, essential commands for BOT_ADMINs and BOT_OWNER)
         CommandRegistry adminModule = new CommandRegistry(Module.ADMIN);
@@ -103,7 +104,7 @@ public class CommandInitializer {
         infoModule.registerCommand(new MusicHelpCommand(MUSICHELP_COMM_NAME, "musichelp"));
         infoModule.registerCommand(new PingCommand("ping"));
         infoModule.registerCommand(new ShardsCommand("shards"));
-        infoModule.registerCommand(new StatsCommand("stats", "uptime"));
+        infoModule.registerCommand(new StatsCommand("stats", sentinel.getApplicationInfo(),"uptime"));
         infoModule.registerCommand(new TextCommand("https://github.com/Frederikam", "github"));
         infoModule.registerCommand(new TextCommand(BotConstants.GITHUB_URL, "repo"));
 

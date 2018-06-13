@@ -24,15 +24,14 @@
 
 package fredboat.commandmeta
 
+import com.fredboat.sentinel.entities.ApplicationInfo
 import com.fredboat.sentinel.entities.MessageReceivedEvent
 import fredboat.command.config.PrefixCommand
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.config.property.AppConfig
-import fredboat.config.property.Credentials
 import fredboat.feature.metrics.Metrics
 import fredboat.sentinel.Message
 import fredboat.sentinel.getGuild
-import fredboat.util.DiscordUtil
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.util.*
@@ -42,7 +41,10 @@ import java.util.regex.Pattern
  * Created by napster on 23.02.18.
  */
 @Component
-class CommandContextParser(private val appConfig: AppConfig, private val credentials: Credentials) {
+class CommandContextParser(
+        private val appConfig: AppConfig,
+        private val applicationInfo: ApplicationInfo
+) {
 
     companion object {
         private val log = LoggerFactory.getLogger(CommandContext::class.java)
@@ -61,7 +63,7 @@ class CommandContextParser(private val appConfig: AppConfig, private val credent
         var isMention = false
         val mentionMatcher = MENTION_PREFIX.matcher(content)
         // either starts with a mention of us
-        val botId = java.lang.Long.toString(DiscordUtil.getBotId(credentials))
+        val botId = java.lang.Long.toString(applicationInfo.botId)
         if (mentionMatcher.find() && mentionMatcher.group(2) == botId) {
             input = mentionMatcher.group(3).trim { it <= ' ' }
             isMention = true

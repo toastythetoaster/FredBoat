@@ -11,6 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
+import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -141,6 +142,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
     }
 
     private var cachedApplicationInfo: ApplicationInfo? = null
+    @Bean
     fun getApplicationInfo(): ApplicationInfo {
         if (cachedApplicationInfo != null) return cachedApplicationInfo as ApplicationInfo
 
