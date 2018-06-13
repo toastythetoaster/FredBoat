@@ -22,13 +22,16 @@
  * SOFTWARE.
  */
 
-package fredboat.test;
+package fredboat.test.config;
 
 import fredboat.config.property.*;
 import fredboat.shared.constant.DistributionEnum;
+import fredboat.test.TestingConfig;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
@@ -41,6 +44,8 @@ import java.util.Map;
  * <p>
  * A default fake config to be used in tests.
  */
+@Component
+@Primary
 public class MockConfig implements AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig,
         LavalinkConfig, TestingConfig {
 
