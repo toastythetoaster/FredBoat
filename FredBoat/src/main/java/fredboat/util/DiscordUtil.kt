@@ -23,55 +23,41 @@
  *
  */
 
-package fredboat.util;
+package fredboat.util
 
-import fredboat.config.property.AppConfig;
-import fredboat.config.property.Credentials;
-import fredboat.sentinel.Member;
-import fredboat.sentinel.Role;
-import fredboat.shared.constant.BotConstants;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import fredboat.config.property.AppConfig
+import fredboat.config.property.Credentials
+import fredboat.sentinel.Member
+import fredboat.shared.constant.BotConstants
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 
-import java.util.List;
+object DiscordUtil {
 
-public class DiscordUtil {
-
-    private static final Logger log = LoggerFactory.getLogger(DiscordUtil.class);
-
-    private DiscordUtil() {}
-
-    public static int getHighestRolePosition(Member member) {
-        List<Role> roles = member.getRoles();
-
-        if (roles.isEmpty()) return -1;
-
-        Role top = roles.get(0);
-
-        for (Role r : roles) {
-            if (r.getPosition() > top.getPosition()) {
-                top = r;
-            }
-        }
-
-        return top.getPosition();
+    fun getHighestRolePosition(member: Member): Mono<Int> = Mono.create { sink ->
+        Flux.merge(member.roles.map { it.info })
+                .reduce { a, b ->
+                    return@reduce if (a.position > b.position) a else b
+                }
+                .doOnError { sink.error(it) }
+                .subscribe { sink.success(it.position) }
     }
 
     /**
      * @return true if this bot account is an "official" fredboat (music, patron, CE, etc).
      * This is useful to lock down features that we only need internally, like polling the docker hub for pull stats.
      */
-    public static boolean isOfficialBot(Credentials credentials) {
-        long botId = getBotId(credentials);
-        return botId == BotConstants.MUSIC_BOT_ID
+    fun isOfficialBot(credentials: Credentials): Boolean {
+        val botId = getBotId(credentials)
+        return (botId == BotConstants.MUSIC_BOT_ID
                 || botId == BotConstants.PATRON_BOT_ID
                 || botId == BotConstants.CUTTING_EDGE_BOT_ID
                 || botId == BotConstants.BETA_BOT_ID
-                || botId == BotConstants.MAIN_BOT_ID;
+                || botId == BotConstants.MAIN_BOT_ID)
     }
 
     //https://discordapp.com/developers/docs/topics/gateway#sharding
-    public static int getShardId(long guildId, AppConfig appConfig) {
-        return (int) ((guildId >> 22) % appConfig.getShardCount());
+    fun getShardId(guildId: Long, appConfig: AppConfig): Int {
+        return ((guildId shr 22) % appConfig.shardCount).toInt()
     }
 }

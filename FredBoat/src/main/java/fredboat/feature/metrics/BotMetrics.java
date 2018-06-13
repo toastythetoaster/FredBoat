@@ -98,7 +98,7 @@ public class BotMetrics {
         statsAgent.addAction(new StatsAgent.ActionAdapter("jda entity stats for fredboat",
                 () -> jdaEntityStatsTotal.count(shardsSupplier)));
 
-        if (DiscordUtil.isOfficialBot(credentials)) {
+        if (DiscordUtil.INSTANCE.isOfficialBot(credentials)) {
             try {
                 dockerStats.fetch();
             } catch (Exception ignored) {}
