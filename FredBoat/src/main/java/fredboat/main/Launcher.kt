@@ -9,7 +9,6 @@ import fredboat.commandmeta.CommandRegistry
 import fredboat.config.SentryConfiguration
 import fredboat.config.property.ConfigPropertiesProvider
 import fredboat.feature.I18n
-import fredboat.feature.metrics.BotMetrics
 import fredboat.util.AppInfo
 import fredboat.util.GitRepoState
 import fredboat.util.TextUtils
@@ -51,7 +50,6 @@ open class Launcher(
         private val executor: ExecutorService,
         private val cacheMetrics: CacheMetricsCollector,
         private val statsAgent: StatsAgent,
-        private val botMetrics: BotMetrics,
         private val weather: Weather,
         private val trackSearcher: TrackSearcher,
         private val videoSelectionCache: VideoSelectionCache,
@@ -74,7 +72,7 @@ open class Launcher(
 
         //Commands
         CommandInitializer.initCommands(cacheMetrics, weather, trackSearcher, videoSelectionCache, sentryConfiguration,
-                playerLimiter, youtubeAPI, botController!!.sentinel)
+                playerLimiter, youtubeAPI, botController.sentinel)
         log.info("Loaded commands, registry size is " + CommandRegistry.getTotalSize())
 
         if (!configProvider.appConfig.isPatronDistribution) {
@@ -185,14 +183,14 @@ open class Launcher(
 
         private val log = LoggerFactory.getLogger(Launcher::class.java)
         val START_TIME = System.currentTimeMillis()
-        var botController: BotController? = null
+        lateinit var botController: BotController
             private set //temporary hack access to the bot context
 
         @Throws(IllegalArgumentException::class)
         @JvmStatic
         fun main(args: Array<String>) {
             //just post the info to the console
-            if (args.size > 0 && (args[0].equals("-v", ignoreCase = true)
+            if (args.isNotEmpty() && (args[0].equals("-v", ignoreCase = true)
                             || args[0].equals("--version", ignoreCase = true)
                             || args[0].equals("-version", ignoreCase = true))) {
                 println("Version flag detected. Printing version info, then exiting.")
@@ -245,3 +243,5 @@ open class Launcher(
                     + "\n")
     }
 }
+
+fun getBotController(): BotController = Launcher.botController

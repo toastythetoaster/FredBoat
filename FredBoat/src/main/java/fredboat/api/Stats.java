@@ -40,6 +40,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
+import static fredboat.main.LauncherKt.getBotController;
+
 @RestController
 @RequestMapping("/stats")
 public class Stats {
@@ -79,7 +81,7 @@ public class Stats {
         JdaEntityStats entityStats = botMetrics.getJdaEntityStatsTotal();
         g.put("playingPlayers", playerRegistry.playingCount())
                 .put("totalPlayers", playerRegistry.totalCount())
-                .put("distribution", Launcher.getBotController().getAppConfig().getDistribution())
+                .put("distribution", getBotController().getAppConfig().getDistribution())
                 .put("guilds", entityStats.getGuildsCount())
                 .put("users", entityStats.getUniqueUsersCount());
 
