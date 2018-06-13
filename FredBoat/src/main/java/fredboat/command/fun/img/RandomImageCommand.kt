@@ -110,7 +110,7 @@ open class RandomImageCommand(private val imgurAlbumUrl: String, name: String, v
 
         val albumId = m.group(1)
         var request: Http.SimpleRequest = BotController.HTTP.get("https://api.imgur.com/3/album/$albumId")
-                .auth("Client-ID " + Launcher.getBotController().credentials.imgurClientId)
+                .auth("Client-ID " + Launcher.botController.credentials.imgurClientId)
         if (useEtag) {
             request = request.header("If-None-Match", etag!!)
         }

@@ -64,7 +64,7 @@ class DebugCommand(name: String, vararg aliases: String) : Command(name, *aliase
         }
 
         if (guild != null) {
-            context.reply(getDebugEmbed(Launcher.getBotController().playerRegistry.getOrCreate(guild)))
+            context.reply(getDebugEmbed(Launcher.botController.playerRegistry.getOrCreate(guild)))
         } else {
             context.replyWithName(String.format("There is no guild with id `%s`.", context.args[0]))
         }

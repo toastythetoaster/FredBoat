@@ -101,7 +101,7 @@ class EvalCommand(name: String, vararg aliases: String) : Command(name, *aliases
             engine.put("sentinel", guild.sentinel)
             engine.put("channel", textChannel)
             engine.put("tc", textChannel)
-            val player = Launcher.getBotController().playerRegistry.getOrCreate(guild)
+            val player = Launcher.botController.playerRegistry.getOrCreate(guild)
             engine.put("player", player)
             engine.put("link", (player.player as LavalinkPlayer?)?.link)
             engine.put("lavalink", player.lavalink)
@@ -113,7 +113,7 @@ class EvalCommand(name: String, vararg aliases: String) : Command(name, *aliases
             engine.put("message", msg)
             engine.put("guild", guild)
             engine.put("player", player)
-            engine.put("pm", Launcher.getBotController().audioPlayerManager)
+            engine.put("pm", Launcher.botController.audioPlayerManager)
             engine.put("context", context)
         }
 

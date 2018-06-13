@@ -66,7 +66,7 @@ class CommandContext(
         }
 
     val enabledModules: Collection<Module>
-        get() = Launcher.getBotController().guildModulesService.fetchGuildModules(this.guild).enabledModules
+        get() = Launcher.botController.guildModulesService.fetchGuildModules(this.guild).enabledModules
 
     override val user: User
         get() = member.user

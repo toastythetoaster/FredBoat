@@ -45,7 +45,7 @@ object PermsUtil {
         member.hasPermission(Permission.ADMINISTRATOR).awaitSingle()
         -> PermissionLevel.ADMIN
         else -> {
-            val gp = Launcher.getBotController().guildPermsService.fetchGuildPermissions(member.guild)
+            val gp = Launcher.botController.guildPermsService.fetchGuildPermissions(member.guild)
 
             if (checkList(gp.adminList, member)) PermissionLevel.ADMIN
             if (checkList(gp.djList, member)) PermissionLevel.DJ
@@ -91,7 +91,7 @@ object PermsUtil {
      */
     private fun isBotAdmin(member: Member): Boolean {
         var botAdmin = false
-        for (id in Launcher.getBotController().appConfig.adminIds) {
+        for (id in Launcher.botController.appConfig.adminIds) {
             val r = member.guild.getRole(id)
             if (member.id == id || r != null && member.roles.contains(r)) {
                 botAdmin = true

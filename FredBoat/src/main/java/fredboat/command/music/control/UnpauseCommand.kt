@@ -40,7 +40,7 @@ class UnpauseCommand(name: String, vararg aliases: String) : Command(name, *alia
 
     override suspend fun invoke(context: CommandContext) {
         val guild = context.guild
-        val player = Launcher.getBotController().playerRegistry.getExisting(guild)
+        val player = Launcher.botController.playerRegistry.getExisting(guild)
         if (player == null || player.isQueueEmpty) {
             context.reply(context.i18n("unpauseQueueEmpty"))
         } else if (!player.isPaused) {

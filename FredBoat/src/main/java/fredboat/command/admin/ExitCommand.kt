@@ -56,7 +56,7 @@ class ExitCommand(name: String, vararg aliases: String) : Command(name, *aliases
                 } catch (ignored: Exception) {
                 }
 
-                Launcher.getBotController().shutdownHandler.shutdown(ExitCodes.EXIT_CODE_NORMAL)
+                Launcher.botController.shutdownHandler.shutdown(ExitCodes.EXIT_CODE_NORMAL)
                 return
             } else {
                 context.reply(String.format("Your input `%s` did not fit the required code `%s`. A new code will be issued.",

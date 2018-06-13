@@ -49,7 +49,7 @@ class SkipCommand(name: String, vararg aliases: String) : Command(name, *aliases
         get() = PermissionLevel.USER
 
     override suspend fun invoke(context: CommandContext) {
-        val player = Launcher.getBotController().playerRegistry.getExisting(context.guild)
+        val player = Launcher.botController.playerRegistry.getExisting(context.guild)
 
         if (player == null || player.isQueueEmpty) {
             context.reply(context.i18n("skipEmpty"))

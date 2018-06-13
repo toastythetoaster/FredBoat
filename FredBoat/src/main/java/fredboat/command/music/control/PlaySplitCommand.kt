@@ -49,7 +49,7 @@ class PlaySplitCommand(private val playerLimiter: PlayerLimiter, name: String, v
             return
         }
 
-        val playerRegistry = Launcher.getBotController().playerRegistry
+        val playerRegistry = Launcher.botController.playerRegistry
         if (!playerLimiter.checkLimitResponsive(context, playerRegistry)) return
 
         val ic = IdentifierContext(context.args[0], context.textChannel, context.member)

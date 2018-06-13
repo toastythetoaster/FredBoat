@@ -116,7 +116,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
             //healthy shards summary, contains sensible data only if we aren't doing a full report
             if (!full) {
                 val content = String.format("+ %s of %s shards are %s -- Guilds: %s -- Users: %s", shardCounter.get() - borkenShards.get(),
-                        Launcher.getBotController().appConfig.shardCount, ShardStatus.CONNECTED, healthyGuilds, healthyUsers)
+                        Launcher.botController.appConfig.shardCount, ShardStatus.CONNECTED, healthyGuilds, healthyUsers)
                 messages.add(0, content.asCodeBlock("diff").toMessage())
             }
 

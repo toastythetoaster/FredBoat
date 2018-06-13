@@ -81,7 +81,7 @@ class StatsCommand(
 
             str += "\n\n"
             var content = ""
-            val botMetrics = Launcher.getBotController().botMetrics
+            val botMetrics = Launcher.botController.botMetrics
 
             content += "Reserved memory:                " + Runtime.getRuntime().totalMemory() / 1000000 + "MB\n"
             content += "-> Of which is used:            " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1000000 + "MB\n"
@@ -91,7 +91,7 @@ class StatsCommand(
             content += "\n----------\n\n"
 
             content += "Sharding:                       " + context?.guild?.shardString + "\n"
-            content += "Music players playing:          " + Launcher.getBotController().playerRegistry.playingCount() + "\n"
+            content += "Music players playing:          " + Launcher.botController.playerRegistry.playingCount() + "\n"
 
             val entityStats = botMetrics.jdaEntityStatsTotal
             val notCounted = !entityStats.isCounted
@@ -106,7 +106,7 @@ class StatsCommand(
 
             content += "\n----------\n\n"
 
-            content += "Distribution:                   " + Launcher.getBotController().appConfig.distribution + "\n"
+            content += "Distribution:                   " + Launcher.botController.appConfig.distribution + "\n"
             content += "FredBoat version:               " + AppInfo.getAppInfo().versionBuild + "\n"
             content += "Lavaplayer version:             " + PlayerLibrary.VERSION + "\n"
 

@@ -52,7 +52,7 @@ class ConfigCommand(name: String, vararg aliases: String) : Command(name, *alias
     }
 
     private fun printConfig(context: CommandContext) {
-        val gc = Launcher.getBotController().guildConfigService.fetchGuildConfig(context.guild.id)
+        val gc = Launcher.botController.guildConfigService.fetchGuildConfig(context.guild.id)
 
         val mb = localMessageBuilder()
                 .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
@@ -79,7 +79,7 @@ class ConfigCommand(name: String, vararg aliases: String) : Command(name, *alias
 
         if (key == "track_announce") {
             if (`val`.equals("true", ignoreCase = true) or `val`.equals("false", ignoreCase = true)) {
-                Launcher.getBotController().guildConfigService.transformGuildConfig(context.guild.id) { gc: GuildConfig ->
+                Launcher.botController.guildConfigService.transformGuildConfig(context.guild.id) { gc: GuildConfig ->
                     gc.setTrackAnnounce(java.lang.Boolean.valueOf(`val`))
                 }
                 context.replyWithName("`track_announce` " + context.i18nFormat("configSetTo", `val`))
@@ -88,7 +88,7 @@ class ConfigCommand(name: String, vararg aliases: String) : Command(name, *alias
             }
         } else if (key == "auto_resume") {
             if (`val`.equals("true", ignoreCase = true) or `val`.equals("false", ignoreCase = true)) {
-                Launcher.getBotController().guildConfigService.transformGuildConfig(
+                Launcher.botController.guildConfigService.transformGuildConfig(
                         context.guild.id) { gc -> gc.setAutoResume(java.lang.Boolean.valueOf(`val`)) }
                 context.replyWithName("`auto_resume` " + context.i18nFormat("configSetTo", `val`))
             } else {

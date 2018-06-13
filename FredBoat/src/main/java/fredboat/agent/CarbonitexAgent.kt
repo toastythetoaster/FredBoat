@@ -35,10 +35,12 @@ import fredboat.util.rest.Http
 import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.reactive.awaitSingle
 import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 
+@Service
 class CarbonitexAgent(
         private val credentials: Credentials,
         private val botMetrics: BotMetrics,

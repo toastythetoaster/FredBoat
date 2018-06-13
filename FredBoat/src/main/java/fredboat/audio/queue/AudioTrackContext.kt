@@ -56,7 +56,7 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member) : Compar
     //return the currently active text channel of the associated guildplayer
     val textChannel: TextChannel?
         get() {
-            val guildPlayer = Launcher.getBotController().playerRegistry.getExisting(guildId)
+            val guildPlayer = Launcher.botController.playerRegistry.getExisting(guildId)
             return guildPlayer?.activeTextChannel
         }
 

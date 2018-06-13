@@ -99,7 +99,7 @@ class PermissionsCommand(
         val permissionLevel = PermsUtil.getPerms(invoker)
         val discordPerms = invoker.getPermissions(channel = null).awaitFirst()
 
-        Launcher.getBotController().guildPermsService.transformGuildPerms(context.guild, { gp ->
+        Launcher.botController.guildPermsService.transformGuildPerms(context.guild, { gp ->
             if (!gp.getFromEnum(permissionLevel).contains(mentionableToId(selected))) {
                 context.replyWithName(context.i18nFormat("permsNotAdded", "`" + mentionableToName(selected) + "`", "`$permissionLevel`"))
                 return@transformGuildPerms gp
@@ -134,7 +134,7 @@ class PermissionsCommand(
 
         val selected = ArgumentUtil.checkSingleFuzzySearchResult(list, context, term) ?: return
 
-        Launcher.getBotController().guildPermsService.transformGuildPerms(context.guild, { gp ->
+        Launcher.botController.guildPermsService.transformGuildPerms(context.guild, { gp ->
             if (gp.getFromEnum(permissionLevel).contains(mentionableToId(selected))) {
                 context.replyWithName(context.i18nFormat("permsAlreadyAdded",
                         "`" + TextUtils.escapeMarkdown(mentionableToName(selected)) + "`",
@@ -154,7 +154,7 @@ class PermissionsCommand(
     suspend fun list(context: CommandContext) {
         val guild = context.guild
         val invoker = context.member
-        val gp = Launcher.getBotController().guildPermsService.fetchGuildPermissions(guild)
+        val gp = Launcher.botController.guildPermsService.fetchGuildPermissions(guild)
 
         val mentionables = idsToMentionables(guild, gp.getFromEnum(permissionLevel))
 

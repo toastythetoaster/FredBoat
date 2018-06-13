@@ -53,7 +53,7 @@ class ReviveCommand(name: String, vararg aliases: String) : Command(name, *alias
         val shardId = try {
             if (context.args.size > 1 && context.args[0] == "guild") {
                 val guildId = java.lang.Long.valueOf(context.args[1])
-                DiscordUtil.getShardId(guildId, Launcher.getBotController().appConfig)
+                DiscordUtil.getShardId(guildId, Launcher.botController.appConfig)
             } else {
                 Integer.parseInt(context.args[0])
             }

@@ -30,7 +30,7 @@ class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *ali
             context.reply(context.i18n("playerUserNotInChannel"))
             return
         }
-        val player = Launcher.getBotController().playerRegistry.getExisting(context.guild)
+        val player = Launcher.botController.playerRegistry.getExisting(context.guild)
         if (player == null || player.isQueueEmpty) {
             context.reply(context.i18n("skipEmpty"))
             return

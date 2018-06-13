@@ -101,12 +101,12 @@ class ModulesCommand(name: String, vararg aliases: String) : Command(name, *alia
             output = context.i18nFormat("moduleDisable", "**${context.i18n(module.translationKey)}**")
         }
 
-        Launcher.getBotController().guildModulesService.transformGuildModules(context.guild, transform)
+        Launcher.botController.guildModulesService.transformGuildModules(context.guild, transform)
         context.reply(output)//if the transaction right above this line fails, it won't be reached, which is intended
     }
 
     private suspend fun displayModuleStatus(context: CommandContext) {
-        val gm = Launcher.getBotController().guildModulesService.fetchGuildModules(context.guild)
+        val gm = Launcher.botController.guildModulesService.fetchGuildModules(context.guild)
         val moduleStatusFormatter = { module: Module ->
             val goodOrBad = if (gm.isModuleEnabled(module, module.isEnabledByDefault)) Emojis.OK else Emojis.BAD
             goodOrBad + module.emoji + " " + context.i18n(module.translationKey)

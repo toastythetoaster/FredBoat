@@ -39,7 +39,7 @@ class JoinCommand(name: String, vararg aliases: String) : Command(name, *aliases
         get() = PermissionLevel.USER
 
     override suspend fun invoke(context: CommandContext) {
-        val player = Launcher.getBotController().playerRegistry.getOrCreate(context.guild)
+        val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
 
         val vc = context.member.voiceChannel
         try {

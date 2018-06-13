@@ -50,7 +50,7 @@ import java.awt.Color
 class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand {
 
     override suspend fun invoke(context: CommandContext) {
-        val player = Launcher.getBotController().playerRegistry.getExisting(context.guild)
+        val player = Launcher.botController.playerRegistry.getExisting(context.guild)
 
         if (player == null || !player.isPlaying) {
             context.reply(context.i18n("npNotPlaying"))

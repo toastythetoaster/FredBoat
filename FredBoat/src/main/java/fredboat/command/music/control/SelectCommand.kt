@@ -103,7 +103,7 @@ class SelectCommand(private val videoSelectionCache: VideoSelectionCache, name: 
                     }
                     val selectedTracks = arrayOfNulls<AudioTrack>(validChoices.size)
                     val outputMsgBuilder = StringBuilder()
-                    val player = Launcher.getBotController().playerRegistry.getOrCreate(context.guild)
+                    val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
                     for (i in validChoices.indices) {
                         selectedTracks[i] = selection.choices[validChoices[i] - 1]
 

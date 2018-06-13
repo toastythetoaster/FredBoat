@@ -51,7 +51,7 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
     }
 
     companion object {
-        val botId = Launcher.getBotController().sentinel.getApplicationInfo().botId
+        val botId = Launcher.botController.sentinel.getApplicationInfo().botId
         val CUSTOM_PREFIXES = CacheBuilder.newBuilder()
                 //it is fine to check the db for updates occasionally, as we currently dont have any use case where we change
                 //the value saved there through other means. in case we add such a thing (like a dashboard), consider lowering
@@ -60,17 +60,17 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
                 .recordStats()
                 .refreshAfterWrite(1, TimeUnit.MINUTES) //NOTE: never use refreshing without async reloading, because Guavas cache uses the thread calling it to do cleanup tasks (including refreshing)
                 .expireAfterAccess(1, TimeUnit.MINUTES) //evict inactive guilds
-                .concurrencyLevel(Launcher.getBotController().appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
+                .concurrencyLevel(Launcher.botController.appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
                 .build(CacheLoader.asyncReloading(CacheLoader.from<Long, Optional<String>> {
-                    guildId -> Launcher.getBotController().prefixService.getPrefix(Prefix.GuildBotId(
+                    guildId -> Launcher.botController.prefixService.getPrefix(Prefix.GuildBotId(
                         guildId!!,
                         botId
                 ))
                 },
-                        Launcher.getBotController().executor))!!
+                        Launcher.botController.executor))!!
 
         fun giefPrefix(guildId: Long) = CacheUtil.getUncheckedUnwrapped(CUSTOM_PREFIXES, guildId)
-                .orElse(Launcher.getBotController().appConfig.prefix)
+                .orElse(Launcher.botController.appConfig.prefix)
 
         fun giefPrefix(guild: Guild) = giefPrefix(guild.id)
 
@@ -103,7 +103,7 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
             newPrefix = context.rawArgs
         }
 
-        Launcher.getBotController().prefixService.transformPrefix(context.guild, {
+        Launcher.botController.prefixService.transformPrefix(context.guild, {
             prefixEntity -> prefixEntity.setPrefix(newPrefix)
         })
 

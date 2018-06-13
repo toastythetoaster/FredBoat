@@ -55,7 +55,7 @@ class AnnounceCommand(name: String, vararg aliases: String) : Command(name, *ali
         get() = PermissionLevel.BOT_ADMIN
 
     override suspend fun invoke(context: CommandContext) {
-        val players = Launcher.getBotController().playerRegistry.playingPlayers
+        val players = Launcher.botController.playerRegistry.playingPlayers
 
         if (players.isEmpty()) {
             context.reply("No currently playing players.")
