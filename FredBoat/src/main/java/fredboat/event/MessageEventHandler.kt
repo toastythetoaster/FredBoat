@@ -82,7 +82,7 @@ class MessageEventHandler(
             return
         }
 
-        if (sentinel.getApplicationInfo().botId == event.author) log.info(event.content)
+        if (sentinel.applicationInfo.botId == event.author) log.info(event.content)
         if (event.fromBot) return
 
         //Preliminary permission filter to avoid a ton of parsing
@@ -152,7 +152,7 @@ class MessageEventHandler(
         }
 
         //quick n dirty bot admin / owner check
-        if (appConfig.adminIds.contains(author.id) || sentinel.getApplicationInfo().ownerId == author.id) {
+        if (appConfig.adminIds.contains(author.id) || sentinel.applicationInfo.ownerId == author.id) {
 
             //hack in / hardcode some commands; this is not meant to look clean
             val lowered = content.toLowerCase()

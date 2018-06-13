@@ -11,7 +11,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
-import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -20,7 +19,8 @@ import java.util.concurrent.TimeUnit
 @Component
 class Sentinel(private val template: AsyncRabbitTemplate,
                private val blockingTemplate: RabbitTemplate,
-               val tracker: SentinelTracker) {
+               val tracker: SentinelTracker,
+               val applicationInfo: ApplicationInfo) {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(Sentinel::class.java)
@@ -139,15 +139,6 @@ class Sentinel(private val template: AsyncRabbitTemplate,
     fun sendTyping(channel: TextChannel) {
         val req = SendTypingRequest(channel.id)
         blockingTemplate.convertAndSend(SentinelExchanges.REQUESTS, channel.guild.routingKey, req)
-    }
-
-    private var cachedApplicationInfo: ApplicationInfo? = null
-    @Bean
-    fun getApplicationInfo(): ApplicationInfo {
-        if (cachedApplicationInfo != null) return cachedApplicationInfo as ApplicationInfo
-
-        cachedApplicationInfo = blockingTemplate.convertSendAndReceive(ApplicationInfoRequest()) as ApplicationInfo
-        return cachedApplicationInfo!!
     }
 
     /* Permissions */

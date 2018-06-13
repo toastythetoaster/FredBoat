@@ -9,7 +9,7 @@ private const val DISCORD_EPOCH = 1420070400000L
 
 @Suppress("unused")
 @Service
-private class SentinelProvider(sentinelParam: Sentinel) {
+class SentinelProvider(sentinelParam: Sentinel) {
     init {
         providedSentinel = sentinelParam
     }

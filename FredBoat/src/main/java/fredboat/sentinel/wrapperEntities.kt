@@ -28,7 +28,7 @@ private val MEMBER_MENTION_PATTERN = Pattern.compile("<@!?([0-9]+)>", Pattern.DO
 private val CHANNEL_MENTION_PATTERN = Pattern.compile("<#([0-9]+)>", Pattern.DOTALL)
 
 @Service
-private class WrapperEntityBeans(appConfigParam: AppConfig, lavalinkParam: SentinelLavalink) {
+class WrapperEntityBeans(appConfigParam: AppConfig, lavalinkParam: SentinelLavalink) {
     init {
         appConfig = appConfigParam
         lavalink = lavalinkParam
@@ -64,7 +64,7 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     /* Helper properties */
 
     val selfMember: Member
-        get() = _members[sentinel.getApplicationInfo().botId]!!
+        get() = _members[sentinel.applicationInfo.botId]!!
     val shardId: Int
         get() = ((id shr 22) % appConfig.shardCount.toLong()).toInt()
     val shardString: String
@@ -157,7 +157,7 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
     /* Convenience properties */
     val effectiveName: String get() = if (_nickname != null) _nickname!! else _name
     /** True if this [Member] is our bot */
-    val isUs: Boolean get() = id == sentinel.getApplicationInfo().botId
+    val isUs: Boolean get() = id == sentinel.applicationInfo.botId
     override val asMention: String get() = "<@$id>"
     val user: User
         get() = User(RawUser(

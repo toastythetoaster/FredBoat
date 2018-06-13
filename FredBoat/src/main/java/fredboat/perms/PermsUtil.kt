@@ -38,7 +38,7 @@ import javax.annotation.CheckReturnValue
 object PermsUtil {
 
     suspend fun getPerms(member: Member): PermissionLevel = when {
-        member.sentinel.getApplicationInfo().ownerId == member.id
+        member.sentinel.applicationInfo.ownerId == member.id
         -> PermissionLevel.BOT_OWNER // https://fred.moe/Q-EB.png
         isBotAdmin(member)
         -> PermissionLevel.BOT_ADMIN

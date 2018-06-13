@@ -13,7 +13,7 @@ class SentinelLavalink(
         val sentinel: Sentinel,
         val appConfig: AppConfig
 ) : Lavalink<SentinelLink>(
-        sentinel.getApplicationInfo().botId.toString(),
+        sentinel.applicationInfo.botId.toString(),
         appConfig.shardCount
 ) {
 
