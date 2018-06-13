@@ -33,12 +33,13 @@ import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
 import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import fredboat.shared.constant.BotConstants;
 
 import javax.annotation.Nonnull;
 import java.time.Duration;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 public class VolumeCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
@@ -49,9 +50,9 @@ public class VolumeCommand extends JCommand implements IMusicCommand, ICommandRe
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
 
-        if (Launcher.getBotController().getAppConfig().getDistribution().volumeSupported()) {
+        if (getBotController().getAppConfig().getDistribution().volumeSupported()) {
 
-            GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getOrCreate(context.getGuild());
+            GuildPlayer player = getBotController().getPlayerRegistry().getOrCreate(context.getGuild());
             try {
                 float volume = Float.parseFloat(context.getArgs()[0]) / 100;
                 volume = Math.max(0, Math.min(1.5f, volume));

@@ -26,16 +26,17 @@
 package fredboat.command.music.seeking;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 public class RestartCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
@@ -45,7 +46,7 @@ public class RestartCommand extends JCommand implements IMusicCommand, ICommandR
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.getGuild());
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
 
         if (player != null && !player.isQueueEmpty()) {
             if (player.getPlayingTrack() == null) {

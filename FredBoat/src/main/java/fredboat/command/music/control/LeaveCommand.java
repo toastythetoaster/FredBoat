@@ -31,12 +31,13 @@ import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
 import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 public class LeaveCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
@@ -48,7 +49,7 @@ public class LeaveCommand extends JCommand implements IMusicCommand, ICommandRes
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.getGuild());
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
 
         if (player != null) {
             try {

@@ -31,7 +31,6 @@ import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
 import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.RepeatMode;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import fredboat.sentinel.Member;
 import fredboat.util.MessageBuilder;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.util.List;
 
+import static fredboat.main.LauncherKt.getBotController;
 import static fredboat.util.MessageBuilderKt.localMessageBuilder;
 
 public class ListCommand extends JCommand implements IMusicCommand {
@@ -55,7 +55,7 @@ public class ListCommand extends JCommand implements IMusicCommand {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.getGuild());
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
 
         if (player == null || player.isQueueEmpty()) {
             context.reply(context.i18n("npNotPlaying"));

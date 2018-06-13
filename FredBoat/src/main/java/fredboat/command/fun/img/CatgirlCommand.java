@@ -25,15 +25,16 @@
 
 package fredboat.command.fun.img;
 
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.main.BotController;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 public class CatgirlCommand extends JCommand implements IFunCommand {
 
@@ -46,7 +47,7 @@ public class CatgirlCommand extends JCommand implements IFunCommand {
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
         context.sendTyping();
-        Launcher.getBotController().getExecutor().submit(() -> postCatgirl(context));
+        getBotController().getExecutor().submit(() -> postCatgirl(context));
 
         // TODO: Post lewd catgirls from the API in NSFW chat
     }

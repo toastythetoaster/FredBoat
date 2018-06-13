@@ -25,15 +25,16 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 /**
  * Created by napster on 17.03.17.
@@ -48,7 +49,7 @@ public class ReshuffleCommand extends JCommand implements IMusicCommand, IComman
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.getGuild());
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
         if (player == null || !player.isShuffle()) {
             context.replyWithName(context.i18n("reshufflePlayerNotShuffling"));
             return;

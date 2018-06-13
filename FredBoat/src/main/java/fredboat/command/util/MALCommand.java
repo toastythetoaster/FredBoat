@@ -26,12 +26,11 @@
 package fredboat.command.util;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.feature.metrics.Metrics;
 import fredboat.main.BotController;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import fredboat.metrics.OkHttpEventMetrics;
 import fredboat.util.TextUtils;
@@ -53,6 +52,8 @@ import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 /**
  * @deprecated The mal API is broken af. After an unsuccessful search it will answer requests after one full minute only,
@@ -86,7 +87,7 @@ public class MALCommand extends JCommand implements IUtilCommand {
         String term = context.getRawArgs().replace(' ', '+').trim();
         log.debug("TERM:" + term);
 
-        Launcher.getBotController().getExecutor().submit(() -> requestAsync(term, context));
+        getBotController().getExecutor().submit(() -> requestAsync(term, context));
     }
 
     //attempts to find an anime with the provided search term, and if that's not possible looks for a user
@@ -95,8 +96,8 @@ public class MALCommand extends JCommand implements IUtilCommand {
                 Http.Params.of(
                         "q", term
                 ))
-                .auth(Credentials.basic(Launcher.getBotController().getCredentials().getMalUser(),
-                        Launcher.getBotController().getCredentials().getMalPassword()))
+                .auth(Credentials.basic(getBotController().getCredentials().getMalUser(),
+                        getBotController().getCredentials().getMalPassword()))
                 .client(malHttpClient);
 
         try {

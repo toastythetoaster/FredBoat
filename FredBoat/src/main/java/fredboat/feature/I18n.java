@@ -25,10 +25,9 @@
 
 package fredboat.feature;
 
-import fredboat.sentinel.Guild;
 import fredboat.db.DatabaseNotReadyException;
 import fredboat.definitions.Language;
-import fredboat.main.Launcher;
+import fredboat.sentinel.Guild;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +36,8 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 public class I18n {
 
@@ -71,7 +72,7 @@ public class I18n {
     @Nonnull
     public static FredBoatLocale getLocale(long guild) {
         try {
-            return LANGS.getOrDefault(Launcher.getBotController().getGuildConfigService().fetchGuildConfig(guild).getLang(), DEFAULT);
+            return LANGS.getOrDefault(getBotController().getGuildConfigService().fetchGuildConfig(guild).getLang(), DEFAULT);
         } catch (DatabaseNotReadyException e) {
             //don't log spam the full exceptions or logs
             return DEFAULT;
@@ -85,7 +86,7 @@ public class I18n {
         if (!LANGS.containsKey(lang))
             throw new LanguageNotSupportedException("Language not found");
 
-        Launcher.getBotController().getGuildConfigService().transformGuildConfig(guild.getId(), config -> config.setLang(lang));
+        getBotController().getGuildConfigService().transformGuildConfig(guild.getId(), config -> config.setLang(lang));
     }
 
     public static class FredBoatLocale {

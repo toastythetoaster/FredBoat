@@ -25,11 +25,10 @@
 
 package fredboat.command.fun;
 
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.main.BotController;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -38,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 public class JokeCommand extends JCommand implements IFunCommand {
 
@@ -50,7 +51,7 @@ public class JokeCommand extends JCommand implements IFunCommand {
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
         //slow execution due to http requests
-        Launcher.getBotController().getExecutor().execute(() -> invoke(context));
+        getBotController().getExecutor().execute(() -> invoke(context));
     }
 
     public void invoke(@Nonnull CommandContext context) {

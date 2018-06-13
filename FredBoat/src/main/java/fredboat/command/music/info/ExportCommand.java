@@ -27,15 +27,16 @@ package fredboat.command.music.info;
 
 import fredboat.audio.player.GuildPlayer;
 import fredboat.commandmeta.MessagingException;
-import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
-import fredboat.main.Launcher;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.messaging.internal.Context;
 import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 import java.util.stream.Collectors;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 public class ExportCommand extends JCommand implements IMusicCommand {
 
@@ -45,7 +46,7 @@ public class ExportCommand extends JCommand implements IMusicCommand {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.getGuild());
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
 
         if (player == null || player.isQueueEmpty()) {
             throw new MessagingException(context.i18n("exportEmpty"));

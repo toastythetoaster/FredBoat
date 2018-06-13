@@ -29,11 +29,12 @@ import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import fredboat.sentinel.Member;
 
 import javax.annotation.Nonnull;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 /**
  * Created by napster on 17.04.17.
@@ -55,7 +56,7 @@ public class UnblacklistCommand extends JCommand implements ICommandRestricted {
 
         Member member = context.getMentionedMembers().get(0);
 
-        Launcher.getBotController().getRatelimiter().liftLimitAndBlacklist(member.getId());
+        getBotController().getRatelimiter().liftLimitAndBlacklist(member.getId());
         context.replyWithName(context.i18nFormat("unblacklisted", member.getAsMention()));
     }
 
