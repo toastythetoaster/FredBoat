@@ -29,8 +29,6 @@ import ch.qos.logback.classic.LoggerContext;
 import fredboat.agent.FredBoatAgent;
 import fredboat.command.info.HelpCommand;
 import fredboat.feature.metrics.collectors.FredBoatCollector;
-import fredboat.feature.metrics.collectors.GuildSizesCollector;
-import fredboat.feature.metrics.collectors.ShardStatusCollector;
 import fredboat.feature.metrics.collectors.ThreadPoolCollector;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
@@ -56,8 +54,7 @@ public class Metrics {
     private static final Logger log = LoggerFactory.getLogger(Metrics.class);
 
     public Metrics(CacheMetricsCollector cacheMetrics, InstrumentedAppender prometheusAppender,
-                   FredBoatCollector fredBoatCollector, ThreadPoolCollector threadPoolCollector,
-                   GuildSizesCollector guildSizesCollector, ShardStatusCollector shardStatusCollector) {
+                   FredBoatCollector fredBoatCollector, ThreadPoolCollector threadPoolCollector) {
         log.info("Setting up metrics");
 
         //log metrics
@@ -76,8 +73,6 @@ public class Metrics {
         try {
             fredBoatCollector.register();
             threadPoolCollector.register();
-            guildSizesCollector.register();
-            shardStatusCollector.register();
         } catch (IllegalArgumentException e) {
             log.error("This should not happen outside of tests.", e);
         }
@@ -87,29 +82,6 @@ public class Metrics {
 
         log.info("Metrics set up");
     }
-
-
-    // ################################################################################
-    // ##                              JDA Stats
-    // ################################################################################
-
-    public static final Counter jdaEvents = Counter.build()
-            .name("fredboat_jda_events_received_total")
-            .help("All events that JDA provides us with by class")
-            .labelNames("class") //GuildJoinedEvent, MessageReceivedEvent, ReconnectEvent etc
-            .register();
-
-    public static final Counter successfulRestActions = Counter.build()
-            .name("fredboat_jda_restactions_successful_total")
-            .help("Total successful JDA restactions sent by FredBoat")
-            .labelNames("restaction") // sendMessage, deleteMessage, sendTyping etc
-            .register();
-
-    public static final Counter failedRestActions = Counter.build()
-            .name("fredboat_jda_restactions_failed_total")
-            .help("Total failed JDA restactions sent by FredBoat")
-            .labelNames("error_response_code") //Use the error response codes like: 50013, 10008 etc
-            .register();
 
 
     // ################################################################################
@@ -205,7 +177,7 @@ public class Metrics {
             .name("fredboat_total_message_response_duration_seconds")
             .help("Response duration between command message and answer message creation times.")
             .labelNames("class") // use the simple name of the command class: PlayCommand, DanceCommand, ShardsCommand etc
-            .register();
+            .register(); // TODO investigate unused
 
     public static final Counter handledExceptions = Counter.build()
             .name("fredboat_handled_exceptions_total")

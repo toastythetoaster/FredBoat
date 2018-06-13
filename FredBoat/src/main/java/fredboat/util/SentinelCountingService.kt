@@ -7,6 +7,7 @@ import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
+import reactor.util.function.Tuple2
 
 @Service
 class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConfig) {
@@ -67,6 +68,8 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
                     .subscribe { set.add(it) }
         }
     }
+
+    fun getAllCounts(): Mono<Tuple2<Counts, Int>> = Mono.zip(getCounts(), getUniqueUserCount())
 
     data class Counts(
             val guilds: Long,

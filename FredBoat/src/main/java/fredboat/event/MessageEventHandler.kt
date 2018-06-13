@@ -164,7 +164,9 @@ class MessageEventHandler(
                 }
                 return
             } else if (lowered.contains("stats")) {
-                author.sendPrivate(StatsCommand.getStats(null)).subscribe()
+                async {
+                    author.sendPrivate(StatsCommand.getStats(null)).subscribe()
+                }
                 return
             }
         }

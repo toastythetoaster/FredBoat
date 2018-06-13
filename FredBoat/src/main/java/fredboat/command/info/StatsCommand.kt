@@ -34,10 +34,12 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IInfoCommand
 import fredboat.feature.I18n
 import fredboat.main.Launcher
+import fredboat.main.getBotController
 import fredboat.messaging.internal.Context
 import fredboat.util.AppInfo
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
+import kotlinx.coroutines.experimental.reactive.awaitSingle
 import java.text.MessageFormat
 import java.util.*
 
@@ -62,7 +64,7 @@ class StatsCommand(
     companion object {
         private var botId = 0L
 
-        fun getStats(context: Context?): String {
+        suspend fun getStats(context: Context?): String {
             val totalSecs = (System.currentTimeMillis() - Launcher.START_TIME) / 1000
             val days = (totalSecs / (60 * 60 * 24)).toInt()
             val hours = (totalSecs / (60 * 60) % 24).toInt()
@@ -93,16 +95,15 @@ class StatsCommand(
             content += "Sharding:                       " + context?.guild?.shardString + "\n"
             content += "Music players playing:          " + Launcher.botController.playerRegistry.playingCount() + "\n"
 
-            val entityStats = botMetrics.jdaEntityStatsTotal
-            val notCounted = !entityStats.isCounted
+            val counts = getBotController().sentinelCountingService.getAllCounts().awaitSingle()
             val not = "not counted yet"
-            content += "Known servers:                  " + (if (notCounted) not else entityStats.guildsCount) + "\n"
-            content += "Users in servers:               " + (if (notCounted) not else entityStats.uniqueUsersCount) + "\n"
-            content += "Text channels:                  " + (if (notCounted) not else entityStats.textChannelsCount) + "\n"
-            content += "Voice channels:                 " + (if (notCounted) not else entityStats.voiceChannelsCount) + "\n"
-            content += "Categories:                     " + (if (notCounted) not else entityStats.categoriesCount) + "\n"
-            content += "Roles:                          " + (if (notCounted) not else entityStats.rolesCount) + "\n"
-            content += "Emotes:                         " + (if (notCounted) not else entityStats.emotesCount) + "\n"
+            content += "Known servers:                  " + counts.t1.guilds + "\n"
+            content += "Users in servers:               " + counts.t2 + "\n"
+            content += "Text channels:                  " + counts.t1.textChannels + "\n"
+            content += "Voice channels:                 " + counts.t1.voiceChannels + "\n"
+            content += "Categories:                     " + counts.t1.categories + "\n"
+            content += "Roles:                          " + counts.t1.roles + "\n"
+            content += "Emotes:                         " + counts.t1.emotes + "\n"
 
             content += "\n----------\n\n"
 

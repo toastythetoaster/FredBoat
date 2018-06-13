@@ -28,7 +28,6 @@ package fredboat.agent
 import com.fredboat.sentinel.entities.ShardStatus
 import fredboat.config.property.AppConfig
 import fredboat.config.property.Credentials
-import fredboat.feature.metrics.BotMetrics
 import fredboat.main.BotController
 import fredboat.util.SentinelCountingService
 import fredboat.util.rest.Http
@@ -43,7 +42,6 @@ import java.util.concurrent.atomic.AtomicInteger
 @Service
 class CarbonitexAgent(
         private val credentials: Credentials,
-        private val botMetrics: BotMetrics,
         private val appConfig: AppConfig,
         private val counting: SentinelCountingService
 ) : FredBoatAgent("carbonitex", 30, TimeUnit.MINUTES) {
@@ -78,7 +76,7 @@ class CarbonitexAgent(
             BotController.HTTP.post("https://www.carbonitex.net/discord/data/botdata.php",
                     Http.Params.of(
                             "key", credentials.carbonKey,
-                            "servercount", Integer.toString(botMetrics.jdaEntityStatsTotal.guildsCount)
+                            "servercount", counts.guilds.toString()
                     ))
                     .execute().use { response ->
 
@@ -93,7 +91,6 @@ class CarbonitexAgent(
         } catch (e: Exception) {
             log.error("An error occurred while posting the bot data to carbonitex.com", e)
         }
-
     }
 
     companion object {

@@ -45,7 +45,7 @@ public class CommandInitializerTest extends BaseTest {
     public void testHelpStrings() {
 
         CommandInitializer.initCommands(null, null, null, null,
-                null, null, null, null);
+                null, null, null, null, null);
 
         for (String c : CommandRegistry.getAllRegisteredCommandsAndAliases()) {
             Command com = CommandRegistry.findCommand(c);

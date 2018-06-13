@@ -45,6 +45,7 @@ import fredboat.definitions.SearchProvider;
 import fredboat.sentinel.Sentinel;
 import fredboat.shared.constant.BotConstants;
 import fredboat.util.AsciiArtConstant;
+import fredboat.util.SentinelCountingService;
 import fredboat.util.rest.TrackSearcher;
 import fredboat.util.rest.Weather;
 import fredboat.util.rest.YoutubeAPI;
@@ -71,7 +72,8 @@ public class CommandInitializer {
 
     public static void initCommands(@Nullable CacheMetricsCollector cacheMetrics, Weather weather, TrackSearcher trackSearcher,
                                     VideoSelectionCache videoSelectionCache, SentryConfiguration sentryConfiguration,
-                                    PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI, Sentinel sentinel) {
+                                    PlayerLimiter playerLimiter, YoutubeAPI youtubeAPI, Sentinel sentinel,
+                                    SentinelCountingService countingService) {
 
         // Administrative Module - always on (as in, essential commands for BOT_ADMINs and BOT_OWNER)
         CommandRegistry adminModule = new CommandRegistry(Module.ADMIN);

@@ -72,7 +72,7 @@ open class Launcher(
 
         //Commands
         CommandInitializer.initCommands(cacheMetrics, weather, trackSearcher, videoSelectionCache, sentryConfiguration,
-                playerLimiter, youtubeAPI, botController.sentinel)
+                playerLimiter, youtubeAPI, botController.sentinel, botController.sentinelCountingService)
         log.info("Loaded commands, registry size is " + CommandRegistry.getTotalSize())
 
         if (!configProvider.appConfig.isPatronDistribution) {
