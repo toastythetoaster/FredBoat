@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap
 @Service
 @RabbitListener(queues = [SentinelExchanges.EVENTS])
 class RabbitConsumer(
-        private val sentinel: Sentinel,
         private val guildCache: GuildCache,
         eventLogger: EventLogger,
         guildHandler: GuildEventHandler,
@@ -24,6 +23,9 @@ class RabbitConsumer(
         musicPersistenceHandler: MusicPersistenceHandler,
         shardReviveHandler: ShardReviveHandler
 ) {
+
+    @RabbitHandler(isDefault = true)
+    fun default(msg: Any) = log.warn("Unhandled event $msg")
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(RabbitConsumer::class.java)
@@ -81,6 +83,7 @@ class RabbitConsumer(
 
         if (channel == null) throw IllegalStateException("Got VoiceJoinEvent for unknown channel ${event.channel}")
         if (member == null) throw IllegalStateException("Got VoiceJoinEvent for unknown member ${event.member}")
+        (channel as InternalVoiceChannel).handleVoiceJoin(member)
 
         eventHandlers.forEach { it.onVoiceJoin(channel, member) }
     }
@@ -91,6 +94,7 @@ class RabbitConsumer(
         val channel = guild.getVoiceChannel(event.channel)
         val member = guild.getMember(event.member)
 
+        (guild as InternalGuild).removeMemberFromAllVoiceChannels(event.member)
         if (channel == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown channel ${event.channel}")
         if (member == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown member ${event.member}")
 
@@ -107,6 +111,7 @@ class RabbitConsumer(
         if (old == null) throw IllegalStateException("Got VoiceMoveEvent for unknown old channel ${event.oldChannel}")
         if (new == null) throw IllegalStateException("Got VoiceMoveEvent for unknown new channel ${event.newChannel}")
         if (member == null) throw IllegalStateException("Got VoiceMoveEvent for unknown member ${event.member}")
+        (new as InternalVoiceChannel).handleVoiceJoin(member)
 
         eventHandlers.forEach { it.onVoiceMove(old, new, member) }
     }
@@ -152,9 +157,48 @@ class RabbitConsumer(
         ) }
     }
 
-    @RabbitListener
-    fun guildInvalidate(event: GuildInvalidation) = sentinel.guildCache.invalidate(event.id)
+    /* Updates */
 
-    @RabbitHandler(isDefault = true)
-    fun default(msg: Any) = log.warn("Unhandled event $msg")
+    @RabbitListener
+    fun guildUpdate(event: GuildUpdateEvent) {
+        val cached = guildCache.getIfCached(event.guild.id) ?: return
+        (cached as InternalGuild).update(event.guild)
+    }
+
+    @RabbitListener
+    fun updateMember(event: GuildMemberUpdate) {
+        val member = guildCache.getIfCached(event.guild)?.getMember(event.member.id) ?: return
+        (member as InternalMember).update(event.member)
+    }
+
+    @RabbitListener
+    fun updateRole(event: RoleUpdate) {
+        val channel = guildCache.getIfCached(event.guild)?.getRole(event.role.id) ?: return
+        (channel as InternalRole).update(event.role)
+    }
+
+    @RabbitListener
+    fun updateTextChannel(event: TextChannelUpdate) {
+        val channel = guildCache.getIfCached(event.guild)?.getTextChannel(event.channel.id) ?: return
+        (channel as InternalTextChannel).update(event.channel)
+    }
+
+    @RabbitListener
+    fun updateVoiceChannel(event: VoiceChannelUpdate) {
+        val channel = guildCache.getIfCached(event.guild)?.getVoiceChannel(event.channel.id) ?: return
+        (channel as InternalVoiceChannel).update(event.channel)
+    }
+
+    @RabbitListener
+    fun handleMemberAdd(event: GuildMemberJoinEvent) {
+        (guildCache.getIfCached(event.guild) as? InternalGuild)?.handleMemberAdd(event.member)
+    }
+
+    @RabbitHandler
+    fun handleMemberRemove(event: GuildMemberLeaveEvent) {
+        val guild = (guildCache.getIfCached(event.guild) as? InternalGuild) ?: return
+        guild.handleMemberRemove(event.member)
+        guild.removeMemberFromAllVoiceChannels(event.member)
+    }
+
 }

@@ -45,6 +45,7 @@ class GuildCache(private val sentinel: Sentinel,
 
     private fun calculateShardId(guildId: Long): Int = ((guildId shr 22) % appConfig.shardCount.toLong()).toInt()
 
+
 }
 
 suspend fun getGuild(id: Long) = GuildCache.INSTANCE.get(id).awaitSingle()

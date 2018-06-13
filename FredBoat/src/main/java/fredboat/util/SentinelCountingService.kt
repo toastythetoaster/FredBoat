@@ -13,7 +13,6 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
     /** Rough average users per shard + 5000 (for good measure) all timed the max number of shards */
     private val estimatedUsers = (30000 + 5000) * appConfig.shardCount
 
-
     private var cachedCounts: Counts = Counts(0,0,0,0,0,0)
     private var cachedUserCount = 0
     private var countsCacheTime = 0L

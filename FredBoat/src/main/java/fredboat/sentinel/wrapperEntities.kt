@@ -120,6 +120,18 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
         _voiceChannels = raw.voiceChannels.map { InternalVoiceChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
     }
 
+    fun handleMemberAdd(member: RawMember) {
+        _members[member.id] = InternalMember(this, member)
+    }
+
+    fun handleMemberRemove(id: Long) {
+        _members.remove(id)
+    }
+
+    fun removeMemberFromAllVoiceChannels(memberId: Long) {
+        _voiceChannels.forEach { (it.value as InternalVoiceChannel).removeMember(memberId) }
+    }
+
 }
 
 @Suppress("PropertyName")
@@ -200,10 +212,23 @@ class InternalMember(guild: Guild, raw: RawMember) : Member(guild, raw) {
         _voiceChannel = raw.voiceChannel
     }
 
+    // We send a user update instead. This could be handled for improved performance
+    /*
+    fun handleRoleAdd(member: Member, role: Role) {
+        // First make sure we don't duplicate
+        _roles.removeIf { it.id == role.id }
+
+        _roles.add(role)
+    }
+
+    fun handleRoleRemove(guild: InternalGuild, roleId: Long) {
+        _roles.removeIf { it.id == roleId }
+    }*/
+
 }
 
 /** Note: This is not cached or subject to updates */
-class User(val raw: RawUser) : IMentionable, SentinelEntity {
+class User(@Suppress("MemberVisibilityCanBePrivate") val raw: RawUser) : IMentionable, SentinelEntity {
     override val id: Long
         get() = raw.id
     val name: String
@@ -309,6 +334,16 @@ class InternalVoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : Vo
             listOfNotNull(guild.getMember(id))
         }
     }
+
+    /** Also handles moves */
+    fun handleVoiceJoin(member: Member) {
+        (guild as InternalGuild).removeMemberFromAllVoiceChannels(member.id) // For good measure
+        _members.add(member)
+    }
+
+    fun removeMember(memberId: Long) {
+        _members.removeIf { it.id == memberId }
+    }
 }
 
 @Suppress("PropertyName")
@@ -343,7 +378,7 @@ class InternalRole(override val guild: Guild, raw: RawRole) : Role(guild, raw) {
     }
 }
 
-class Message(val guild: Guild, val raw: MessageReceivedEvent) : SentinelEntity {
+class Message(val guild: Guild, @Suppress("MemberVisibilityCanBePrivate") val raw: MessageReceivedEvent) : SentinelEntity {
     override val id: Long
         get() = raw.id
     val content: String
