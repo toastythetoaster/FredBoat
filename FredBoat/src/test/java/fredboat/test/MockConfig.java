@@ -83,11 +83,6 @@ public class MockConfig implements AppConfig, AudioSourcesConfig, Credentials, E
     }
 
     @Override
-    public int getRecommendedShardCount() {
-        return 1;
-    }
-
-    @Override
     public List<Long> getAdminIds() {
         return Collections.emptyList();
     }

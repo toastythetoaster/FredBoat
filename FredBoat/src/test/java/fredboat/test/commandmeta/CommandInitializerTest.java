@@ -28,7 +28,6 @@ import fredboat.commandmeta.CommandInitializer;
 import fredboat.commandmeta.CommandRegistry;
 import fredboat.commandmeta.abs.Command;
 import fredboat.test.BaseTest;
-import fredboat.test.FakeContext;
 import org.junit.jupiter.api.Assertions;
 
 /**
@@ -50,7 +49,7 @@ public class CommandInitializerTest extends BaseTest {
         for (String c : CommandRegistry.getAllRegisteredCommandsAndAliases()) {
             Command com = CommandRegistry.findCommand(c);
             Assertions.assertNotNull(com, "Command looked up by " + c + " is null");
-            String help = com.help(new FakeContext(null, null, null));
+            String help = null;//com.help(new FakeContext(null, null, null));
             Assertions.assertNotNull(help, () -> com.getClass().getName() + ".help() returns null");
             Assertions.assertNotEquals("", help, () -> com.getClass().getName() + ".help() returns an empty string");
         }
