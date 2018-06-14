@@ -6,7 +6,9 @@ import fredboat.config.property.AppConfig
 import kotlinx.coroutines.experimental.reactive.awaitSingle
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeoutException
 
 @Service
 class GuildCache(private val sentinel: Sentinel,
@@ -22,7 +24,7 @@ class GuildCache(private val sentinel: Sentinel,
 
     val cache = ConcurrentHashMap<Long, InternalGuild>()
 
-    fun get(id: Long): Mono<Guild?> = Mono.create {
+    fun get(id: Long): Mono<Guild?> = Mono.create<Guild?> {
         val guild = cache[id]
         if (guild != null) it.success(guild)
 
@@ -39,12 +41,11 @@ class GuildCache(private val sentinel: Sentinel,
                     g
                 }
         )
-    }
+    }.timeout(Duration.ofSeconds(10), Mono.create { it.error(TimeoutException("Guild $id timed out")) })
 
     fun getIfCached(id: Long): Guild? = cache[id] as Guild
 
     private fun calculateShardId(guildId: Long): Int = ((guildId shr 22) % appConfig.shardCount.toLong()).toInt()
-
 
 }
 

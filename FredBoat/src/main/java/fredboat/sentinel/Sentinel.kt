@@ -250,7 +250,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         return Flux.mergeSequentialDelayError(
                 tracker.sentinels.map { getSentinelInfo(it.key, includeShards) },
                 2,
-                0 // Not sure what this is -- hardly even documented
+                1 // Not sure what this is -- hardly even documented
         )
     }
 
@@ -271,7 +271,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         return Flux.mergeSequentialDelayError(
                 tracker.sentinels.map { getSentinelUserList(it.key) },
                 1,
-                0 // Not sure what this is -- hardly even documented
+                1 // Not sure what this is -- hardly even documented
         )
     }
 

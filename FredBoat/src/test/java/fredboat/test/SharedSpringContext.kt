@@ -29,7 +29,8 @@ class SharedSpringContext : ParameterResolver {
             if (i > 60) throw TimeoutException("Context initialization timed out")
         }
         application = Launcher.instance!!.springContext
-        log.info("Successfully initialized test context ${application.displayName}")
+        sleep(5000) // Takes care of race conditions
+        log.info("Successfully initialized test context ${application.javaClass.simpleName}")
     }
 
     override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean {

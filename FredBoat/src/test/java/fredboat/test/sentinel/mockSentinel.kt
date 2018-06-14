@@ -1,7 +1,7 @@
 package fredboat.test.sentinel
 
 import com.fredboat.sentinel.SentinelExchanges
-import com.fredboat.sentinel.entities.GuildRequest
+import com.fredboat.sentinel.entities.GuildSubscribeRequest
 import com.fredboat.sentinel.entities.IMessage
 import com.fredboat.sentinel.entities.SendMessageRequest
 import com.fredboat.sentinel.entities.SendMessageResponse
@@ -9,6 +9,8 @@ import fredboat.perms.Permission
 import fredboat.sentinel.RawGuild
 import fredboat.sentinel.RawMember
 import fredboat.sentinel.RawTextChannel
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitHandler
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Service
@@ -28,8 +30,13 @@ object SentinelState {
 @Service
 @RabbitListener(queues = [SentinelExchanges.REQUESTS])
 class MockSentinelRequestHandler {
+
+    companion object {
+        private val log: Logger = LoggerFactory.getLogger(MockSentinelRequestHandler::class.java)
+    }
+
     @RabbitHandler
-    fun getGuild(request: GuildRequest): RawGuild {
+    fun subscribe(request: GuildSubscribeRequest): RawGuild {
         return SentinelState.guild
     }
 
@@ -37,6 +44,11 @@ class MockSentinelRequestHandler {
     fun sendMessage(request: SendMessageRequest): SendMessageResponse {
         SentinelState.outgoingMessages.add(request.message)
         return SendMessageResponse(-1)
+    }
+
+    @RabbitHandler(isDefault = true)
+    fun default(request: Any) {
+        log.warn("Unhandled request: $request")
     }
 }
 

@@ -3,17 +3,20 @@ package fredboat.test.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.fredboat.sentinel.SentinelExchanges
+import com.fredboat.sentinel.entities.SentinelHello
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.BindingBuilder
 import org.springframework.amqp.core.DirectExchange
 import org.springframework.amqp.core.Queue
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
 import org.springframework.amqp.support.converter.MessageConverter
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.stereotype.Service
 import java.net.InetAddress
 import java.util.*
 
@@ -47,6 +50,7 @@ open class RabbitConfig {
     @Bean
     open fun requestQueue() = Queue(SentinelExchanges.REQUESTS, false)
 
+
     @Bean
     open fun requestBinding(
             @Qualifier("requestExchange") requestExchange: DirectExchange,
@@ -54,5 +58,17 @@ open class RabbitConfig {
             @Qualifier("sentinelId") key: String
     ): Binding {
         return BindingBuilder.bind(requestQueue).to(requestExchange).with(key)
+    }
+
+    @Service
+    class HelloSender(rabbitTemplate: RabbitTemplate, @Qualifier("sentinelId") key: String) {
+        init {
+            rabbitTemplate.convertAndSend(SentinelExchanges.EVENTS, SentinelHello(
+                    0,
+                    1,
+                    1,
+                    key
+            ))
+        }
     }
 }
