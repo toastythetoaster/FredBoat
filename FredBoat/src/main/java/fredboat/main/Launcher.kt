@@ -180,13 +180,15 @@ open class Launcher(
 
     //returns true if all registered shards are reporting back as CONNECTED, false otherwise
     private fun areThereNotConnectedShards(): Boolean {
-        return TODO()
+        return true //TODO
         //return shardProvider.streamShards()
         //        .anyMatch(shard -> shard.getStatus() != JDA.Status.CONNECTED);
     }
 
     override fun setApplicationContext(applicationContext: ApplicationContext) {
         springContext = applicationContext
+        // Make the launcher available for integration testing
+        instance = this
     }
 
     companion object {
@@ -195,6 +197,8 @@ open class Launcher(
         val START_TIME = System.currentTimeMillis()
         lateinit var botController: BotController
             private set //temporary hack access to the bot context
+        var instance: Launcher? = null
+            private set
 
         @Throws(IllegalArgumentException::class)
         @JvmStatic
