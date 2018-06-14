@@ -24,10 +24,11 @@
 
 package fredboat.feature.metrics
 
-import com.fredboat.sentinel.entities.ApplicationInfo
 import fredboat.agent.StatsAgent
 import fredboat.audio.player.PlayerRegistry
+import fredboat.sentinel.RawUser
 import fredboat.util.DiscordUtil
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
 
 /**
@@ -39,7 +40,8 @@ import org.springframework.stereotype.Service
 @Service
 class BotMetrics(
         private val statsAgent: StatsAgent,
-        private val applicationInfo: ApplicationInfo,
+        @param:Qualifier("selfUser")
+        private val selfUser: RawUser,
         private val playerRegistry: PlayerRegistry
 ) {
     val dockerStats = DockerStats()
@@ -52,7 +54,7 @@ class BotMetrics(
     }
 
     private fun start() {
-        if (DiscordUtil.isOfficialBot(applicationInfo.botId)) {
+        if (DiscordUtil.isOfficialBot(selfUser.id)) {
             try {
                 dockerStats.fetch()
             } catch (ignored: Exception) {

@@ -24,13 +24,14 @@
 
 package fredboat.db.rest
 
-import com.fredboat.sentinel.entities.ApplicationInfo
 import fredboat.config.property.BackendConfig
 import fredboat.db.FriendlyEntityService.fetchUserFriendly
 import fredboat.db.api.PrefixService
 import fredboat.db.transfer.Prefix
 import fredboat.sentinel.Guild
+import fredboat.sentinel.RawUser
 import io.prometheus.client.guava.cache.CacheMetricsCollector
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClientException
 import org.springframework.web.client.RestTemplate
@@ -43,14 +44,25 @@ import java.util.function.Function
  */
 @Component
 class RestPrefixService(
-        private val applicationInfo: ApplicationInfo,
+        @param:Qualifier("selfUser")
+        private val selfUser: RawUser,
         backendConfig: BackendConfig,
         quarterdeckRestTemplate: RestTemplate,
         cacheMetrics: CacheMetricsCollector
-) : CachedRestService<Prefix.GuildBotId, Prefix>(backendConfig.quarterdeck.host + RestService.VERSION_PATH + PATH, Prefix::class.java, quarterdeckRestTemplate, cacheMetrics, RestPrefixService::class.java.simpleName), PrefixService {
+) : CachedRestService<Prefix.GuildBotId, Prefix>(
+        backendConfig.quarterdeck.host + RestService.VERSION_PATH + PATH,
+        Prefix::class.java,
+        quarterdeckRestTemplate,
+        cacheMetrics,
+        RestPrefixService::class.java.simpleName
+), PrefixService {
+
+    companion object {
+        const val PATH = "prefix/"
+    }
 
     override fun transformPrefix(guild: Guild, transformation: Function<Prefix, Prefix>): Prefix {
-        val prefix = fetchUserFriendly { fetch(Prefix.GuildBotId(guild, applicationInfo.botId)) }
+        val prefix = fetchUserFriendly { fetch(Prefix.GuildBotId(guild, selfUser.id)) }
         return fetchUserFriendly { merge(transformation.apply(prefix)) }
     }
 
@@ -61,10 +73,5 @@ class RestPrefixService(
             throw BackendException("Could not get prefix for guild " + id.guildId, e)
         }
 
-    }
-
-    companion object {
-
-        val PATH = "prefix/"
     }
 }

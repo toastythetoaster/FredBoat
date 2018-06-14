@@ -82,7 +82,7 @@ class MessageEventHandler(
             return
         }
 
-        if (sentinel.applicationInfo.botId == event.author) log.info(event.content)
+        if (sentinel.selfUser.id == event.author) log.info(event.content)
         if (event.fromBot) return
 
         //Preliminary permission filter to avoid a ton of parsing

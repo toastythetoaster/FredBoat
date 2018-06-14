@@ -51,7 +51,7 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
     }
 
     companion object {
-        val botId = Launcher.botController.sentinel.applicationInfo.botId
+        val botId = Launcher.botController.sentinel.selfUser.id
         val CUSTOM_PREFIXES = CacheBuilder.newBuilder()
                 //it is fine to check the db for updates occasionally, as we currently dont have any use case where we change
                 //the value saved there through other means. in case we add such a thing (like a dashboard), consider lowering

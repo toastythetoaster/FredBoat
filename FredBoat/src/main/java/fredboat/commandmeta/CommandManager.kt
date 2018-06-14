@@ -26,7 +26,6 @@
 package fredboat.commandmeta
 
 
-import com.fredboat.sentinel.entities.ApplicationInfo
 import fredboat.audio.player.MusicTextChannelProvider
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
@@ -37,17 +36,20 @@ import fredboat.feature.PatronageChecker
 import fredboat.feature.metrics.Metrics
 import fredboat.feature.togglz.FeatureFlags
 import fredboat.perms.PermsUtil
+import fredboat.sentinel.RawUser
 import fredboat.shared.constant.BotConstants
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
 import kotlinx.coroutines.experimental.reactive.awaitSingle
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
 @Component
 class CommandManager(private val patronageChecker: PatronageChecker, private val musicTextChannelProvider: MusicTextChannelProvider,
-                     private val applicationInfo: ApplicationInfo) {
+                     @param:Qualifier("selfUser")
+                     private val selfUser: RawUser) {
 
     companion object {
         val disabledCommands: Set<Command> = HashSet(0)
@@ -77,7 +79,7 @@ class CommandManager(private val patronageChecker: PatronageChecker, private val
         }
 
         //Hardcode music commands in FredBoatHangout. Blacklist any channel that isn't #spam_and_music or #staff, but whitelist Admins
-        if (guild.id == BotConstants.FREDBOAT_HANGOUT_ID && DiscordUtil.isOfficialBot(applicationInfo.botId)) {
+        if (guild.id == BotConstants.FREDBOAT_HANGOUT_ID && DiscordUtil.isOfficialBot(selfUser.id)) {
             if (channel.id != 174821093633294338L // #spam_and_music
                     && channel.id != 217526705298866177L // #staff
                     && !PermsUtil.checkPerms(PermissionLevel.ADMIN, invoker)) {

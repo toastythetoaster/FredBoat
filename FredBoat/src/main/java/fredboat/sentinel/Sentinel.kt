@@ -6,6 +6,7 @@ import com.google.common.base.Function
 import com.google.common.cache.CacheBuilder
 import com.google.common.cache.CacheLoader
 import com.google.common.cache.LoadingCache
+import fredboat.config.ApplicationInfo
 import fredboat.perms.IPermissionSet
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -20,7 +21,8 @@ import java.util.concurrent.TimeUnit
 class Sentinel(private val template: AsyncRabbitTemplate,
                private val blockingTemplate: RabbitTemplate,
                val tracker: SentinelTracker,
-               val applicationInfo: ApplicationInfo) {
+               val applicationInfo: ApplicationInfo,
+               val selfUser: RawUser) {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(Sentinel::class.java)

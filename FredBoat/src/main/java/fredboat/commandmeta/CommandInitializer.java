@@ -108,7 +108,7 @@ public class CommandInitializer {
         infoModule.registerCommand(new MusicHelpCommand(MUSICHELP_COMM_NAME, "musichelp"));
         infoModule.registerCommand(new PingCommand("ping"));
         infoModule.registerCommand(new ShardsCommand("shards"));
-        infoModule.registerCommand(new StatsCommand("stats", sentinel.getApplicationInfo(),"uptime"));
+        infoModule.registerCommand(new StatsCommand("stats", sentinel.getSelfUser(),"uptime"));
         infoModule.registerCommand(new TextCommand("https://github.com/Frederikam", "github"));
         infoModule.registerCommand(new TextCommand(BotConstants.GITHUB_URL, "repo"));
 

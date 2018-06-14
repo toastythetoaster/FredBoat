@@ -24,15 +24,17 @@
 
 package fredboat.commandmeta
 
-import com.fredboat.sentinel.entities.ApplicationInfo
 import com.fredboat.sentinel.entities.MessageReceivedEvent
 import fredboat.command.config.PrefixCommand
 import fredboat.commandmeta.abs.CommandContext
+import fredboat.config.idString
 import fredboat.config.property.AppConfig
 import fredboat.feature.metrics.Metrics
 import fredboat.sentinel.Message
+import fredboat.sentinel.RawUser
 import fredboat.sentinel.getGuild
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.*
 import java.util.regex.Pattern
@@ -43,7 +45,8 @@ import java.util.regex.Pattern
 @Component
 class CommandContextParser(
         private val appConfig: AppConfig,
-        private val applicationInfo: ApplicationInfo
+        @param:Qualifier("selfUser")
+        private val selfUser: RawUser
 ) {
 
     companion object {
@@ -63,7 +66,7 @@ class CommandContextParser(
         var isMention = false
         val mentionMatcher = MENTION_PREFIX.matcher(content)
         // either starts with a mention of us
-        val botId = java.lang.Long.toString(applicationInfo.botId)
+        val botId = selfUser.idString
         if (mentionMatcher.find() && mentionMatcher.group(2) == botId) {
             input = mentionMatcher.group(3).trim { it <= ' ' }
             isMention = true

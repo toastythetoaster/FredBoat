@@ -25,7 +25,6 @@
 
 package fredboat.command.info
 
-import com.fredboat.sentinel.entities.ApplicationInfo
 import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary
 import fredboat.agent.FredBoatAgent
 import fredboat.commandmeta.CommandManager
@@ -36,6 +35,7 @@ import fredboat.feature.I18n
 import fredboat.main.Launcher
 import fredboat.main.getBotController
 import fredboat.messaging.internal.Context
+import fredboat.sentinel.RawUser
 import fredboat.util.AppInfo
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
@@ -45,12 +45,12 @@ import java.util.*
 
 class StatsCommand(
         name: String,
-        applicationInfo: ApplicationInfo,
+        selfUser: RawUser,
         vararg aliases: String
 ) : Command(name, *aliases), IInfoCommand {
 
     init {
-        botId = applicationInfo.botId
+        botId = selfUser.id
     }
 
     override suspend fun invoke(context: CommandContext) {

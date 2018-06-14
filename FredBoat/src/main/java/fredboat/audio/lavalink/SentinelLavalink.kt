@@ -1,6 +1,7 @@
 package fredboat.audio.lavalink
 
 import com.fredboat.sentinel.entities.VoiceServerUpdate
+import fredboat.config.idString
 import fredboat.config.property.AppConfig
 import fredboat.sentinel.Guild
 import fredboat.sentinel.Sentinel
@@ -13,7 +14,7 @@ class SentinelLavalink(
         val sentinel: Sentinel,
         val appConfig: AppConfig
 ) : Lavalink<SentinelLink>(
-        sentinel.applicationInfo.botId.toString(),
+        sentinel.selfUser.idString,
         appConfig.shardCount
 ) {
 
