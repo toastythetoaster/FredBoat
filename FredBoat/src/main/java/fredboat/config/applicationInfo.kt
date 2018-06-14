@@ -19,7 +19,7 @@ open class DiscordInfoProvider{
     open fun applicationInfo(credentials: Credentials): ApplicationInfo {
         log.info("Retrieving application info")
         Http(Http.DEFAULT_BUILDER).get(APP_URL)
-                .header("Authorization", credentials.botToken)
+                .header("Authorization", "Bot " + credentials.botToken)
                 .asJson()
                 .run {
                     return ApplicationInfo(
@@ -38,12 +38,12 @@ open class DiscordInfoProvider{
     open fun selfUser(credentials: Credentials): RawUser {
         log.info("Retrieving self user info")
         Http(Http.DEFAULT_BUILDER).get(USER_URL)
-                .header("Authorization", credentials.botToken)
+                .header("Authorization", "Bot " + credentials.botToken)
                 .asJson()
                 .run {
                     return RawUser(
                             getLong("id"),
-                            getString("name"),
+                            getString("username"),
                             getInt("discriminator").toShort(),
                             getBoolean("bot")
                     )
