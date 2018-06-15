@@ -3,6 +3,7 @@ allprojects {
         mavenCentral()                     // main maven repo
         jcenter()                          // some other stuff
         maven { url 'https://dl.bintray.com/napster/SqlSauce' }
+        maven { url 'https://dl.bintray.com/palantir/releases' }
         mavenLocal()                       // useful for developing
         maven { url "https://jitpack.io" } // build projects directly from github
     }
@@ -26,7 +27,7 @@ subprojects {
         }
         repositories {
             maven { url "https://plugins.gradle.org/m2/" }
-            maven { url 'http://repo.spring.io/plugins-release' }
+            maven { url 'https://repo.spring.io/plugins-release' }
             mavenCentral()
         }
         dependencies {
@@ -95,6 +96,7 @@ subprojects {
         //testing deps
         junitVersion                = '5.1.0'
         apiGuardianVersion          = '1.0.0'
+        dockerComposeRuleVersion    = '0.33.0'
 
 
         //@formatter:on

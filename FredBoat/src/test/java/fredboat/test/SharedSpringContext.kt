@@ -2,6 +2,7 @@ package fredboat.test
 
 import fredboat.main.Launcher
 import kotlinx.coroutines.experimental.launch
+import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
@@ -11,15 +12,15 @@ import org.springframework.context.ApplicationContext
 import java.lang.Thread.sleep
 import java.util.concurrent.TimeoutException
 
-class SharedSpringContext : ParameterResolver {
+class SharedSpringContext : ParameterResolver, BeforeAllCallback {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(SharedSpringContext::class.java)
     }
 
-    var application: ApplicationContext
+    private lateinit var application: ApplicationContext
 
-    init {
+    override fun beforeAll(context: ExtensionContext?) {
         log.info("Initializing test context")
         launch { Launcher.main(emptyArray()) }
         var i = 0

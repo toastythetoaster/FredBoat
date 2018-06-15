@@ -1,0 +1,12 @@
+version: '3'
+services:
+  db:
+    image: fredboat/postgres:latest
+
+  quarterdeck:
+    image: fredboat/quarterdeck:dev-v1
+    depends_on:
+      - db
+
+  rabbitmq:
+    image: rabbitmq:latest
