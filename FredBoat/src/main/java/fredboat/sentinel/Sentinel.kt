@@ -72,6 +72,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
             request: Any,
             mayBeEmpty: Boolean = false,
             transform: (response: R) -> T) = Mono.create<T> {
+        log.info("Sending")
         template.convertSendAndReceive<R?>(exchange, routingKey, request).addCallback(
                 { res ->
                     if (res == null) {

@@ -16,6 +16,7 @@ import java.util.concurrent.ConcurrentHashMap
 @RabbitListener(queues = [SentinelExchanges.EVENTS])
 class RabbitConsumer(
         private val guildCache: GuildCache,
+        private val sentinelTracker: SentinelTracker,
         eventLogger: EventLogger,
         guildHandler: GuildEventHandler,
         audioHandler: AudioEventHandler,
@@ -23,9 +24,6 @@ class RabbitConsumer(
         musicPersistenceHandler: MusicPersistenceHandler,
         shardReviveHandler: ShardReviveHandler
 ) {
-
-    @RabbitHandler(isDefault = true)
-    fun default(msg: Any) = log.warn("Unhandled event $msg")
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(RabbitConsumer::class.java)
@@ -39,6 +37,12 @@ class RabbitConsumer(
             musicPersistenceHandler,
             shardReviveHandler
     )
+
+    @RabbitHandler(isDefault = true)
+    fun default(msg: Any) = log.warn("Unhandled event $msg")
+
+    @RabbitHandler
+    fun onHello(hello: SentinelHello) = sentinelTracker.onHello(hello)
 
     /* Shard lifecycle */
 

@@ -1,18 +1,14 @@
 package fredboat.sentinel
 
-import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.SentinelHello
 import fredboat.config.property.AppConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.amqp.rabbit.annotation.RabbitHandler
-import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 
 /** Class that tracks Sentinels and their routing keys */
 @Service
-@RabbitListener(queues = [SentinelExchanges.EVENTS])
 class SentinelTracker(private val appConfig: AppConfig) {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(SentinelTracker::class.java)
@@ -23,7 +19,6 @@ class SentinelTracker(private val appConfig: AppConfig) {
     val sentinels: Set<SentinelHello>
         get() = map.values.toSet()
 
-    @RabbitHandler
     fun onHello(hello: SentinelHello) = hello.run {
         log.info("Received hello from $key with shards [$shardStart;$shardEnd] \uD83D\uDC4B")
 

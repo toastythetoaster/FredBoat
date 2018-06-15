@@ -48,6 +48,7 @@ import fredboat.sentinel.getGuild
 import fredboat.util.ratelimit.Ratelimiter
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -92,8 +93,8 @@ class MessageEventHandler(
         if (permissions hasNot (MESSAGE_READ + MESSAGE_WRITE)
                 && !event.content.contains(CommandInitializer.HELP_COMM_NAME)) return
 
-        async {
-            val context = commandContextParser.parse(event) ?: return@async
+        launch {
+            val context = commandContextParser.parse(event) ?: return@launch
 
             // Renew the time to prevent invalidation
             (context.guild as InternalGuild).lastUsed = System.currentTimeMillis()
@@ -102,7 +103,7 @@ class MessageEventHandler(
             //ignore all commands in channels where we can't write, except for the help command
             if (permissions hasNot (MESSAGE_READ + MESSAGE_WRITE) && context.command !is HelpCommand) {
                 log.info("Ignoring command {} because this bot cannot write in that channel", context.command.name)
-                return@async
+                return@launch
             }
 
             Metrics.commandsReceived.labels(context.command.javaClass.simpleName).inc()
@@ -116,7 +117,7 @@ class MessageEventHandler(
                     && !PermsUtil.checkPerms(PermissionLevel.BOT_ADMIN, context.member)) {
                 log.debug("Ignoring command {} because its module {} is disabled",
                         context.command.name, module.name)
-                return@async
+                return@launch
             }
 
             limitOrExecuteCommand(context)

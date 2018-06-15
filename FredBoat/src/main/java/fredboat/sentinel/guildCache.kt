@@ -3,12 +3,13 @@ package fredboat.sentinel
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.GuildSubscribeRequest
 import fredboat.config.property.AppConfig
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.TimeoutException
 
 @Service
 class GuildCache(private val sentinel: Sentinel,
@@ -19,6 +20,7 @@ class GuildCache(private val sentinel: Sentinel,
     }
 
     companion object {
+        private val log: Logger = LoggerFactory.getLogger(GuildCache::class.java)
         lateinit var INSTANCE: GuildCache
     }
 
@@ -40,8 +42,8 @@ class GuildCache(private val sentinel: Sentinel,
                     cache[g.id] = g
                     g
                 }
-        )
-    }.timeout(Duration.ofSeconds(10), Mono.create { it.error(TimeoutException("Guild $id timed out")) })
+        ).subscribe()
+    }.timeout(Duration.ofSeconds(10), Mono.empty())
 
     fun getIfCached(id: Long): Guild? = cache[id] as Guild
 
@@ -49,7 +51,7 @@ class GuildCache(private val sentinel: Sentinel,
 
 }
 
-suspend fun getGuild(id: Long) = GuildCache.INSTANCE.get(id).awaitSingle()
+suspend fun getGuild(id: Long) = GuildCache.INSTANCE.get(id).awaitFirstOrNull()
 fun getGuildMono(id: Long) = GuildCache.INSTANCE.get(id)
 fun getGuild(id: Long, callback: (Guild) -> Unit) {
     GuildCache.INSTANCE.get(id).subscribe {callback(it!!)}
