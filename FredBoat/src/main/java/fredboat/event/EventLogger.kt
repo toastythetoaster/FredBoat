@@ -25,7 +25,6 @@
 
 package fredboat.event
 
-import com.fredboat.sentinel.entities.IMessage
 import com.fredboat.sentinel.entities.LifecycleEventEnum
 import com.fredboat.sentinel.entities.ShardLifecycleEvent
 import fredboat.config.property.EventLoggerConfig
@@ -72,7 +71,7 @@ class EventLogger(
     private val guildStatsWebhook: Webhook?
 
     //saves some messages, so that in case we run into occasional connection issues we dont just drop them due to the webhook timing out
-    private val toBeSentEventLog = ConcurrentLinkedQueue<IMessage>()
+    private val toBeSentEventLog = ConcurrentLinkedQueue<String>()
 
     private val statusStats = CopyOnWriteArrayList<ShardStatusEvent>()
     private val guildsJoinedEvents = AtomicInteger(0)
@@ -210,7 +209,7 @@ class EventLogger(
         drainMessageQueue(toBeSentEventLog, eventLogWebhook)
     }
 
-    private fun drainMessageQueue(queue: Queue<IMessage>, webhook: Webhook) {
+    private fun drainMessageQueue(queue: Queue<String>, webhook: Webhook) {
         try {
             while (!queue.isEmpty()) {
                 val message = queue.peek()

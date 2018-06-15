@@ -67,7 +67,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         )
     }
 
-    fun sendMessage(routingKey: String, channel: TextChannel, message: IMessage): Mono<SendMessageResponse> =
+    fun sendMessage(routingKey: String, channel: TextChannel, message: String): Mono<SendMessageResponse> =
             genericMonoSendAndReceive<SendMessageResponse, SendMessageResponse>(
                     SentinelExchanges.REQUESTS,
                     routingKey,
@@ -76,7 +76,16 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     transform = {it}
             )
 
-    fun sendPrivateMessage(user: User, message: IMessage): Mono<Unit> =
+    fun sendMessage(routingKey: String, channel: TextChannel, message: Embed): Mono<SendMessageResponse> =
+            genericMonoSendAndReceive<SendMessageResponse, SendMessageResponse>(
+                    SentinelExchanges.REQUESTS,
+                    routingKey,
+                    SendEmbedRequest(channel.id, message),
+                    mayBeEmpty = false,
+                    transform = {it}
+            )
+
+    fun sendPrivateMessage(user: User, message: String): Mono<Unit> =
             genericMonoSendAndReceive<Unit, Unit>(
                     SentinelExchanges.REQUESTS,
                     tracker.getKey(0),
@@ -85,7 +94,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     transform = {}
             )
 
-    fun editMessage(channel: TextChannel, messageId: Long, message: IMessage): Mono<Unit> =
+    fun editMessage(channel: TextChannel, messageId: Long, message: String): Mono<Unit> =
             genericMonoSendAndReceive<Unit, Unit>(
                     SentinelExchanges.REQUESTS,
                     channel.guild.routingKey,

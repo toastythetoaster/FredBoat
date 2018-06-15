@@ -1,6 +1,5 @@
 package fredboat.util.extension
 
-import fredboat.sentinel.RawMessage
 import fredboat.util.TextUtils
 
 fun String.substringPreserveWords(len: Int) = TextUtils.substringPreserveWords(this, len)
@@ -13,8 +12,6 @@ fun String.isSplitSelect() = TextUtils.isSplitSelect(this)
 
 fun String.escapeMarkdown() = TextUtils.escapeMarkdown(this)
 fun String.escapeBackticks() = TextUtils.escapeBackticks(this)
-
-fun String.toMessage() = RawMessage(this)
 
 fun Float.toDecimalString(decimals: Int) = this.toString().substring(
         0,

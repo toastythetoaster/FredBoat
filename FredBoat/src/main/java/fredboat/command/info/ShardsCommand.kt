@@ -26,16 +26,15 @@
 package fredboat.command.info
 
 import com.fredboat.sentinel.entities.ShardStatus
+import com.fredboat.sentinel.entities.shardString
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IInfoCommand
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
-import fredboat.sentinel.RawMessage
 import fredboat.sentinel.Sentinel
 import fredboat.sentinel.Sentinel.NamedSentinelInfoResponse
 import fredboat.util.extension.asCodeBlock
-import fredboat.util.extension.toMessage
 import kotlinx.coroutines.experimental.reactive.awaitLast
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -53,7 +52,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
     companion object {
         private const val SHARDS_PER_MESSAGE = 30
 
-        suspend fun getShardStatus(sentinel: Sentinel, input: String): List<RawMessage> {
+        suspend fun getShardStatus(sentinel: Sentinel, input: String): List<String> {
             val lines = ArrayList<String>()
 
             //do a full report? or just a summary
@@ -100,7 +99,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
                 }
             }
 
-            val messages = ArrayList<RawMessage>()
+            val messages = ArrayList<String>()
 
             var stringBuilder = StringBuilder()
             var lineCounter = 0
@@ -108,7 +107,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
                 stringBuilder.append(line)
                 lineCounter++
                 if (lineCounter % SHARDS_PER_MESSAGE == 0 || lineCounter == lines.size) {
-                    messages.add(stringBuilder.toString().asCodeBlock("diff").toMessage())
+                    messages.add(stringBuilder.toString().asCodeBlock("diff"))
                     stringBuilder = StringBuilder()
                 }
             }
@@ -117,7 +116,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
             if (!full) {
                 val content = String.format("+ %s of %s shards are %s -- Guilds: %s -- Users: %s", shardCounter.get() - borkenShards.get(),
                         Launcher.botController.appConfig.shardCount, ShardStatus.CONNECTED, healthyGuilds, healthyUsers)
-                messages.add(0, content.asCodeBlock("diff").toMessage())
+                messages.add(0, content.asCodeBlock("diff"))
             }
 
             // Report any unresponsive Sentinels
@@ -128,7 +127,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
             if (unresponsive.isNotEmpty()) {
                 val builder = StringBuilder("The following sentinels did not respond:")
                 unresponsive.forEach { builder.append("- $it") }
-                messages.add(builder.toString().asCodeBlock("diff").toMessage())
+                messages.add(builder.toString().asCodeBlock("diff"))
             }
 
             return messages

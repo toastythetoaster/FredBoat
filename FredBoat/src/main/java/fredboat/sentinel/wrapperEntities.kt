@@ -22,7 +22,6 @@ typealias RawUser = com.fredboat.sentinel.entities.User
 typealias RawTextChannel = com.fredboat.sentinel.entities.TextChannel
 typealias RawVoiceChannel = com.fredboat.sentinel.entities.VoiceChannel
 typealias RawRole = com.fredboat.sentinel.entities.Role
-typealias RawMessage = com.fredboat.sentinel.entities.Message
 
 private val MEMBER_MENTION_PATTERN = Pattern.compile("<@!?([0-9]+)>", Pattern.DOTALL)
 private val CHANNEL_MENTION_PATTERN = Pattern.compile("<#([0-9]+)>", Pattern.DOTALL)
@@ -240,8 +239,7 @@ class User(@Suppress("MemberVisibilityCanBePrivate") val raw: RawUser) : IMentio
     override val asMention: String
         get() = "<@$id>"
 
-    fun sendPrivate(message: String) = sentinel.sendPrivateMessage(this, RawMessage(message))
-    fun sendPrivate(message: IMessage) = sentinel.sendPrivateMessage(this, message)
+    fun sendPrivate(message: String) = sentinel.sendPrivateMessage(this, message)
 
     override fun equals(other: Any?): Boolean {
         return other is User && id == other.id
@@ -264,15 +262,9 @@ abstract class TextChannel(override val guild: Guild, raw: RawTextChannel) : Cha
 
     override val asMention: String get() = "<#$id>"
 
-    fun send(str: String): Mono<SendMessageResponse> = sentinel.sendMessage(guild.routingKey, this, RawMessage(str))
-    fun send(message: IMessage): Mono<SendMessageResponse> = sentinel.sendMessage(guild.routingKey, this, message)
-    fun editMessage(messageId: Long, message: String): Mono<Unit> =
-            sentinel.editMessage(this, messageId, RawMessage(message))
-
-    @Suppress("unused")
-    fun editMessage(messageId: Long, message: IMessage): Mono<Unit> =
-            sentinel.editMessage(this, messageId, message)
-
+    fun send(str: String): Mono<SendMessageResponse> = sentinel.sendMessage(guild.routingKey, this, str)
+    fun send(embed: Embed): Mono<SendMessageResponse> = sentinel.sendMessage(guild.routingKey, this, embed)
+    fun editMessage(messageId: Long, message: String) = sentinel.editMessage(this, messageId, message)
     fun deleteMessage(messageId: Long) = sentinel.deleteMessages(this, listOf(messageId))
     fun sendTyping() = sentinel.sendTyping(this)
     fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)

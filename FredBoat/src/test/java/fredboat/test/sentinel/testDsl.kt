@@ -5,7 +5,6 @@ import fredboat.commandmeta.CommandContextParser
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.sentinel.RawGuild
 import fredboat.sentinel.RawMember
-import fredboat.sentinel.RawMessage
 import fredboat.sentinel.RawTextChannel
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert
@@ -66,14 +65,12 @@ fun CommandContext.assertOutgoingContains(testMsg: String = "Assert outgoing mes
 
 fun CommandContext.assertOutgoing(testMsg: String = "Assert outgoing message", assertion: (String) -> Boolean) {
     val message = (SentinelState.outgoingMessages.poll(30, TimeUnit.SECONDS)
-            ?: throw TimeoutException("Command failed to send message")) as? RawMessage
-            ?: throw IllegalStateException("This method can only handle RawMessage")
-    Assert.assertTrue(testMsg, assertion(message.content))
+            ?: throw TimeoutException("Command failed to send message"))
+    Assert.assertTrue(testMsg, assertion(message))
 }
 
 fun CommandContext.assertOutgoing(expected: String, testMsg: String = "Assert outgoing message") {
     val message = (SentinelState.outgoingMessages.poll(30, TimeUnit.SECONDS)
-            ?: throw TimeoutException("Command failed to send message")) as? RawMessage
-            ?: throw IllegalStateException("This method can only handle RawMessage")
-    Assert.assertEquals(expected, message.content)
+            ?: throw TimeoutException("Command failed to send message"))
+    Assert.assertEquals(testMsg, expected, message)
 }

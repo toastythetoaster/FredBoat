@@ -26,7 +26,6 @@
 package fredboat.messaging.internal
 
 import com.fredboat.sentinel.entities.Embed
-import com.fredboat.sentinel.entities.IMessage
 import com.fredboat.sentinel.entities.SendMessageResponse
 import com.fredboat.sentinel.entities.embed
 import fredboat.command.config.PrefixCommand
@@ -76,15 +75,16 @@ abstract class Context {
     //                         Convenience reply methods
     // ********************************************************************************
 
+
     fun replyMono(message: String): Mono<SendMessageResponse> = textChannel.send(message)
 
     fun reply(message: String) {
         textChannel.send(message).subscribe()
     }
 
-    fun replyMono(message: IMessage): Mono<SendMessageResponse> = textChannel.send(message)
+    fun replyMono(message: Embed): Mono<SendMessageResponse> = textChannel.send(message)
 
-    fun reply(message: IMessage) {
+    fun reply(message: Embed) {
         textChannel.send(message).subscribe()
     }
 
@@ -126,17 +126,7 @@ abstract class Context {
     /**
      * Privately DM the invoker
      */
-    fun replyPrivateMono(message: IMessage) = user.sendPrivate(message)
-    /**
-     * Privately DM the invoker
-     */
     fun replyPrivate(message: String) {
-        user.sendPrivate(message).subscribe()
-    }
-    /**
-     * Privately DM the invoker
-     */
-    fun replyPrivate(message: IMessage) {
         user.sendPrivate(message).subscribe()
     }
 

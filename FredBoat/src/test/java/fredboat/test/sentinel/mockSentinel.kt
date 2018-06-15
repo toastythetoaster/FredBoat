@@ -2,7 +2,6 @@ package fredboat.test.sentinel
 
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.GuildSubscribeRequest
-import com.fredboat.sentinel.entities.IMessage
 import com.fredboat.sentinel.entities.SendMessageRequest
 import com.fredboat.sentinel.entities.SendMessageResponse
 import fredboat.perms.Permission
@@ -19,7 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue
 /** State of the fake Rabbit client */
 object SentinelState {
     var guild = DefaultSentinelRaws.guild
-    val outgoingMessages = LinkedBlockingQueue<IMessage>()
+    val outgoingMessages = LinkedBlockingQueue<String>()
 
     fun reset() {
         guild = DefaultSentinelRaws.guild
