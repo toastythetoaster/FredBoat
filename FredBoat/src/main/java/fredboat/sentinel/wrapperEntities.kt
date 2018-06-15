@@ -141,8 +141,8 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
     protected lateinit var _name: String
     val name: String get() = _name
 
-    protected var _discrim: Short = 0
-    val discrim: Short get() = _discrim
+    protected lateinit var _discrim: String
+    val discrim: String get() = _discrim
 
     protected var _nickname: String? = null
     val nickname: String? get() = _nickname
@@ -232,7 +232,7 @@ class User(@Suppress("MemberVisibilityCanBePrivate") val raw: RawUser) : IMentio
         get() = raw.id
     val name: String
         get() = raw.name
-    val discrim: Short
+    val discrim: String
         get() = raw.discrim
     val isBot: Boolean
         get() = raw.bot

@@ -5,6 +5,7 @@ import fredboat.sentinel.RawUser
 import fredboat.util.rest.Http
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -16,6 +17,7 @@ private const val USER_URL = "https://discordapp.com/api/v6/users/@me"
 @Configuration
 open class DiscordInfoProvider{
     @Bean
+    @ConditionalOnMissingClass("fredboat.test.Flag")
     open fun applicationInfo(credentials: Credentials): ApplicationInfo {
         log.info("Retrieving application info")
         Http(Http.DEFAULT_BUILDER).get(APP_URL)
@@ -35,6 +37,7 @@ open class DiscordInfoProvider{
     }
 
     @Bean
+    @ConditionalOnMissingClass("fredboat.test.Flag")
     open fun selfUser(credentials: Credentials): RawUser {
         log.info("Retrieving self user info")
         Http(Http.DEFAULT_BUILDER).get(USER_URL)
@@ -44,7 +47,7 @@ open class DiscordInfoProvider{
                     return RawUser(
                             getLong("id"),
                             getString("username"),
-                            getInt("discriminator").toShort(),
+                            getString("discriminator"),
                             getBoolean("bot")
                     )
                 }
