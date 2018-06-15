@@ -8,25 +8,34 @@ import fredboat.perms.Permission
 import fredboat.sentinel.RawGuild
 import fredboat.sentinel.RawMember
 import fredboat.sentinel.RawTextChannel
+import fredboat.test.sentinel.SentinelState.outgoing
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitHandler
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Service
 import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.TimeUnit
 
 /** State of the fake Rabbit client */
 object SentinelState {
     var guild = DefaultSentinelRaws.guild
-    val outgoingMessages = LinkedBlockingQueue<String>()
+    val outgoing = mutableMapOf<Class<*>, LinkedBlockingQueue<Any>>()
 
     fun reset() {
         guild = DefaultSentinelRaws.guild
-        outgoingMessages.clear()
+        outgoing.clear()
+    }
+
+    fun <T> poll(type: Class<T>): T? {
+        val queue = outgoing.getOrPut(type) { LinkedBlockingQueue() }
+        @Suppress("UNCHECKED_CAST")
+        return queue.poll(10, TimeUnit.SECONDS) as? T
     }
 }
 
 @Service
+@Suppress("MemberVisibilityCanBePrivate")
 @RabbitListener(queues = [SentinelExchanges.REQUESTS])
 class MockSentinelRequestHandler {
 
@@ -41,13 +50,14 @@ class MockSentinelRequestHandler {
 
     @RabbitHandler
     fun sendMessage(request: SendMessageRequest): SendMessageResponse {
-        SentinelState.outgoingMessages.add(request.message)
+        default(request)
         return SendMessageResponse(-1)
     }
 
     @RabbitHandler(isDefault = true)
     fun default(request: Any) {
-        log.warn("Unhandled request: $request")
+        val queue = outgoing.getOrPut(request.javaClass) { LinkedBlockingQueue() }
+        queue.put(request)
     }
 }
 
