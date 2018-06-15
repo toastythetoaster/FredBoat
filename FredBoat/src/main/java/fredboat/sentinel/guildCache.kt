@@ -26,9 +26,9 @@ class GuildCache(private val sentinel: Sentinel,
 
     val cache = ConcurrentHashMap<Long, InternalGuild>()
 
-    fun get(id: Long): Mono<Guild?> = Mono.create<Guild?> {
+    fun get(id: Long): Mono<Guild?> = Mono.create<Guild?> { sink ->
         val guild = cache[id]
-        if (guild != null) it.success(guild)
+        if (guild != null) sink.success(guild)
 
         sentinel.genericMonoSendAndReceive<RawGuild?, Guild?>(
                 SentinelExchanges.REQUESTS,
@@ -42,7 +42,10 @@ class GuildCache(private val sentinel: Sentinel,
                     cache[g.id] = g
                     g
                 }
-        ).subscribe()
+        )
+                .log("test")
+                .doOnError { sink.error(it) }
+                .subscribe { sink.success(it) }
     }.timeout(Duration.ofSeconds(10), Mono.empty())
 
     fun getIfCached(id: Long): Guild? = cache[id] as Guild
@@ -54,5 +57,5 @@ class GuildCache(private val sentinel: Sentinel,
 suspend fun getGuild(id: Long) = GuildCache.INSTANCE.get(id).awaitFirstOrNull()
 fun getGuildMono(id: Long) = GuildCache.INSTANCE.get(id)
 fun getGuild(id: Long, callback: (Guild) -> Unit) {
-    GuildCache.INSTANCE.get(id).subscribe {callback(it!!)}
+    GuildCache.INSTANCE.get(id).subscribe { callback(it!!) }
 }

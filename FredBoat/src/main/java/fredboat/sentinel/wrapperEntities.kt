@@ -373,7 +373,7 @@ class InternalRole(override val guild: Guild, raw: RawRole) : Role(guild, raw) {
     fun update(raw: RawRole) {
         if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
 
-        _name = name
+        _name = raw.name
         _permissions = raw.permissions
     }
 }

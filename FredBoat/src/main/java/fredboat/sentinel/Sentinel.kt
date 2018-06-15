@@ -2,10 +2,6 @@ package fredboat.sentinel
 
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
-import com.google.common.base.Function
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
-import com.google.common.cache.LoadingCache
 import fredboat.config.ApplicationInfo
 import fredboat.perms.IPermissionSet
 import org.slf4j.Logger
@@ -15,7 +11,6 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.util.concurrent.TimeUnit
 
 @Component
 class Sentinel(private val template: AsyncRabbitTemplate,
@@ -27,23 +22,6 @@ class Sentinel(private val template: AsyncRabbitTemplate,
     companion object {
         private val log: Logger = LoggerFactory.getLogger(Sentinel::class.java)
     }
-
-    val guildCache: LoadingCache<Long, RawGuild> = CacheBuilder
-            .newBuilder()
-            .recordStats()
-            .expireAfterAccess(10, TimeUnit.MINUTES)
-            .build<Long, RawGuild>(
-                    CacheLoader.from(Function {
-                        // TODO We need to do something about this blocking
-                        val result = blockingTemplate.convertSendAndReceive(SentinelExchanges.REQUESTS, GuildRequest(it!!))
-
-                        if (result == null) {
-                            log.warn("Requested guild $it but got null in response!")
-                        }
-
-                        return@Function result as? RawGuild
-                    })
-            )
 
     init {
         // Send a hello when we start so we get SentinelHellos in return
@@ -72,36 +50,22 @@ class Sentinel(private val template: AsyncRabbitTemplate,
             request: Any,
             mayBeEmpty: Boolean = false,
             transform: (response: R) -> T) = Mono.create<T> {
-        log.info("Sending")
         template.convertSendAndReceive<R?>(exchange, routingKey, request).addCallback(
                 { res ->
-                    if (res == null) {
-                        if (mayBeEmpty) it.success()
-                        else it.error(RuntimeException("RPC response was null"))
-                    } else it.success(transform(res))
+                    try {
+                        if (res == null) {
+                            if (mayBeEmpty) it.success()
+                            else it.error(RuntimeException("RPC response was null"))
+                        } else it.success(transform(res))
+                    } catch (e: Exception) {
+                        it.error(e)
+                    }
                 },
                 { t ->
                     it.error(t)
                 }
         )
     }
-
-    fun getGuilds(shard: Shard): Flux<RawGuild> = Flux.create {
-        val req = GuildsRequest(shard.id)
-        template.convertSendAndReceive<GuildsResponse?>(req).addCallback(
-                { res ->
-                    if (res != null) {
-                        res.guilds.forEach { g -> it.next(g) }
-                        it.complete()
-                    } else {
-                        it.error(RuntimeException("Response was null"))
-                    }
-                },
-                { exc -> it.error(exc) }
-        )
-    }
-
-    fun getGuild(id: Long) = guildCache.get(id)!!
 
     fun sendMessage(routingKey: String, channel: TextChannel, message: IMessage): Mono<SendMessageResponse> =
             genericMonoSendAndReceive<SendMessageResponse, SendMessageResponse>(
