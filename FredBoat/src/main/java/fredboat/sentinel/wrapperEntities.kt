@@ -109,14 +109,15 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
         if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
 
         _name = raw.name
-        val rawOwner = raw.owner
-        _owner = if (rawOwner != null) members[rawOwner] else null
 
         // Note: Roles must be loaded first as members rely on them. Then members, then channels
         _roles = raw.roles.map { InternalRole(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _members = raw.members.map { InternalMember(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _textChannels = raw.textChannels.map { InternalTextChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _voiceChannels = raw.voiceChannels.map { InternalVoiceChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
+        
+        val rawOwner = raw.owner
+        _owner = if (rawOwner != null) members[rawOwner] else null
     }
 
     fun handleMemberAdd(member: RawMember) {
