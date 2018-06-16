@@ -33,7 +33,7 @@ class SentinelLavalink(
 
     fun onVoiceServerUpdate(update: VoiceServerUpdate) {
         val json = JSONObject(update.raw)
-        val gId = json.getString("guild-id")
+        val gId = json.getString("guild_id")
         getLink(gId).onVoiceServerUpdate(json, update.sessionId)
     }
 }
