@@ -7,6 +7,10 @@ services:
     image: fredboat/quarterdeck:dev-v1
     depends_on:
       - db
+    ports:
+    - 4269:4269
 
   rabbitmq:
     image: rabbitmq:latest
+    ports:
+        - 4369:4369

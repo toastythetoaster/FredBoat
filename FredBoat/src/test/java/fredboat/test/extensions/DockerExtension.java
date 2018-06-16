@@ -1,4 +1,4 @@
-package fredboat.test;
+package fredboat.test.extensions;
 
 /*
  * MIT License
@@ -28,16 +28,13 @@ package fredboat.test;
 import com.palantir.docker.compose.DockerComposeRule;
 import com.palantir.docker.compose.configuration.ProjectName;
 import com.palantir.docker.compose.configuration.ShutdownStrategy;
-import com.palantir.docker.compose.connection.Container;
 import com.palantir.docker.compose.connection.waiting.HealthChecks;
-import com.palantir.docker.compose.connection.waiting.SuccessOrFailure;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -54,13 +51,17 @@ public class DockerExtension implements BeforeAllCallback {
 
     private static final Logger log = LoggerFactory.getLogger(DockerExtension.class);
 
-    private static DockerComposeRule docker = DockerComposeRule.builder()
+    static DockerComposeRule docker = DockerComposeRule.builder()
             .pullOnStartup(true)
             .file("src/test/resources/docker-compose.yaml")
             .projectName(ProjectName.fromString("quarterdecktest"))
             .shutdownStrategy(identifyShutdownStrategy())
             .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
-            .waitingForService("db", DockerExtension::postgresHealthCheck)
+            .waitingForService("quarterdeck", HealthChecks.toHaveAllPortsOpen())
+            .waitingForService("rabbitmq", HealthChecks.toHaveAllPortsOpen())
+            .waitingForService("db", DockerHealthChecks.INSTANCE::checkPostgres)
+            .waitingForService("quarterdeck", DockerHealthChecks.INSTANCE::checkQuarterdeck)
+            .waitingForService("rabbitmq", DockerHealthChecks.INSTANCE::checkRabbitMq)
             .build();
 
     private static boolean hasSetup = false;
@@ -89,27 +90,7 @@ public class DockerExtension implements BeforeAllCallback {
         }
     }
 
-    //executing it via the built in DockerComposeRule#exec() is not possible due to quotation marks handling
-    private static SuccessOrFailure postgresHealthCheck(Container container) {
-        try {
-            Optional<String> id = docker.dockerCompose().id(container);
-            if (!id.isPresent()) {
-                return SuccessOrFailure.failure("no id on container");
-            }
-            String dockerCommand = "src/test/resources/is-db-init.sh " + id.get();
-            String result = execute(dockerCommand);
-
-            if (result.equalsIgnoreCase("1")) {
-                return SuccessOrFailure.success();
-            } else {
-                return SuccessOrFailure.failure("not ready yet");
-            }
-        } catch (Exception e) {
-            return SuccessOrFailure.fromException(e);
-        }
-    }
-
-    private static String execute(String command) throws IOException, InterruptedException {
+    static String execute(String command) throws IOException, InterruptedException {
         Process pr = Runtime.getRuntime().exec(command);
         try (Scanner s = new Scanner(pr.getInputStream())) {
             pr.waitFor(30, TimeUnit.SECONDS);
