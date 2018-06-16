@@ -60,6 +60,11 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     protected var _voiceChannels = ConcurrentHashMap<Long, VoiceChannel>()
     val voiceChannels: Map<Long, VoiceChannel> get() = _voiceChannels
 
+    protected var _stale = false
+    /** This is true if we are present in this [Guild]*/
+    val selfPresent: Boolean
+        get() = _stale
+
     /* Helper properties */
 
     val selfMember: Member
@@ -74,9 +79,6 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
         get() = lavalink.getExistingLink(this)
     val info: Mono<GuildInfo>
         get() = sentinel.getGuildInfo(this)
-    /** This is true if we are present in this [Guild]*/
-    val selfPresent: Boolean
-        get() = true //TODO
 
     /** The routing key for the associated Sentinel */
     val routingKey: String
@@ -115,7 +117,7 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
         _members = raw.members.map { InternalMember(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _textChannels = raw.textChannels.map { InternalTextChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
         _voiceChannels = raw.voiceChannels.map { InternalVoiceChannel(this, it) }.associateByTo(ConcurrentHashMap()) { it.id }
-        
+
         val rawOwner = raw.owner
         _owner = if (rawOwner != null) members[rawOwner] else null
     }
@@ -133,6 +135,10 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
             (it.value as InternalVoiceChannel).removeMember(memberId)
         }
         _members[memberId]?.setVc(null)
+    }
+
+    fun onSelfLeaving() {
+        _stale = true
     }
 
 }

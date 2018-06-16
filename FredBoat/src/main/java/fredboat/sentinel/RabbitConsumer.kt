@@ -74,6 +74,10 @@ class RabbitConsumer(
     @RabbitHandler
     fun receive(event: GuildLeaveEvent) {
         log.info("Left guild ${event.guild}")
+        guildCache.getIfCached(event.guild)?.let {
+            (it as InternalGuild).onSelfLeaving()
+            guildCache.cache.remove(event.guild)
+        }
         eventHandlers.forEach { it.onGuildLeave(event.guild, event.joinTime) }
     }
 
