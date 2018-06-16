@@ -164,37 +164,37 @@ class RabbitConsumer(
 
     /* Updates */
 
-    @RabbitListener
+    @RabbitHandler
     fun guildUpdate(event: GuildUpdateEvent) {
         val cached = guildCache.getIfCached(event.guild.id) ?: return
         (cached as InternalGuild).update(event.guild)
     }
 
-    @RabbitListener
+    @RabbitHandler
     fun updateMember(event: GuildMemberUpdate) {
         val member = guildCache.getIfCached(event.guild)?.getMember(event.member.id) ?: return
         (member as InternalMember).update(event.member)
     }
 
-    @RabbitListener
+    @RabbitHandler
     fun updateRole(event: RoleUpdate) {
         val channel = guildCache.getIfCached(event.guild)?.getRole(event.role.id) ?: return
         (channel as InternalRole).update(event.role)
     }
 
-    @RabbitListener
+    @RabbitHandler
     fun updateTextChannel(event: TextChannelUpdate) {
         val channel = guildCache.getIfCached(event.guild)?.getTextChannel(event.channel.id) ?: return
         (channel as InternalTextChannel).update(event.channel)
     }
 
-    @RabbitListener
+    @RabbitHandler
     fun updateVoiceChannel(event: VoiceChannelUpdate) {
         val channel = guildCache.getIfCached(event.guild)?.getVoiceChannel(event.channel.id) ?: return
         (channel as InternalVoiceChannel).update(event.channel)
     }
 
-    @RabbitListener
+    @RabbitHandler
     fun handleMemberAdd(event: GuildMemberJoinEvent) {
         (guildCache.getIfCached(event.guild) as? InternalGuild)?.handleMemberAdd(event.member)
     }
