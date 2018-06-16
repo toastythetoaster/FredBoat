@@ -48,7 +48,7 @@ class GuildCache(private val sentinel: Sentinel,
                 .subscribe { sink.success(it) }
     }.timeout(Duration.ofSeconds(10), Mono.empty())
 
-    fun getIfCached(id: Long): Guild? = cache[id] as Guild
+    fun getIfCached(id: Long): Guild? = cache[id]
 
     private fun calculateShardId(guildId: Long): Int = ((guildId shr 22) % appConfig.shardCount.toLong()).toInt()
 

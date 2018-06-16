@@ -46,7 +46,6 @@ import fredboat.sentinel.VoiceChannel
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
-import kotlinx.coroutines.experimental.reactive.awaitSingle
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import org.slf4j.LoggerFactory
@@ -180,14 +179,12 @@ class GuildPlayer(
         activeTextChannel?.send("Something went wrong!\n${t.message}")?.subscribe()
     }
 
-    @Throws(MessagingException::class)
-    suspend fun joinChannel(usr: Member) {
+    fun joinChannel(usr: Member) {
         val targetChannel = usr.voiceChannel
         joinChannel(targetChannel)
     }
 
-    @Throws(MessagingException::class)
-    suspend fun joinChannel(targetChannel: VoiceChannel?) {
+    fun joinChannel(targetChannel: VoiceChannel?) {
         if (targetChannel == null) {
             throw MessagingException(I18n.get(guild).getString("playerUserNotInChannel"))
         }
@@ -197,7 +194,7 @@ class GuildPlayer(
         }
 
         val guild = targetChannel.guild
-        val permissions = guild.selfMember.getPermissions(targetChannel).awaitSingle()
+        val permissions = targetChannel.ourEffectivePermissions
 
         if (permissions hasNot Permission.VOICE_CONNECT && guild.selfMember.voiceChannel != targetChannel) {
             throw MessagingException(I18n.get(guild).getString("playerJoinConnectDenied"))
@@ -236,7 +233,7 @@ class GuildPlayer(
         lavalink.getLink(guild).disconnect()
     }
 
-    suspend fun queue(identifier: String, context: CommandContext) {
+    fun queue(identifier: String, context: CommandContext) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
 
         joinChannel(context.member)
@@ -244,13 +241,13 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    suspend fun queue(ic: IdentifierContext) {
+    fun queue(ic: IdentifierContext) {
         joinChannel(ic.member)
 
         audioLoader.loadAsync(ic)
     }
 
-    suspend fun queue(atc: AudioTrackContext) {
+    fun queue(atc: AudioTrackContext) {
         if (!guild.selfPresent) return
 
         val member = guild.getMember(atc.userId)
@@ -295,7 +292,7 @@ class GuildPlayer(
 
     /** Similar to [getTracksInRange], but only gets the trackIds */
     fun getTrackIdsInRange(start: Int, end: Int): List<Long> = getTracksInRange(start, end).stream()
-            .map<Long>({ it.trackId })
+            .map { it.trackId }
             .toList()
 
     fun getHumanUsersInVC(vc: VoiceChannel?): List<Member> {

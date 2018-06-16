@@ -1,5 +1,6 @@
 package fredboat.test.sentinel
 
+import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.MessageReceivedEvent
 import com.fredboat.sentinel.entities.SendMessageRequest
 import fredboat.commandmeta.CommandContextParser
@@ -9,36 +10,42 @@ import fredboat.sentinel.RawMember
 import fredboat.sentinel.RawTextChannel
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert
+import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeoutException
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
 
+private lateinit var rabbit: RabbitTemplate
+
 @Service
-class CommandTester(private val commandContextParser: CommandContextParser) {
+class CommandTester(private val commandContextParser: CommandContextParser, template: RabbitTemplate) {
+
+    init {
+        rabbit = template
+    }
 
     fun testCommand(
             message: String,
             guild: RawGuild = DefaultSentinelRaws.guild,
             channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
             invoker: RawMember = DefaultSentinelRaws.owner,
-            block: CommandContext.() -> Unit
+            block: suspend CommandContext.() -> Unit
     ) {
         doTest(parse(
                 message, guild, channel, invoker
         ), block)
     }
 
-    private fun doTest(context: CommandContext, block: CommandContext.() -> Unit) { runBlocking {
-        try {
-            context.command(context)
-            context.apply(block)
-        } catch (e: Exception) {
-            throw e
-        } finally {
-            SentinelState.reset()
+    private fun doTest(context: CommandContext, block: suspend CommandContext.() -> Unit) {
+        runBlocking {
+            try {
+                context.command(context)
+                context.apply { block() }
+            } catch (e: Exception) {
+                throw e
+            }
         }
-    }
     }
 
     private fun parse(
@@ -48,7 +55,7 @@ class CommandTester(private val commandContextParser: CommandContextParser) {
             invoker: RawMember = DefaultSentinelRaws.owner
     ): CommandContext = runBlocking {
         val event = MessageReceivedEvent(
-                -1,
+                Math.random().toLong(),
                 guild.id,
                 channel.id,
                 channel.ourEffectivePermissions,
@@ -83,4 +90,17 @@ fun <T> CommandContext.assertRequest(testMsg: String = "Assert outgoing request"
             ?: throw TimeoutException("Command failed to send " + className.simpleName))
     @Suppress("UNCHECKED_CAST")
     Assert.assertTrue(testMsg, assertion(message as T))
+}
+
+fun CommandContext.invokerSend(message: String) {
+    rabbit.convertSendAndReceive(SentinelExchanges.EVENTS, MessageReceivedEvent(
+            Math.random().toLong(), // shrug
+            guild.id,
+            textChannel.id,
+            textChannel.ourEffectivePermissions.raw,
+            message,
+            member.id,
+            false,
+            emptyList()
+    ))
 }

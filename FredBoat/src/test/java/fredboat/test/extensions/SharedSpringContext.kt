@@ -4,18 +4,16 @@ import fredboat.main.Launcher
 import fredboat.test.IntegrationTest
 import fredboat.test.config.RabbitConfig
 import fredboat.test.sentinel.CommandTester
+import fredboat.test.sentinel.SentinelState
 import kotlinx.coroutines.experimental.launch
-import org.junit.jupiter.api.extension.BeforeAllCallback
-import org.junit.jupiter.api.extension.ExtensionContext
-import org.junit.jupiter.api.extension.ParameterContext
-import org.junit.jupiter.api.extension.ParameterResolver
+import org.junit.jupiter.api.extension.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationContext
 import java.lang.Thread.sleep
 import java.util.concurrent.TimeoutException
 
-class SharedSpringContext : ParameterResolver, BeforeAllCallback {
+class SharedSpringContext : ParameterResolver, BeforeAllCallback, AfterEachCallback {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(SharedSpringContext::class.java)
@@ -47,6 +45,10 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback {
 
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any {
         return application!!.getBean(parameterContext.parameter.type)
+    }
+
+    override fun afterEach(context: ExtensionContext?) {
+        SentinelState.reset()
     }
 
 }

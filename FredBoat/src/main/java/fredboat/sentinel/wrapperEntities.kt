@@ -48,7 +48,7 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     protected var _owner: Member? = null // Discord has a history of null owners
     val owner: Member? get() = _owner
 
-    protected var _members = ConcurrentHashMap<Long, Member>()
+    protected var _members = ConcurrentHashMap<Long, InternalMember>()
     val members: Map<Long, Member> get() = _members
 
     protected var _roles = ConcurrentHashMap<Long, Role>()
@@ -63,7 +63,7 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     /* Helper properties */
 
     val selfMember: Member
-        get() = _members[sentinel.selfUser.id]!!
+        get() = _members[sentinel.selfUser.id] ?: throw IllegalStateException("Unable to find self in guild")
     val shardId: Int
         get() = ((id shr 22) % appConfig.shardCount.toLong()).toInt()
     val shardString: String
@@ -128,7 +128,10 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
     }
 
     fun removeMemberFromAllVoiceChannels(memberId: Long) {
-        _voiceChannels.forEach { (it.value as InternalVoiceChannel).removeMember(memberId) }
+        _voiceChannels.forEach {
+            (it.value as InternalVoiceChannel).removeMember(memberId)
+        }
+        _members[memberId]?.setVc(null)
     }
 
 }
@@ -209,6 +212,10 @@ class InternalMember(guild: Guild, raw: RawMember) : Member(guild, raw) {
         _discrim = raw.discrim
         _nickname = raw.nickname
         _voiceChannel = raw.voiceChannel
+    }
+
+    fun setVc(vc: VoiceChannel?) {
+        _voiceChannel = vc?.id
     }
 
     // We send a user update instead. This could be handled for improved performance
@@ -331,6 +338,7 @@ class InternalVoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : Vo
     fun handleVoiceJoin(member: Member) {
         (guild as InternalGuild).removeMemberFromAllVoiceChannels(member.id) // For good measure
         _members.add(member)
+        (member as InternalMember).setVc(this)
     }
 
     fun removeMember(memberId: Long) {
@@ -376,7 +384,7 @@ class Message(val guild: Guild, @Suppress("MemberVisibilityCanBePrivate") val ra
     val content: String
         get() = raw.content
     val member: Member // Maybe make this nullable?
-        get() = guild.getMember(raw.id)!!
+        get() = guild.getMember(raw.author)!!
     val channel: TextChannel // Maybe make this nullable?
         get() = guild.getTextChannel(raw.channel)!!
     val mentionedMembers: List<Member>

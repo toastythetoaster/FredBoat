@@ -21,7 +21,7 @@ open class IntegrationTest : BaseTest() {
             guild: RawGuild = DefaultSentinelRaws.guild,
             channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
             invoker: RawMember = DefaultSentinelRaws.owner,
-            block: CommandContext.() -> Unit
+            block: suspend CommandContext.() -> Unit
     ) {
         commandTester.testCommand(message, guild, channel, invoker, block)
     }
