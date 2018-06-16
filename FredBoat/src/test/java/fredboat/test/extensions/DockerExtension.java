@@ -54,13 +54,13 @@ public class DockerExtension implements BeforeAllCallback {
     static DockerComposeRule docker = DockerComposeRule.builder()
             .pullOnStartup(true)
             .file("src/test/resources/docker-compose.yaml")
-            .projectName(ProjectName.fromString("quarterdecktest"))
+            .projectName(ProjectName.fromString("integration"))
             .shutdownStrategy(identifyShutdownStrategy())
             .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
-            .waitingForService("quarterdeck", HealthChecks.toHaveAllPortsOpen())
-            .waitingForService("rabbitmq", HealthChecks.toHaveAllPortsOpen())
             .waitingForService("db", DockerHealthChecks.INSTANCE::checkPostgres)
+            .waitingForService("quarterdeck", HealthChecks.toHaveAllPortsOpen())
             .waitingForService("quarterdeck", DockerHealthChecks.INSTANCE::checkQuarterdeck)
+            .waitingForService("rabbitmq", HealthChecks.toHaveAllPortsOpen())
             .waitingForService("rabbitmq", DockerHealthChecks.INSTANCE::checkRabbitMq)
             .build();
 

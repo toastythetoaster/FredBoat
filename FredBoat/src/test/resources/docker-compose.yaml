@@ -9,6 +9,9 @@ services:
       - db
     ports:
     - 4269:4269
+    environment:
+      - >
+       SPRING_APPLICATION_JSON='{"security": {"admins": [{"name": "test", "pass": "test"}]}}'
 
   rabbitmq:
     image: rabbitmq:latest

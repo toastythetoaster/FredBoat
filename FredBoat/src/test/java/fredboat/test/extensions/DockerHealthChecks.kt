@@ -1,6 +1,7 @@
 package fredboat.test.extensions
 
 import com.palantir.docker.compose.connection.Container
+import com.palantir.docker.compose.connection.State
 import com.palantir.docker.compose.connection.waiting.SuccessOrFailure
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
@@ -28,6 +29,8 @@ object DockerHealthChecks {
     }
 
     fun checkQuarterdeck(c: Container) = wrap(c) { container ->
+        if (container.state() == State.DOWN) container.up()
+
         val port = container.ports().stream().findAny().get()
         val versions = Http(Http.DEFAULT_BUILDER)["http://${port.ip}:${port.externalPort}/api/versions"].asString()
         log.info("Quarterdeck versions supported: $versions")
