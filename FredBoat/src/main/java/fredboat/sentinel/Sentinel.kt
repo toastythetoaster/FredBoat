@@ -25,7 +25,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     init {
         // Send a hello when we start so we get SentinelHellos in return
-        blockingTemplate.convertAndSend(SentinelExchanges.FANOUT, FredBoatHello())
+        blockingTemplate.convertAndSend(SentinelExchanges.FANOUT, "", FredBoatHello())
     }
 
     fun sendAndForget(routingKey: String, request: Any) {
