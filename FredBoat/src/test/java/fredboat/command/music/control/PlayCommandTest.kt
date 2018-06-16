@@ -11,7 +11,6 @@ import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.Test
-import java.lang.Thread.sleep
 
 internal class PlayCommandTest : IntegrationTest() {
 
@@ -25,7 +24,6 @@ internal class PlayCommandTest : IntegrationTest() {
     @Test
     fun search(selections: VideoSelectionCache, players: PlayerRegistry) {
         SentinelState.joinChannel()
-        sleep(500)
         var editedMessage = -1L
         var selection: VideoSelectionCache.VideoSelection? = null
         testCommand(";;play demetori") {

@@ -96,7 +96,7 @@ class StatsCommand(
             content += "Music players playing:          " + Launcher.botController.playerRegistry.playingCount() + "\n"
 
             val counts = getBotController().sentinelCountingService.getAllCounts().awaitSingle()
-            val not = "not counted yet"
+            //val not = "not counted yet"
             content += "Known servers:                  " + counts.t1.guilds + "\n"
             content += "Users in servers:               " + counts.t2 + "\n"
             content += "Text channels:                  " + counts.t1.textChannels + "\n"
