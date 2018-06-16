@@ -19,11 +19,12 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(SharedSpringContext::class.java)
+        private var application: ApplicationContext? = null
     }
 
-    private lateinit var application: ApplicationContext
+    override fun beforeAll(context: ExtensionContext) {
+        if (application != null) return // Don't start the application again
 
-    override fun beforeAll(context: ExtensionContext?) {
         log.info("Initializing test context")
         launch { Launcher.main(emptyArray()) }
         var i = 0
@@ -34,18 +35,18 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback {
         }
         application = Launcher.instance!!.springContext
         sleep(4500) // Takes care of race conditions
-        application.getBean(RabbitConfig.HelloSender::class.java).send()
+        application!!.getBean(RabbitConfig.HelloSender::class.java).send()
         sleep(500) // Ample time for the hello to be received
-        IntegrationTest.commandTester = application.getBean(CommandTester::class.java)
-        log.info("Successfully initialized test context ${application.javaClass.simpleName}")
+        IntegrationTest.commandTester = application!!.getBean(CommandTester::class.java)
+        log.info("Successfully initialized test context ${application!!.javaClass.simpleName}")
     }
 
     override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean {
-        return application.getBean(parameterContext.parameter.type) != null
+        return application!!.getBean(parameterContext.parameter.type) != null
     }
 
     override fun resolveParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Any {
-        return application.getBean(parameterContext.parameter.type)
+        return application!!.getBean(parameterContext.parameter.type)
     }
 
 }
