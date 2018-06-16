@@ -31,21 +31,15 @@ object DockerHealthChecks {
     fun checkQuarterdeck(c: Container) = wrap(c) { container ->
         if (container.state() == State.DOWN) container.up()
 
-        val port = container.ports().stream().findAny().get()
-        val versions = Http(Http.DEFAULT_BUILDER)["http://${port.ip}:${port.externalPort}/" +
-                "info/api/versions"]
+        val versions = Http(Http.DEFAULT_BUILDER)["http://localhost:4269/info/api/versions"]
                 .basicAuth("test", "test")
                 .asString()
         log.info("Quarterdeck versions supported: $versions")
         SuccessOrFailure.success()
     }
 
-    fun checkRabbitMq(c: Container) = wrap(c) { container ->
-        val port = container.ports().stream().findAny().get()
-
+    fun checkRabbitMq(c: Container) = wrap(c) { _ ->
         val factory = ConnectionFactory()
-        //factory.host = port.ip
-        //factory.port = port.externalPort
         var conn: Connection? = null
         try {
             conn = factory.newConnection()
