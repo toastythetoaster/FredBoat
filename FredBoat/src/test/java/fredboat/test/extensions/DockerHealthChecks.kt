@@ -32,7 +32,10 @@ object DockerHealthChecks {
         if (container.state() == State.DOWN) container.up()
 
         val port = container.ports().stream().findAny().get()
-        val versions = Http(Http.DEFAULT_BUILDER)["http://${port.ip}:${port.externalPort}/api/versions"].asString()
+        val versions = Http(Http.DEFAULT_BUILDER)["http://${port.ip}:${port.externalPort}/" +
+                "info/api/versions"]
+                .basicAuth("test", "test")
+                .asString()
         log.info("Quarterdeck versions supported: $versions")
         SuccessOrFailure.success()
     }
@@ -41,8 +44,8 @@ object DockerHealthChecks {
         val port = container.ports().stream().findAny().get()
 
         val factory = ConnectionFactory()
-        factory.host = port.ip
-        factory.port = port.externalPort
+        //factory.host = port.ip
+        //factory.port = port.externalPort
         var conn: Connection? = null
         try {
             conn = factory.newConnection()
@@ -53,7 +56,6 @@ object DockerHealthChecks {
     }
 
     private inline fun wrap(container: Container, func: (Container) -> SuccessOrFailure): SuccessOrFailure {
-        log.info("Running health check for ${container.containerName}")
         try {
             val id = docker.dockerCompose().id(container)
             if (!id.isPresent) {
@@ -61,6 +63,7 @@ object DockerHealthChecks {
             }
             return func(container)
         } catch (e: Exception) {
+            log.error("Failed health check for ${container.containerName}: ${e.message}")
             return SuccessOrFailure.fromException(e)
         }
     }

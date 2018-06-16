@@ -9,11 +9,15 @@ services:
       - db
     ports:
     - 4269:4269
-    environment:
-      - >
-       SPRING_APPLICATION_JSON='{"security": {"admins": [{"name": "test", "pass": "test"}]}}'
+    entrypoint:
+          - java
+          - -Xmx128m
+          - -jar
+          - Quarterdeck.jar
+          - >
+           --spring.application.json={"security": {"admins": [{"name": "test", "pass": "test"}]}}
 
   rabbitmq:
     image: rabbitmq:latest
     ports:
-        - 4369:4369
+        - 5672:5672
