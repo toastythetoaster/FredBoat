@@ -57,7 +57,7 @@ class ServerInfoCommand(name: String, vararg aliases: String) : Command(name, *a
             field(context.i18n("serverinfoCreationDate"), guild.creationTime.format(dtf), true)
             field(context.i18n("serverinfoGuildID"), guild.idString, true)
             field(context.i18n("serverinfoVLv"), guildInfo.verificationLevel, true)
-            field(context.i18n("serverinfoOwner"), guild.owner!!.asMention, true)
+            field(context.i18n("serverinfoOwner"), guild.owner?.asMention ?: "<none>", true)
 
             val maxFieldLength = 1024
             var prefix = TextUtils.shorten(TextUtils.escapeMarkdown(context.prefix), maxFieldLength)
