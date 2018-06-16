@@ -1,7 +1,9 @@
 package fredboat.test.extensions
 
 import fredboat.main.Launcher
+import fredboat.test.IntegrationTest
 import fredboat.test.config.RabbitConfig
+import fredboat.test.sentinel.CommandTester
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -34,6 +36,7 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback {
         sleep(4500) // Takes care of race conditions
         application.getBean(RabbitConfig.HelloSender::class.java).send()
         sleep(500) // Ample time for the hello to be received
+        IntegrationTest.commandTester = application.getBean(CommandTester::class.java)
         log.info("Successfully initialized test context ${application.javaClass.simpleName}")
     }
 

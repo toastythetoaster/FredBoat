@@ -17,19 +17,19 @@ import kotlin.reflect.jvm.reflect
 @Service
 class CommandTester(private val commandContextParser: CommandContextParser) {
 
-    fun parseAndTest(
+    fun testCommand(
             message: String,
             guild: RawGuild = DefaultSentinelRaws.guild,
             channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
             invoker: RawMember = DefaultSentinelRaws.owner,
             block: CommandContext.() -> Unit
     ) {
-        testCommand(parseContext(
+        doTest(parse(
                 message, guild, channel, invoker
         ), block)
     }
 
-    fun testCommand(context: CommandContext, block: CommandContext.() -> Unit) { runBlocking {
+    private fun doTest(context: CommandContext, block: CommandContext.() -> Unit) { runBlocking {
         try {
             context.command(context)
             context.apply(block)
@@ -41,7 +41,7 @@ class CommandTester(private val commandContextParser: CommandContextParser) {
     }
     }
 
-    fun parseContext(
+    private fun parse(
             message: String,
             guild: RawGuild = DefaultSentinelRaws.guild,
             channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
