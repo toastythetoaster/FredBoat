@@ -1,6 +1,7 @@
-package fredboat.test
+package fredboat.test.extensions
 
 import fredboat.main.Launcher
+import fredboat.test.config.RabbitConfig
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
@@ -30,7 +31,9 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback {
             if (i > 60) throw TimeoutException("Context initialization timed out")
         }
         application = Launcher.instance!!.springContext
-        sleep(5000) // Takes care of race conditions
+        sleep(4500) // Takes care of race conditions
+        application.getBean(RabbitConfig.HelloSender::class.java).send()
+        sleep(500) // Ample time for the hello to be received
         log.info("Successfully initialized test context ${application.javaClass.simpleName}")
     }
 

@@ -16,6 +16,7 @@ import org.springframework.amqp.support.converter.MessageConverter
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.stereotype.Component
 import org.springframework.stereotype.Service
 import java.net.InetAddress
 import java.util.*
@@ -60,9 +61,12 @@ open class RabbitConfig {
         return BindingBuilder.bind(requestQueue).to(requestExchange).with(key)
     }
 
-    @Service
-    class HelloSender(rabbitTemplate: RabbitTemplate, @Qualifier("sentinelId") key: String) {
-        init {
+    @Component
+    class HelloSender(
+            private val rabbitTemplate: RabbitTemplate,
+            @Qualifier("sentinelId")
+            private val key: String) {
+        fun send() {
             rabbitTemplate.convertAndSend(SentinelExchanges.EVENTS, SentinelHello(
                     0,
                     1,

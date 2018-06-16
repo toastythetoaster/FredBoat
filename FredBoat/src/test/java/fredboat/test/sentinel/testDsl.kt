@@ -74,7 +74,7 @@ fun CommandContext.assertReply(testMsg: String = "Assert outgoing message", asse
 fun CommandContext.assertReply(expected: String, testMsg: String = "Assert outgoing message") {
     val message = (SentinelState.poll(SendMessageRequest::class.java)
             ?: throw TimeoutException("Command failed to send message"))
-    Assert.assertEquals(testMsg, expected, message)
+    Assert.assertEquals(testMsg, expected, message.message)
 }
 
 fun <T> CommandContext.assertRequest(testMsg: String = "Assert outgoing request", assertion: (T) -> Boolean) {

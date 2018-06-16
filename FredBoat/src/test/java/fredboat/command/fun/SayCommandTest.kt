@@ -1,14 +1,13 @@
 package fredboat.command.`fun`
 
-import fredboat.test.DockerExtension
-import fredboat.test.SharedSpringContext
+import fredboat.test.extensions.SharedSpringContext
 import fredboat.test.sentinel.CommandTester
 import fredboat.test.sentinel.assertReply
 import fredboat.util.TextUtils
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(DockerExtension::class, SharedSpringContext::class)
+@ExtendWith(/*DockerExtension::class, */SharedSpringContext::class)
 class SayCommandTest {
     @Test
     fun onInvoke(commandTester: CommandTester) {
