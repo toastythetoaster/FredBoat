@@ -39,12 +39,12 @@ internal class PlayCommandTest : IntegrationTest() {
         testCommand(";;play 5") {
             assertRequest { req: EditMessageRequest ->
                 assertEquals(req.messageId, editedMessage)
-                req.message.startsWith("Song **#5** has been selected")
+                req.message.contains("Song **#5** has been selected")
             }
             Assert.assertNull(selections[member])
             assertNotNull(players.getExisting(guild))
-            assertEquals(players.getExisting(guild)!!.playingTrack?.track, selection!!.choices[4])
-            assertEquals(players.getExisting(guild)!!.playingTrack?.member, member)
+            assertEquals(selection!!.choices[4], players.getExisting(guild)!!.playingTrack?.track)
+            assertEquals(member, players.getExisting(guild)!!.playingTrack?.member)
         }
     }
 }

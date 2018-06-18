@@ -84,12 +84,12 @@ fun CommandContext.assertReply(expected: String, testMsg: String = "Assert outgo
     Assert.assertEquals(testMsg, expected, message.message)
 }
 
-fun <T> CommandContext.assertRequest(testMsg: String = "Assert outgoing request", assertion: (T) -> Boolean) {
+fun <T> CommandContext.assertRequest(testMsg: String = "Failed to assert outgoing request {}", assertion: (T) -> Boolean) {
     val className = assertion.reflect()!!.parameters[0].type.jvmErasure
     val message = (SentinelState.poll(className.java)
             ?: throw TimeoutException("Command failed to send " + className.simpleName))
     @Suppress("UNCHECKED_CAST")
-    Assert.assertTrue(testMsg, assertion(message as T))
+    Assert.assertTrue(testMsg.replace("{}", message.toString()), assertion(message as T))
 }
 
 fun CommandContext.invokerSend(message: String) {

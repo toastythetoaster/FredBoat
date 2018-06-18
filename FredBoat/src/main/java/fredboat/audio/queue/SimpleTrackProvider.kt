@@ -215,7 +215,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         return streams
     }
 
-    override fun peek(): AudioTrackContext {
+    override fun peek(): AudioTrackContext? {
         return if (isShuffle && queue.size > 0) {
             asListOrdered[0]
         } else {

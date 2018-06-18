@@ -55,7 +55,7 @@ class SelectCommand(private val videoSelectionCache: VideoSelectionCache, name: 
     }
 
     companion object {
-        internal suspend fun select(context: CommandContext, videoSelectionCache: VideoSelectionCache) {
+        internal fun select(context: CommandContext, videoSelectionCache: VideoSelectionCache) {
             val invoker = context.member
             val selection = videoSelectionCache[invoker]
             if (selection == null) {

@@ -45,7 +45,7 @@ interface ITrackProvider {
     /**
      * @return the track that a call to provideAudioTrack() would return
      */
-    fun peek(): AudioTrackContext
+    fun peek(): AudioTrackContext?
 
     /**
      * @return the next track, or null if empty

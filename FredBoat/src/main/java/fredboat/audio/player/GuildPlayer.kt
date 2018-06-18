@@ -248,7 +248,7 @@ class GuildPlayer(
     }
 
     fun queue(atc: AudioTrackContext) {
-        if (!guild.selfPresent) return
+        if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
         if (member != null) {

@@ -63,7 +63,7 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     protected var _stale = false
     /** This is true if we are present in this [Guild]*/
     val selfPresent: Boolean
-        get() = _stale
+        get() = !_stale
 
     /* Helper properties */
 

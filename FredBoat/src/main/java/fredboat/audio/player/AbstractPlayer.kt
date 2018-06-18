@@ -86,8 +86,6 @@ abstract class AbstractPlayer internal constructor(
             return if (player.playingTrack == null && context == null) {
                 audioTrackProvider.peek()
             } else context
-
-
         }
 
     //the unshuffled playlist
