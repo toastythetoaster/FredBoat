@@ -29,7 +29,6 @@ import com.palantir.docker.compose.DockerComposeRule;
 import com.palantir.docker.compose.configuration.ProjectName;
 import com.palantir.docker.compose.configuration.ShutdownStrategy;
 import com.palantir.docker.compose.connection.waiting.HealthChecks;
-import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.slf4j.Logger;
@@ -63,6 +62,8 @@ public class DockerExtension implements BeforeAllCallback {
             .waitingForService("quarterdeck", DockerHealthChecks.INSTANCE::checkQuarterdeck)
             .waitingForService("rabbitmq", HealthChecks.toHaveAllPortsOpen())
             .waitingForService("rabbitmq", DockerHealthChecks.INSTANCE::checkRabbitMq)
+            .waitingForService("lavalink", HealthChecks.toHaveAllPortsOpen())
+            .waitingForService("lavalink", DockerHealthChecks.INSTANCE::checkLavalink)
             .build();
 
     private static boolean hasSetup = false;
@@ -84,9 +85,14 @@ public class DockerExtension implements BeforeAllCallback {
     }
 
     @Override
-    public void beforeAll(ExtensionContext context) throws Exception {
+    public void beforeAll(ExtensionContext context) {
         if (!hasSetup) {
-            docker.before();
+            try {
+                docker.before();
+            } catch (Exception e) {
+                log.error("Docker failed, exiting...", e);
+                System.exit(-1);
+            }
             hasSetup = true;
         }
     }

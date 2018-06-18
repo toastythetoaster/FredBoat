@@ -8,16 +8,62 @@ services:
     depends_on:
       - db
     ports:
-    - 4269:4269
+      - 4269:4269
     entrypoint:
-          - java
-          - -Xmx128m
-          - -jar
-          - Quarterdeck.jar
-          - >
-           --spring.application.json={"security": {"admins": [{"name": "test", "pass": "test"}]}}
+      - java
+      - -Xmx128m
+      - -jar
+      - Quarterdeck.jar
+      - >
+       --spring.application.json={"security": {"admins": [{"name": "test", "pass": "test"}]}}
 
   rabbitmq:
     image: rabbitmq:latest
     ports:
         - 5672:5672
+
+  lavalink:
+    image: fredboat/lavalink:dev-v2
+    ports:
+      - 1234:1234
+    entrypoint:
+      - java
+      - -Xmx256m
+      - -jar
+      - Lavalink.jar
+      - |-
+        --spring.application.json={
+          "server": {
+            "port": 2333,
+            "address": "0.0.0.0"
+          },
+          "lavalink": {
+            "server": {
+              "password": "youshallnotpass",
+              "ws": {
+                "port": 1234,
+                "host": "0.0.0.0"
+              },
+              "sources": {
+                "youtube": true,
+                "bandcamp": true,
+                "soundcloud": true,
+                "twitch": true,
+                "vimeo": true,
+                "mixer": true,
+                "http": true,
+                "local": false
+              },
+              "sentryDsn": "",
+              "bufferDurationMs": 400,
+              "youtubePlaylistLoadLimit": 600,
+              "gc-warnings": true
+            }
+          },
+          "metrics": {
+            "prometheus": {
+              "enabled": false,
+              "endpoint": "/metrics"
+            }
+          }
+        }
