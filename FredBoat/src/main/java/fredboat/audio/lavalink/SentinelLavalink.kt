@@ -3,6 +3,7 @@ package fredboat.audio.lavalink
 import com.fredboat.sentinel.entities.VoiceServerUpdate
 import fredboat.config.idString
 import fredboat.config.property.AppConfig
+import fredboat.config.property.LavalinkConfig
 import fredboat.sentinel.Guild
 import fredboat.sentinel.Sentinel
 import lavalink.client.io.Lavalink
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Service
 @Service
 class SentinelLavalink(
         val sentinel: Sentinel,
-        val appConfig: AppConfig
+        val appConfig: AppConfig,
+        val lavalinkConfig: LavalinkConfig
 ) : Lavalink<SentinelLink>(
         sentinel.selfUser.idString,
         appConfig.shardCount
@@ -24,6 +26,7 @@ class SentinelLavalink(
 
     init {
         INSTANCE = this
+        lavalinkConfig.nodes.forEach { addNode(it.name, it.uri, it.password) }
     }
 
     override fun buildNewLink(guildId: String) = SentinelLink(this, guildId)

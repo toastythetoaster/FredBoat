@@ -21,7 +21,7 @@ subprojects {
             shadowVersion           = '2.0.3'
             springBootVersion       = '2.0.1.RELEASE'
             propDepsVersion         = '0.0.9.RELEASE'
-            kotlinVersion           = '1.2.41'
+            kotlinVersion           = '1.2.50'
 
             //@formatter:on
         }
