@@ -25,7 +25,7 @@ services:
   lavalink:
     image: fredboat/lavalink:dev-v2
     ports:
-      - 1234:1234
+      - 5555:5555
     entrypoint:
       - java
       - -Xmx256m
@@ -41,7 +41,7 @@ services:
             "server": {
               "password": "youshallnotpass",
               "ws": {
-                "port": 1234,
+                "port": 5555,
                 "host": "0.0.0.0"
               },
               "sources": {
