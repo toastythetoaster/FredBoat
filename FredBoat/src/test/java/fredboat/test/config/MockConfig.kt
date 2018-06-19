@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component
  */
 @Component
 @Primary
-class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig, LavalinkConfig {
+class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig, LavalinkConfig, BackendConfig {
 
     private val distributionEnum = DistributionEnum.DEVELOPMENT
 
@@ -104,4 +104,11 @@ class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig
     override fun getGuildStatsInterval() = 1
 
     override fun getCarbonKey() = ""
+
+    override fun getQuarterdeck() = object : BackendConfig.Quarterdeck {
+        override fun getHost() = "http://localhost:4269"
+        override fun getUser() = "test"
+        override fun getPass() = "test"
+        override fun getBasicAuth() =  okhttp3.Credentials.basic(user, pass)
+    }
 }
