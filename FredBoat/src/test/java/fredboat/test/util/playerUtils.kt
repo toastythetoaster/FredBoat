@@ -8,6 +8,7 @@ import fredboat.audio.player.GuildPlayer
 import fredboat.audio.queue.AudioTrackContext
 import fredboat.main.Launcher
 import fredboat.sentinel.Guild
+import fredboat.sentinel.InternalVoiceChannel
 import fredboat.sentinel.Member
 import fredboat.test.sentinel.DefaultSentinelRaws
 import fredboat.test.sentinel.SentinelState
@@ -30,7 +31,7 @@ fun Guild.queue(
     }
 
     if (member.voiceChannel == null) {
-        if (member.id != DefaultSentinelRaws.owner.id) TODO()
+        (getVoiceChannel(DefaultSentinelRaws.musicChannel.id)!! as InternalVoiceChannel).handleVoiceJoin(member)
         SentinelState.joinChannel(DefaultSentinelRaws.owner)
     }
 
