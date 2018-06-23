@@ -68,23 +68,19 @@ class CommandTester(private val commandContextParser: CommandContextParser, temp
     }
 }
 
-fun CommandContext.assertOutgoingContains(testMsg: String = "Assert outgoing message", regex: String) {
-    assertReply(testMsg) { it.contains(regex) }
-}
-
-fun CommandContext.assertReply(testMsg: String = "Assert outgoing message", assertion: (String) -> Boolean) {
+fun assertReply(testMsg: String = "Assert outgoing message {}", assertion: (String) -> Boolean) {
     val message = SentinelState.poll(SendMessageRequest::class.java)
             ?: throw TimeoutException("Command failed to send message")
-    Assert.assertTrue(testMsg, assertion(message.message))
+    Assert.assertTrue(testMsg.replace("{}", message.toString()), assertion(message.message))
 }
 
-fun CommandContext.assertReply(expected: String, testMsg: String = "Assert outgoing message") {
+fun assertReply(expected: String, testMsg: String = "Assert outgoing message {}") {
     val message = (SentinelState.poll(SendMessageRequest::class.java)
             ?: throw TimeoutException("Command failed to send message"))
-    Assert.assertEquals(testMsg, expected, message.message)
+    Assert.assertEquals(testMsg.replace("{}", message.toString()), expected, message.message)
 }
 
-fun <T> CommandContext.assertRequest(testMsg: String = "Failed to assert outgoing request {}", assertion: (T) -> Boolean) {
+fun <T> assertRequest(testMsg: String = "Failed to assert outgoing request {}", assertion: (T) -> Boolean) {
     val className = assertion.reflect()!!.parameters[0].type.jvmErasure
     val message = (SentinelState.poll(className.java)
             ?: throw TimeoutException("Command failed to send " + className.simpleName))

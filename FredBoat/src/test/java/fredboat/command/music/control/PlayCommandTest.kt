@@ -1,15 +1,19 @@
 package fredboat.command.music.control
 
+import com.fredboat.sentinel.entities.AudioQueueRequest
+import com.fredboat.sentinel.entities.AudioQueueRequestEnum
 import com.fredboat.sentinel.entities.EditMessageRequest
 import fredboat.audio.player.PlayerRegistry
 import fredboat.audio.player.VideoSelectionCache
 import fredboat.test.IntegrationTest
+import fredboat.test.sentinel.DefaultSentinelRaws
 import fredboat.test.sentinel.SentinelState
 import fredboat.test.sentinel.assertReply
 import fredboat.test.sentinel.assertRequest
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class PlayCommandTest : IntegrationTest() {
@@ -46,5 +50,30 @@ internal class PlayCommandTest : IntegrationTest() {
             assertEquals(selection!!.choices[4], players.getExisting(guild)!!.playingTrack?.track)
             assertEquals(member, players.getExisting(guild)!!.playingTrack?.member)
         }
+    }
+
+    @Test
+    fun playUrl(players: PlayerRegistry) {
+        SentinelState.joinChannel(channel = DefaultSentinelRaws.musicChannel)
+        val url = "https://www.youtube.com/watch?v=8EdW28B-In4"
+        testCommand(";;play $url") {
+            assertRequest<AudioQueueRequest> { it.channel == DefaultSentinelRaws.musicChannel.id }
+            assertReply { it.contains("Best of Demetori") && it.contains("will now play") }
+            assertNotNull(players.getExisting(guild))
+            assertNotNull(players.getOrCreate(guild).playingTrack)
+            assertEquals(url, players.getOrCreate(guild).playingTrack?.track?.info?.uri)
+        }
+    }
+
+    @BeforeEach
+    fun beforeEach(players: PlayerRegistry) {
+        players.destroyPlayer(SentinelState.guild.id)
+        SentinelState.reset()
+        val req = SentinelState.poll(AudioQueueRequest::class.java, timeoutMillis = 2000)
+        req?.let { assertEquals(
+                "Expected disconnect (if anything at all)",
+                AudioQueueRequestEnum.QUEUE_DISCONNECT,
+                it.type
+        ) }
     }
 }

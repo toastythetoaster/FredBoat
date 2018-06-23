@@ -31,10 +31,10 @@ object SentinelState {
         rabbit.convertSendAndReceive(SentinelExchanges.EVENTS, GuildUpdateEvent(DefaultSentinelRaws.guild))
     }
 
-    fun <T> poll(type: Class<T>): T? {
+    fun <T> poll(type: Class<T>, timeoutMillis: Long = 5000): T? {
         val queue = outgoing.getOrPut(type) { LinkedBlockingQueue() }
         @Suppress("UNCHECKED_CAST")
-        return queue.poll(10, TimeUnit.SECONDS) as? T
+        return queue.poll(timeoutMillis, TimeUnit.MILLISECONDS) as? T
     }
 
     fun joinChannel(

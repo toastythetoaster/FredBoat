@@ -53,17 +53,17 @@ class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig
 
     override fun getPlayerLimit() = -1
 
-    override fun isYouTubeEnabled() = false
+    override fun isYouTubeEnabled() = true
 
-    override fun isSoundCloudEnabled() = false
+    override fun isSoundCloudEnabled() = true
 
-    override fun isBandCampEnabled() = false
+    override fun isBandCampEnabled() = true
 
-    override fun isTwitchEnabled() = false
+    override fun isTwitchEnabled() = true
 
-    override fun isVimeoEnabled() = false
+    override fun isVimeoEnabled() = true
 
-    override fun isMixerEnabled() = false
+    override fun isMixerEnabled() = true
 
     override fun isSpotifyEnabled() = false
 
