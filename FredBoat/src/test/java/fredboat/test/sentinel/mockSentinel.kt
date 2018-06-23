@@ -25,9 +25,13 @@ object SentinelState {
     private val log: Logger = LoggerFactory.getLogger(SentinelState::class.java)
 
     fun reset() {
+        Thread.sleep(200) // Give messages a bit of time to come in - prevents race conditions
+        log.info("Resetting sentinel state")
+
         guild = DefaultSentinelRaws.guild.copy()
         outgoing.clear()
-        rabbit.convertAndSend(SentinelExchanges.EVENTS, GuildUpdateEvent(DefaultSentinelRaws.guild))
+        guildCache.cache.remove(guild.id)
+        //rabbit.convertAndSend(SentinelExchanges.EVENTS, GuildUpdateEvent(DefaultSentinelRaws.guild))
     }
 
     fun <T> poll(type: Class<T>, timeoutMillis: Long = 5000): T? {
@@ -41,8 +45,9 @@ object SentinelState {
             channel: RawVoiceChannel = DefaultSentinelRaws.musicChannel
     ) {
         val newList = guild.voiceChannels.toMutableList().apply {
-            removeIf { it == channel }
-            val membersSet = channel.members.toMutableSet()
+            var removed: RawVoiceChannel? = null
+            removeIf { removed = it; it.id == channel.id }
+            val membersSet = removed?.members?.toMutableSet() ?: mutableListOf<Long>()
             membersSet.add(member.id)
             add(channel.copy(members = membersSet.toList()))
         }
@@ -88,6 +93,7 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
 
     @RabbitHandler
     fun subscribe(request: GuildSubscribeRequest): RawGuild {
+        log.info("Got subscription request")
         return SentinelState.guild
     }
 

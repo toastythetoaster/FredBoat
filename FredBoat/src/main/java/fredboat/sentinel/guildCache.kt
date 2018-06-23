@@ -43,7 +43,6 @@ class GuildCache(private val sentinel: Sentinel,
                     g
                 }
         )
-                .log("test")
                 .doOnError { sink.error(it) }
                 .subscribe { sink.success(it) }
     }.timeout(Duration.ofSeconds(10), Mono.empty())

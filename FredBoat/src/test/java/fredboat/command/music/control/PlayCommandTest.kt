@@ -5,19 +5,25 @@ import com.fredboat.sentinel.entities.AudioQueueRequestEnum
 import com.fredboat.sentinel.entities.EditMessageRequest
 import fredboat.audio.player.PlayerRegistry
 import fredboat.audio.player.VideoSelectionCache
+import fredboat.sentinel.GuildCache
 import fredboat.test.IntegrationTest
 import fredboat.test.sentinel.*
 import org.junit.Assert
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.Duration
 
 internal class PlayCommandTest : IntegrationTest() {
 
+    companion object {
+        private const val url = "https://www.youtube.com/watch?v=8EdW28B-In4"
+        private const val url2 = "https://www.youtube.com/watch?v=pqUuvRkFfLI"
+    }
+
     @Test
     fun notInChannel() {
-        testCommand(";;play demetori") {
+        testCommand(";;play $url") {
             assertReply("You must join a voice channel first.")
         }
     }
@@ -53,8 +59,6 @@ internal class PlayCommandTest : IntegrationTest() {
     @Test
     fun playUrl(players: PlayerRegistry) {
         SentinelState.joinChannel(channel = DefaultSentinelRaws.musicChannel)
-        val url = "https://www.youtube.com/watch?v=8EdW28B-In4"
-        val url2 = "https://www.youtube.com/watch?v=pqUuvRkFfLI"
         testCommand(";;play $url") {
             assertRequest<AudioQueueRequest> { it.channel == DefaultSentinelRaws.musicChannel.id }
             assertReply { it.contains("Best of Demetori") && it.contains("will now play") }
@@ -75,10 +79,36 @@ internal class PlayCommandTest : IntegrationTest() {
         }
     }
 
+    @Test
+    fun unpause(players: PlayerRegistry) {
+        // Setup
+        SentinelState.joinChannel()
+        SentinelState.joinChannel(DefaultSentinelRaws.self)
+        testCommand(";;play $url") {
+            delayUntil { players.getExisting(guild) != null }
+            delayUntil { players.getExisting(guild)?.playingTrack != null }
+            players.getExisting(guild)!!.setPause(true)
+            assertReply { true } // ignore
+            delayUntil { players.getExisting(guild)!!.humanUsersInCurrentVC.isNotEmpty() }
+        }
+
+        // We should unpause
+        testCommand(";;play") {
+            delayUntil { players.getExisting(guild)?.isPlaying == true }
+            assertFalse("Assert unpaused", players.getOrCreate(guild).isPaused)
+            assertReply("The player will now play.")
+        }
+    }
+
     @BeforeEach
-    fun beforeEach(players: PlayerRegistry) {
-        players.destroyPlayer(SentinelState.guild.id)
+    fun beforeEach(players: PlayerRegistry, guildCache: GuildCache) {
+        val guild = guildCache.get(SentinelState.guild.id).block(Duration.ofSeconds(5))!!
+        val link = guild.existingLink
+        players.destroyPlayer(guild)
         SentinelState.reset()
+
+        // Ignore any disconnect requests
+        if (link == null) return
         val req = SentinelState.poll(AudioQueueRequest::class.java, timeoutMillis = 2000)
         req?.let { assertEquals(
                 "Expected disconnect (if anything at all)",
