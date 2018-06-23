@@ -69,9 +69,9 @@ public class DockerExtension implements BeforeAllCallback {
     private static boolean hasSetup = false;
 
     private static ShutdownStrategy identifyShutdownStrategy() {
-        String keepPostgresContainer = System.getProperty("keepPostgresContainer", "false");
+        String keepPostgresContainer = System.getProperty("keepDocker", "false");
         if ("true".equalsIgnoreCase(keepPostgresContainer)) {
-            log.warn("Keeping the postgres container after the tests. Do NOT use this option in a CI environment, this "
+            log.warn("Keeping the containers after the tests. Do NOT use this option in a CI environment, this "
                     + "is meant to speed up repeatedly running tests in development only.");
             return ShutdownStrategy.SKIP;
         }
@@ -80,21 +80,22 @@ public class DockerExtension implements BeforeAllCallback {
     }
 
     public DockerExtension() {
-        //cant use AfterAllCallback#afterAll because thats too early (spring context is still alive) and leads to exception spam
+        //cant use AfterAllCallback#afterAll because that's too early (spring context is still alive) and leads to exception spam
         Runtime.getRuntime().addShutdownHook(new Thread(() -> docker.after(), "Docker container shutdown hook"));
     }
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        if (!hasSetup) {
-            try {
-                docker.before();
-            } catch (Exception e) {
-                log.error("Docker failed, exiting...", e);
-                System.exit(-1);
-            }
-            hasSetup = true;
+        if (hasSetup) return;
+        Long timeStart = System.currentTimeMillis();
+        try {
+            docker.before();
+        } catch (Exception e) {
+            log.error("Docker failed, exiting...", e);
+            System.exit(-1);
         }
+        hasSetup = true;
+        log.info("Started docker in " + (System.currentTimeMillis() - timeStart) + "ms");
     }
 
     static String execute(String command) throws IOException, InterruptedException {
