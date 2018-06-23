@@ -12,7 +12,7 @@ internal class DestroyCommandTest : IntegrationTest() {
     fun onInvoke() {
         cachedGuild.queue(PlayCommandTest.url)
         testCommand(";;Destroy") {
-            assertReply("${member.effectiveName}: Reset the player and cleared the queue.")
+            assertReply("${member.effectiveName}:  Reset the player and cleared the queue.")
         }
     }
 }
