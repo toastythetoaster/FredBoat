@@ -11,6 +11,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
@@ -47,6 +48,7 @@ object SentinelState {
         }
         guild = guild.copy(voiceChannels = newList)
         guild = setMember(guild, member.copy(voiceChannel = channel.id))
+        guildCache.get(guild.id).block(Duration.ofSeconds(4)) // Our event gets ignored if this is not cached and we time out
         rabbit.convertAndSend(SentinelExchanges.EVENTS, VoiceJoinEvent(
                 DefaultSentinelRaws.guild.id,
                 channel.id,
