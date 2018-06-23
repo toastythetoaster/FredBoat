@@ -49,6 +49,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.security.auth.login.LoginException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by napster on 23.02.18.
@@ -74,6 +76,13 @@ public class ShardManagerConfiguration {
                                           ShardReviveHandler shardReviveHandler, MusicPersistenceHandler musicPersistenceHandler,
                                           ShutdownHandler shutdownHandler) {
 
+        AtomicInteger ratelimiterThreads = new AtomicInteger(0);
+        ScheduledThreadPoolExecutor ratelimiterPool = new ScheduledThreadPoolExecutor(500, r -> {
+            Thread t = new Thread(r, "ratelimiter-thread-" + ratelimiterThreads.incrementAndGet());
+            t.setDaemon(true);
+            return t;
+        });
+
         DefaultShardManagerBuilder builder = new DefaultShardManagerBuilder()
                 .setToken(configProvider.getCredentials().getBotToken())
                 .setGame(Game.playing(configProvider.getAppConfig().getStatus()))
@@ -91,6 +100,7 @@ public class ShardManagerConfiguration {
                 .addEventListeners(shardReviveHandler)
                 .addEventListeners(musicPersistenceHandler)
                 .addEventListeners(audioConnectionFacade)
+                .setRatelimiterPool(__ -> ratelimiterPool)
                 .setShardsTotal(configProvider.getCredentials().getRecommendedShardCount());
 
         if (!System.getProperty("os.arch").equalsIgnoreCase("arm")

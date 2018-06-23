@@ -37,7 +37,7 @@ bootJar {
 
 dependencies {
     compile project(':Shared')
-    compile group: 'net.dv8tion', name: 'JDA', version: jdaVersion
+    compile group: 'space.npstr', name: 'JDA', version: jdaVersion
     compile group: 'com.sedmelluq', name: 'lavaplayer', version: lavaplayerVersion
     compile group: 'com.sedmelluq', name: 'jda-nas', version: jdaNasVersion
 
