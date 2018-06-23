@@ -85,6 +85,7 @@ class RabbitConsumer(
 
     @RabbitHandler
     fun receive(event: VoiceJoinEvent) {
+        log.info(event.toString()) // TODO remove
         val guild = guildCache.getIfCached(event.guild) ?: return
         val channel = guild.getVoiceChannel(event.channel)
         val member = guild.getMember(event.member)

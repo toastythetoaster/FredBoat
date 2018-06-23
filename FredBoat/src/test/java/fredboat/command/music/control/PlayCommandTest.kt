@@ -43,6 +43,7 @@ internal class PlayCommandTest : IntegrationTest() {
                 req.message.contains("Song **#5** has been selected")
             }
             Assert.assertNull(selections[member])
+            delayUntil { players.getExisting(guild) != null }
             assertNotNull(players.getExisting(guild))
             assertEquals(selection!!.choices[4], players.getExisting(guild)!!.playingTrack?.track)
             assertEquals(member, players.getExisting(guild)!!.playingTrack?.member)
