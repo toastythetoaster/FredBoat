@@ -12,6 +12,7 @@ import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service
+import java.lang.Thread.sleep
 import java.util.concurrent.TimeoutException
 import kotlin.reflect.jvm.jvmErasure
 import kotlin.reflect.jvm.reflect
@@ -99,4 +100,13 @@ fun CommandContext.invokerSend(message: String) {
             false,
             emptyList()
     ))
+}
+
+fun delayUntil(timeout: Long = 2000, block: () -> Boolean) {
+    var timeSpent = 0
+    while (!block()) {
+        sleep(200)
+        timeSpent += 200
+        if (timeSpent >= timeout) break
+    }
 }

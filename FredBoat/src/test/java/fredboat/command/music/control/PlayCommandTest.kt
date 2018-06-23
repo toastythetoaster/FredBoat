@@ -6,11 +6,7 @@ import com.fredboat.sentinel.entities.EditMessageRequest
 import fredboat.audio.player.PlayerRegistry
 import fredboat.audio.player.VideoSelectionCache
 import fredboat.test.IntegrationTest
-import fredboat.test.sentinel.DefaultSentinelRaws
-import fredboat.test.sentinel.SentinelState
-import fredboat.test.sentinel.assertReply
-import fredboat.test.sentinel.assertRequest
-import kotlinx.coroutines.experimental.delay
+import fredboat.test.sentinel.*
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -62,11 +58,7 @@ internal class PlayCommandTest : IntegrationTest() {
             assertReply { it.contains("Best of Demetori") && it.contains("will now play") }
             assertNotNull(players.getExisting(guild))
             var i = 0
-            while (players.getOrCreate(guild).playingTrack == null) {
-                delay(200)
-                i++
-                if (i < 10) break
-            }
+            delayUntil { players.getOrCreate(guild).playingTrack != null }
             assertNotNull(players.getOrCreate(guild).playingTrack)
             assertEquals(url, players.getOrCreate(guild).playingTrack?.track?.info?.uri)
         }

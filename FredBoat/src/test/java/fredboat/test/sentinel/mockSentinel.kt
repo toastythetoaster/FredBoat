@@ -3,10 +3,7 @@ package fredboat.test.sentinel
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
 import fredboat.perms.Permission
-import fredboat.sentinel.RawGuild
-import fredboat.sentinel.RawMember
-import fredboat.sentinel.RawTextChannel
-import fredboat.sentinel.RawVoiceChannel
+import fredboat.sentinel.*
 import fredboat.test.sentinel.SentinelState.outgoing
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,6 +15,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 private lateinit var rabbit: RabbitTemplate
+private lateinit var guildCache: GuildCache
 
 /** State of the fake Rabbit client */
 object SentinelState {
@@ -49,12 +47,16 @@ object SentinelState {
         }
         guild = guild.copy(voiceChannels = newList)
         guild = setMember(guild, member.copy(voiceChannel = channel.id))
-        rabbit.convertSendAndReceive(SentinelExchanges.EVENTS, VoiceJoinEvent(
+        rabbit.convertAndSend(SentinelExchanges.EVENTS, VoiceJoinEvent(
                 DefaultSentinelRaws.guild.id,
                 channel.id,
                 member.id))
 
         log.info("Emulating ${member.name} joining ${channel.name}")
+        delayUntil { guildCache.getIfCached(guild.id)?.getMember(member.id)?.voiceChannel?.id == channel.id }
+        if (guildCache.getIfCached(guild.id)?.getMember(member.id)?.voiceChannel?.id != channel.id)
+            throw RuntimeException("Failed to join VC")
+        log.info("${member.name} joined ${channel.name}")
     }
 
     private fun setMember(guild: RawGuild, member: RawMember): RawGuild {
@@ -65,7 +67,7 @@ object SentinelState {
 @Service
 @Suppress("MemberVisibilityCanBePrivate")
 @RabbitListener(queues = [SentinelExchanges.REQUESTS])
-class MockSentinelRequestHandler(template: RabbitTemplate) {
+class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(MockSentinelRequestHandler::class.java)
@@ -73,6 +75,7 @@ class MockSentinelRequestHandler(template: RabbitTemplate) {
 
     init {
         rabbit = template
+        guildCache = cache
     }
 
     @RabbitHandler
