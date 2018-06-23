@@ -41,6 +41,7 @@ internal class PlayCommandTest : IntegrationTest() {
                 editedMessage = req.messageId
                 req.message.startsWith("**Please select a track with the `;;play 1-5` command:**")
             }
+            delayUntil { selections[member] != null }
             selection = selections[member]
             assertNotNull(selection)
             assertEquals(selection!!.message.id, editedMessage)
