@@ -19,8 +19,8 @@ import java.time.Duration
 internal class PlayCommandTest : IntegrationTest() {
 
     companion object {
-        private const val url = "https://www.youtube.com/watch?v=8EdW28B-In4"
-        private const val url2 = "https://www.youtube.com/watch?v=pqUuvRkFfLI"
+        const val url = "https://www.youtube.com/watch?v=8EdW28B-In4"
+        const val url2 = "https://www.youtube.com/watch?v=pqUuvRkFfLI"
     }
 
     @Test
