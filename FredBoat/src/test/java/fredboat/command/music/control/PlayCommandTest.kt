@@ -54,14 +54,24 @@ internal class PlayCommandTest : IntegrationTest() {
     fun playUrl(players: PlayerRegistry) {
         SentinelState.joinChannel(channel = DefaultSentinelRaws.musicChannel)
         val url = "https://www.youtube.com/watch?v=8EdW28B-In4"
+        val url2 = "https://www.youtube.com/watch?v=pqUuvRkFfLI"
         testCommand(";;play $url") {
             assertRequest<AudioQueueRequest> { it.channel == DefaultSentinelRaws.musicChannel.id }
             assertReply { it.contains("Best of Demetori") && it.contains("will now play") }
             assertNotNull(players.getExisting(guild))
-            var i = 0
+
             delayUntil { players.getOrCreate(guild).playingTrack != null }
             assertNotNull(players.getOrCreate(guild).playingTrack)
             assertEquals(url, players.getOrCreate(guild).playingTrack?.track?.info?.uri)
+        }
+
+        testCommand(";;play $url2") {
+            assertRequest<AudioQueueRequest> { it.channel == DefaultSentinelRaws.musicChannel.id }
+            assertReply { it.contains("BEGIERDE DES ZAUBERER") && it.contains("has been added to the queue") }
+
+            delayUntil { players.getOrCreate(guild).remainingTracks.size == 2 }
+            assertNotNull(players.getOrCreate(guild).remainingTracks[1])
+            assertEquals(url2, players.getOrCreate(guild).remainingTracks[1].track.info?.uri)
         }
     }
 
