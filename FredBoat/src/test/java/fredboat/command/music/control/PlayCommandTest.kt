@@ -10,6 +10,7 @@ import fredboat.test.sentinel.DefaultSentinelRaws
 import fredboat.test.sentinel.SentinelState
 import fredboat.test.sentinel.assertReply
 import fredboat.test.sentinel.assertRequest
+import kotlinx.coroutines.experimental.delay
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -60,6 +61,12 @@ internal class PlayCommandTest : IntegrationTest() {
             assertRequest<AudioQueueRequest> { it.channel == DefaultSentinelRaws.musicChannel.id }
             assertReply { it.contains("Best of Demetori") && it.contains("will now play") }
             assertNotNull(players.getExisting(guild))
+            var i = 0
+            while (players.getOrCreate(guild).playingTrack == null) {
+                delay(200)
+                i++
+                if (i < 10) break
+            }
             assertNotNull(players.getOrCreate(guild).playingTrack)
             assertEquals(url, players.getOrCreate(guild).playingTrack?.track?.info?.uri)
         }
