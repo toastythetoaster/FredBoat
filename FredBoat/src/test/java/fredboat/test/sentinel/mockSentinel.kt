@@ -28,7 +28,7 @@ object SentinelState {
     fun reset() {
         guild = DefaultSentinelRaws.guild.copy()
         outgoing.clear()
-        rabbit.convertSendAndReceive(SentinelExchanges.EVENTS, GuildUpdateEvent(DefaultSentinelRaws.guild))
+        rabbit.convertAndSend(SentinelExchanges.EVENTS, GuildUpdateEvent(DefaultSentinelRaws.guild))
     }
 
     fun <T> poll(type: Class<T>, timeoutMillis: Long = 5000): T? {
