@@ -40,7 +40,7 @@ import kotlin.streams.toList
 @Component
 class PlayerRegistry(private val musicTextChannelProvider: MusicTextChannelProvider,
                      private val guildConfigService: GuildConfigService, private val lavalink: SentinelLavalink,
-                     @param:Qualifier("loadAudioPlayerManager") private val audioPlayerManager: AudioPlayerManager,
+                     @param:Qualifier("loadAudioPlayerManager") val audioPlayerManager: AudioPlayerManager,
                      private val ratelimiter: Ratelimiter, private val youtubeAPI: YoutubeAPI) {
 
     companion object {

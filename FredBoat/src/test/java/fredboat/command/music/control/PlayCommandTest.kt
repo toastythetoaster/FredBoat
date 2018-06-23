@@ -8,6 +8,8 @@ import fredboat.audio.player.VideoSelectionCache
 import fredboat.sentinel.GuildCache
 import fredboat.test.IntegrationTest
 import fredboat.test.sentinel.*
+import fredboat.test.util.cachedGuild
+import fredboat.test.util.queue
 import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.jupiter.api.BeforeEach
@@ -84,13 +86,7 @@ internal class PlayCommandTest : IntegrationTest() {
         // Setup
         SentinelState.joinChannel()
         SentinelState.joinChannel(DefaultSentinelRaws.self)
-        testCommand(";;play $url") {
-            delayUntil { players.getExisting(guild) != null }
-            delayUntil { players.getExisting(guild)?.playingTrack != null }
-            players.getExisting(guild)!!.setPause(true)
-            assertReply { true } // ignore
-            delayUntil { players.getExisting(guild)!!.humanUsersInCurrentVC.isNotEmpty() }
-        }
+        cachedGuild.queue(url).setPause(true)
 
         // We should unpause
         testCommand(";;play") {

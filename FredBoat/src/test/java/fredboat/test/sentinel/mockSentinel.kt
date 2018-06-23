@@ -16,7 +16,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
 
 private lateinit var rabbit: RabbitTemplate
-private lateinit var guildCache: GuildCache
+lateinit var guildCache: GuildCache
 
 /** State of the fake Rabbit client */
 object SentinelState {
