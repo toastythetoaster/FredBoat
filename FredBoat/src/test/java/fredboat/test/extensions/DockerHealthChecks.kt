@@ -61,7 +61,7 @@ object DockerHealthChecks {
                 "User-Id" to "1337"
         )
 
-        val sock = TestSocket(URI.create("ws://localhost:1234"), headers)
+        val sock = TestSocket(URI.create("ws://localhost:5555"), headers)
         sock.connect() // async
         SuccessOrFailure.fromBoolean(
                 sock.latch.await(10, TimeUnit.SECONDS),
