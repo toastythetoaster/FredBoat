@@ -1,10 +1,12 @@
 package fredboat.test.extensions
 
 import fredboat.main.Launcher
+import fredboat.sentinel.SentinelTracker
 import fredboat.test.IntegrationTest
 import fredboat.test.config.RabbitConfig
 import fredboat.test.sentinel.CommandTester
 import fredboat.test.sentinel.SentinelState
+import fredboat.test.sentinel.delayUntil
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.extension.*
 import org.slf4j.Logger
@@ -32,8 +34,12 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback, AfterEachCallb
             if (i > 60) throw TimeoutException("Context initialization timed out")
         }
         application = Launcher.instance!!.springContext
-        application!!.getBean(RabbitConfig.HelloSender::class.java).send()
-        sleep(500) // Ample time for the hello to be received
+        val helloSender = application!!.getBean(RabbitConfig.HelloSender::class.java)
+        val tracker = application!!.getBean(SentinelTracker::class.java)
+        delayUntil(timeout = 10000) {
+            helloSender.send()
+            tracker.getHello(0) != null
+        }
         IntegrationTest.commandTester = application!!.getBean(CommandTester::class.java)
         log.info("Successfully initialized test context ${application!!.javaClass.simpleName}")
     }
