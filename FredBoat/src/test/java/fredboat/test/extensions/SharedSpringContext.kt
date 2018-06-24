@@ -32,7 +32,6 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback, AfterEachCallb
             if (i > 60) throw TimeoutException("Context initialization timed out")
         }
         application = Launcher.instance!!.springContext
-        sleep(4500) // Takes care of race conditions
         application!!.getBean(RabbitConfig.HelloSender::class.java).send()
         sleep(500) // Ample time for the hello to be received
         IntegrationTest.commandTester = application!!.getBean(CommandTester::class.java)
