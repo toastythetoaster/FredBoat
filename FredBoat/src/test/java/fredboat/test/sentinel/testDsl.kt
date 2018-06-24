@@ -66,7 +66,7 @@ class CommandTester(private val commandContextParser: CommandContextParser, temp
                 false,
                 emptyList()
         )
-        return@runBlocking commandContextParser.parse(event) ?: throw IllegalArgumentException("Unknown command")
+        return@runBlocking commandContextParser.parse(event) ?: throw IllegalArgumentException("Unknown command: $message")
     }
 }
 

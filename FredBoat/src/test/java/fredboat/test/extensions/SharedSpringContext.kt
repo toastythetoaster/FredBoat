@@ -1,5 +1,6 @@
 package fredboat.test.extensions
 
+import fredboat.commandmeta.CommandInitializer
 import fredboat.main.Launcher
 import fredboat.sentinel.SentinelTracker
 import fredboat.test.IntegrationTest
@@ -7,6 +8,7 @@ import fredboat.test.config.RabbitConfig
 import fredboat.test.sentinel.CommandTester
 import fredboat.test.sentinel.SentinelState
 import fredboat.test.sentinel.delayUntil
+import junit.framework.Assert.assertTrue
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.extension.*
 import org.slf4j.Logger
@@ -41,6 +43,10 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback, AfterEachCallb
             tracker.getHello(0) != null
         }
         IntegrationTest.commandTester = application!!.getBean(CommandTester::class.java)
+
+        delayUntil(timeout = 10000) { CommandInitializer.initialized }
+        assertTrue("Command initialization timed out", CommandInitializer.initialized)
+
         log.info("Successfully initialized test context ${application!!.javaClass.simpleName}")
     }
 

@@ -59,6 +59,9 @@ import java.util.function.Supplier;
 
 public class CommandInitializer {
 
+    /** Used for integration testing */
+    public static boolean initialized = false;
+
     //the main alias of some commands are reused across the bot. these constants make sure any changes to them dont break things
     public static final String MODULES_COMM_NAME = "modules";
     public static final String HELP_COMM_NAME = "help";
@@ -247,6 +250,7 @@ public class CommandInitializer {
         musicModule.registerCommand(new RestartCommand("restart", "replay"));
         musicModule.registerCommand(new RewindCommand("rewind", "rew"));
         musicModule.registerCommand(new SeekCommand("seek"));
+        initialized = true;
     }
 
 
