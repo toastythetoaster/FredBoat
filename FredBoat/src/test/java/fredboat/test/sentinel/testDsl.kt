@@ -8,6 +8,7 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.sentinel.RawGuild
 import fredboat.sentinel.RawMember
 import fredboat.sentinel.RawTextChannel
+import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert
 import org.springframework.amqp.rabbit.core.RabbitTemplate
@@ -109,4 +110,14 @@ fun delayUntil(timeout: Long = 2000, block: () -> Boolean) {
         timeSpent += 200
         if (timeSpent >= timeout) break
     }
+}
+
+fun delayedAssertEquals(
+        timeout: Long = 2000,
+        message: String = "",
+        expected: Any,
+        actual: () -> Any
+) {
+    delayUntil(timeout) { expected == actual() }
+    assertEquals(message, expected, actual())
 }
