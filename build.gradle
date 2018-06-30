@@ -36,6 +36,7 @@ subprojects {
             classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
             classpath "io.spring.gradle:propdeps-plugin:${propDepsVersion}"
             classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+            classpath "org.jetbrains.kotlin:kotlin-allopen:$kotlinVersion"
         }
     }
     apply plugin: 'java'

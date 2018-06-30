@@ -35,7 +35,7 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback, AfterEachCallb
             i++
             if (i > 60) throw TimeoutException("Context initialization timed out")
         }
-        application = Launcher.instance!!.springContext
+        application = Launcher.springContext
         val helloSender = application!!.getBean(RabbitConfig.HelloSender::class.java)
         val tracker = application!!.getBean(SentinelTracker::class.java)
         delayUntil(timeout = 10000) {

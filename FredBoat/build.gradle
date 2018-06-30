@@ -4,6 +4,7 @@ apply plugin: 'application'
 apply plugin: 'propdeps'
 apply plugin: 'propdeps-idea'
 apply plugin: 'org.springframework.boot'
+apply plugin: "kotlin-spring"
 
 description = 'FredBoat Discord Music Bot'
 mainClassName = "fredboat.main.Launcher"

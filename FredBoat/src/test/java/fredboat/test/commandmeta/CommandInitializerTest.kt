@@ -22,36 +22,34 @@
  * SOFTWARE.
  */
 
-package fredboat.test.commandmeta;
+package fredboat.test.commandmeta
 
-import fredboat.commandmeta.CommandInitializer;
-import fredboat.commandmeta.CommandRegistry;
-import fredboat.commandmeta.abs.Command;
-import fredboat.test.BaseTest;
-import org.junit.jupiter.api.Assertions;
+import fredboat.commandmeta.CommandInitializer
+import fredboat.commandmeta.CommandRegistry
+import fredboat.test.IntegrationTest
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Test
 
 /**
  * Created by napster on 22.03.17.
- * <p>
+ *
+ *
  * Tests for command initialization
  */
-public class CommandInitializerTest extends BaseTest {
+class CommandInitializerTest : IntegrationTest() {
 
     /**
      * Make sure all commands initialized in the bot provide help
      */
-//    @Test disabled until spring refactoring is sorted out
-    public void testHelpStrings() {
-
-        CommandInitializer.initCommands(null, null, null, null,
-                null, null, null, null, null, null);
-
-        for (String c : CommandRegistry.getAllRegisteredCommandsAndAliases()) {
-            Command com = CommandRegistry.findCommand(c);
-            Assertions.assertNotNull(com, "Command looked up by " + c + " is null");
-            String help = null;//com.help(new FakeContext(null, null, null));
-            Assertions.assertNotNull(help, () -> com.getClass().getName() + ".help() returns null");
-            Assertions.assertNotEquals("", help, () -> com.getClass().getName() + ".help() returns an empty string");
+    @Test
+    fun testHelpStrings(@Suppress("UNUSED_PARAMETER") initializer: CommandInitializer) {
+        for (c in CommandRegistry.getAllRegisteredCommandsAndAliases()) {
+            val com = CommandRegistry.findCommand(c)!!
+            Assertions.assertNotNull(com, "Command looked up by $c is null")
+            val ctx = commandTester.parseContext(";; help ${com.name}")
+            val help = com.help(ctx)
+            Assertions.assertNotNull(help) { com.javaClass.name + ".help() returns null" }
+            Assertions.assertNotEquals("", help) { com.javaClass.name + ".help() returns an empty string" }
         }
     }
 }

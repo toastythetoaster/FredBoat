@@ -2,20 +2,12 @@ package fredboat.main
 
 import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary
 import fredboat.agent.*
-import fredboat.audio.player.PlayerLimiter
-import fredboat.audio.player.VideoSelectionCache
-import fredboat.commandmeta.CommandInitializer
 import fredboat.commandmeta.CommandRegistry
-import fredboat.config.SentryConfiguration
 import fredboat.config.property.ConfigPropertiesProvider
 import fredboat.feature.I18n
 import fredboat.util.AppInfo
 import fredboat.util.GitRepoState
 import fredboat.util.TextUtils
-import fredboat.util.rest.TrackSearcher
-import fredboat.util.rest.Weather
-import fredboat.util.rest.YoutubeAPI
-import io.prometheus.client.guava.cache.CacheMetricsCollector
 import okhttp3.Credentials
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
@@ -32,6 +24,7 @@ import org.springframework.boot.context.event.ApplicationFailedEvent
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ApplicationContextAware
 import org.springframework.context.ApplicationListener
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import java.io.IOException
 import java.util.concurrent.ExecutorService
@@ -51,20 +44,11 @@ open class Launcher(
         botController: BotController,
         private val configProvider: ConfigPropertiesProvider,
         private val executor: ExecutorService,
-        private val cacheMetrics: CacheMetricsCollector,
         private val statsAgent: StatsAgent,
-        private val weather: Weather,
-        private val trackSearcher: TrackSearcher,
-        private val videoSelectionCache: VideoSelectionCache,
-        private val sentryConfiguration: SentryConfiguration,
-        private val playerLimiter: PlayerLimiter,
-        private val youtubeAPI: YoutubeAPI,
         private val invalidationAgent: GuildCacheInvalidationAgent,
         private val voiceChannelCleanupAgent: VoiceChannelCleanupAgent,
         private val carbonitexAgent: CarbonitexAgent
 ) : ApplicationRunner, ApplicationContextAware {
-
-    lateinit var springContext: ApplicationContext
 
     init {
         Launcher.botController = botController
@@ -75,10 +59,6 @@ open class Launcher(
 
         I18n.start()
 
-        //Commands
-        CommandInitializer.initCommands(cacheMetrics, weather, trackSearcher, videoSelectionCache, sentryConfiguration,
-                playerLimiter, youtubeAPI, botController.sentinel, botController.sentinelCountingService,
-                Supplier { this.springContext })
         log.info("Loaded commands, registry size is " + CommandRegistry.getTotalSize())
 
         if (!configProvider.appConfig.isPatronDistribution) {
@@ -192,13 +172,16 @@ open class Launcher(
     }
 
     companion object {
-
+        lateinit var springContext: ApplicationContext
         private val log = LoggerFactory.getLogger(Launcher::class.java)
         val START_TIME = System.currentTimeMillis()
         lateinit var botController: BotController
             private set //temporary hack access to the bot context
         var instance: Launcher? = null
             private set
+
+        @Bean
+        fun springContextSupplier() = Supplier { this.springContext }
 
         @Throws(IllegalArgumentException::class)
         @JvmStatic
