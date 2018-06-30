@@ -5,8 +5,8 @@ import com.palantir.docker.compose.connection.State
 import com.palantir.docker.compose.connection.waiting.SuccessOrFailure
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
-import fredboat.test.extensions.DockerExtension.docker
-import fredboat.test.extensions.DockerExtension.execute
+import fredboat.test.extensions.DockerExtension.Companion.docker
+import fredboat.test.extensions.DockerExtension.Companion.execute
 import fredboat.util.rest.Http
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake

@@ -32,6 +32,9 @@ import com.palantir.docker.compose.connection.waiting.HealthChecks
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.slf4j.LoggerFactory
+import java.util.*
+import java.util.concurrent.TimeUnit
+
 
 /**
  * Created by napster on 30.03.18.
@@ -48,22 +51,7 @@ class DockerExtension : BeforeAllCallback {
         Runtime.getRuntime().addShutdownHook(Thread({ docker.after() }, "Docker container shutdown hook"))
     }
 
-    override fun beforeAll(context: ExtensionContext) {
-        if (hasSetup) return
-        val timeStart = System.currentTimeMillis()
-        try {
-            docker.before()
-        } catch (e: Exception) {
-            log.error("Docker failed, exiting...", e)
-            System.exit(-1)
-        }
-
-        hasSetup = true
-        log.info("Started docker in " + (System.currentTimeMillis() - timeStart) + "ms")
-    }
-
     companion object {
-
         private val log = LoggerFactory.getLogger(DockerExtension::class.java)
 
         internal var docker: DockerComposeRule = DockerComposeRule.builder()
@@ -92,5 +80,27 @@ class DockerExtension : BeforeAllCallback {
 
             return ShutdownStrategy.GRACEFUL
         }
+
+        fun execute(command: String): String {
+            val pr = Runtime.getRuntime().exec(command)
+            Scanner(pr.inputStream).use { s ->
+                pr.waitFor(30, TimeUnit.SECONDS)
+                return if (s.hasNext()) s.next() else ""
+            }
+        }
+    }
+
+    override fun beforeAll(context: ExtensionContext) {
+        if (hasSetup) return
+        val timeStart = System.currentTimeMillis()
+        try {
+            docker.before()
+        } catch (e: Exception) {
+            log.error("Docker failed, exiting...", e)
+            System.exit(-1)
+        }
+
+        hasSetup = true
+        log.info("Started docker in " + (System.currentTimeMillis() - timeStart) + "ms")
     }
 }
