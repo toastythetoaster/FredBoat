@@ -9,7 +9,7 @@ import fredboat.test.sentinel.delayUntil
 import fredboat.test.sentinel.delayedAssertEquals
 import fredboat.test.util.cachedGuild
 import fredboat.test.util.queue
-import junit.framework.Assert.assertNotNull
+import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
