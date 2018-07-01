@@ -22,10 +22,8 @@
  * SOFTWARE.
  */
 
-package fredboat.test.commandmeta
+package fredboat.commandmeta
 
-import fredboat.commandmeta.CommandInitializer
-import fredboat.commandmeta.CommandRegistry
 import fredboat.test.IntegrationTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
