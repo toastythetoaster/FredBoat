@@ -34,7 +34,7 @@ class CommandTester(private val commandContextParser: CommandContextParser, temp
             invoker: RawMember = DefaultSentinelRaws.owner,
             block: suspend CommandContext.() -> Unit
     ) {
-        doTest(parse(
+        doTest(parseContext(
                 message, guild, channel, invoker
         ), block)
     }
@@ -50,7 +50,7 @@ class CommandTester(private val commandContextParser: CommandContextParser, temp
         }
     }
 
-    private fun parse(
+    fun parseContext(
             message: String,
             guild: RawGuild = DefaultSentinelRaws.guild,
             channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
