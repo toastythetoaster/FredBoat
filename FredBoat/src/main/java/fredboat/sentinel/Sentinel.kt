@@ -4,6 +4,8 @@ import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
 import fredboat.config.ApplicationInfo
 import fredboat.perms.IPermissionSet
+import org.springframework.amqp.core.MessageDeliveryMode
+import org.springframework.amqp.core.MessagePostProcessor
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Component
@@ -43,8 +45,12 @@ class Sentinel(private val template: AsyncRabbitTemplate,
             routingKey: String,
             request: Any,
             mayBeEmpty: Boolean = false,
+            deliveryMode: MessageDeliveryMode = MessageDeliveryMode.NON_PERSISTENT,
             transform: (response: R) -> T) = Mono.create<T> {
-        template.convertSendAndReceive<R?>(exchange, routingKey, request).addCallback(
+        val postProcessor = MessagePostProcessor {
+            it.messageProperties.deliveryMode = deliveryMode; it
+        }
+        template.convertSendAndReceive<R?>(exchange, routingKey, request, postProcessor).addCallback(
                 { res ->
                     try {
                         if (res == null) {
@@ -67,7 +73,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     routingKey,
                     SendMessageRequest(channel.id, message),
                     mayBeEmpty = false,
-                    transform = {it}
+                    transform = { it }
             )
 
     fun sendMessage(routingKey: String, channel: TextChannel, message: Embed): Mono<SendMessageResponse> =
@@ -76,7 +82,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     routingKey,
                     SendEmbedRequest(channel.id, message),
                     mayBeEmpty = false,
-                    transform = {it}
+                    transform = { it }
             )
 
     fun sendPrivateMessage(user: User, message: String): Mono<Unit> =
@@ -121,7 +127,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                 guild.routingKey,
                 GuildPermissionRequest(guild.id, member?.id, role?.id, permissions.raw),
                 mayBeEmpty = true,
-                transform = {it}
+                transform = { it }
         )
     }
 
@@ -138,7 +144,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                 guild.routingKey,
                 ChannelPermissionRequest(channel.id, member?.id, role?.id, permissions.raw),
                 mayBeEmpty = true,
-                transform = {it}
+                transform = { it }
         )
     }
 
@@ -177,7 +183,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     guild.routingKey,
                     GuildInfoRequest(guild.id),
                     mayBeEmpty = false,
-                    transform = {it}
+                    transform = { it }
             )
 
     fun getMemberInfo(member: Member): Mono<MemberInfo> =
@@ -186,7 +192,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     member.guild.routingKey,
                     MemberInfoRequest(member.id, member.guild.id),
                     mayBeEmpty = false,
-                    transform = {it}
+                    transform = { it }
             )
 
     fun getRoleInfo(role: Role): Mono<RoleInfo> =
@@ -195,7 +201,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     role.guild.routingKey,
                     RoleInfoRequest(role.id),
                     mayBeEmpty = false,
-                    transform = {it}
+                    transform = { it }
             )
 
     /* Mass requests */
@@ -207,12 +213,12 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     private fun getSentinelInfo(routingKey: String, includeShards: Boolean = false) =
             genericMonoSendAndReceive<SentinelInfoResponse, NamedSentinelInfoResponse>(
-            SentinelExchanges.REQUESTS,
-            routingKey,
-            SentinelInfoRequest(includeShards),
-            mayBeEmpty = true,
-            transform = {NamedSentinelInfoResponse(it, routingKey)}
-    )
+                    SentinelExchanges.REQUESTS,
+                    routingKey,
+                    SentinelInfoRequest(includeShards),
+                    mayBeEmpty = true,
+                    transform = { NamedSentinelInfoResponse(it, routingKey) }
+            )
 
     /** Request sentinel info from each tracked Sentinel simultaneously in the order of receiving them
      *  Errors are delayed till all requests have either completed or failed */
@@ -226,7 +232,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
 
     private fun getSentinelUserList(routingKey: String): Flux<Long> = Flux.create { sink ->
         template.convertSendAndReceive<List<Long>>(SentinelExchanges.REQUESTS, routingKey, UserListRequest()).addCallback(
-                {list ->
+                { list ->
                     if (list == null) sink.error(NullPointerException())
                     list!!.forEach { sink.next(it) }
                     sink.complete()
