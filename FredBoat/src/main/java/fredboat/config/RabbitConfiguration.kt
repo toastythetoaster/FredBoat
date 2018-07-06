@@ -10,23 +10,29 @@ import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
 import org.springframework.amqp.support.converter.MessageConverter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.retry.interceptor.RetryInterceptorBuilder
 
 @Configuration
-open class RabbitConfiguration {
+class RabbitConfiguration {
 
     @Bean
-    open fun jsonMessageConverter(): MessageConverter {
+    fun jsonMessageConverter(): MessageConverter {
         // We must register this Kotlin module to get deserialization to work with data classes
         return Jackson2JsonMessageConverter(ObjectMapper().registerKotlinModule())
     }
 
     @Bean
-    open fun asyncTemplate(rabbitTemplate: RabbitTemplate): AsyncRabbitTemplate {
+    fun asyncTemplate(rabbitTemplate: RabbitTemplate): AsyncRabbitTemplate {
         return AsyncRabbitTemplate(rabbitTemplate)
     }
 
     @Bean
-    open fun eventQueue() = Queue(SentinelExchanges.EVENTS, false)
+    fun eventQueue() = Queue(SentinelExchanges.EVENTS, false)
 
-
+    /* Don't retry ad infinitum */
+    @Bean
+    fun retryOperationsInterceptor() = RetryInterceptorBuilder
+            .stateful()
+            .maxAttempts(3)
+            .build()!!
 }
