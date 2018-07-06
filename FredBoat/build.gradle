@@ -57,6 +57,7 @@ dependencies {
     compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonKotlinVersion
 
     compile group: 'org.togglz', name: 'togglz-core', version: togglzVersion
+    compile group: 'org.togglz', name: 'togglz-slf4j', version: togglzVersion
     compile group: 'com.github.vladimir-bukhtoyarov', name: 'bucket4j-core', version: bucket4jVersion
 
     //tests
