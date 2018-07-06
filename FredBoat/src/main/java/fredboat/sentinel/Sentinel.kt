@@ -4,8 +4,6 @@ import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
 import fredboat.config.ApplicationInfo
 import fredboat.perms.IPermissionSet
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Component
@@ -18,10 +16,6 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                val tracker: SentinelTracker,
                val applicationInfo: ApplicationInfo,
                val selfUser: RawUser) {
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(Sentinel::class.java)
-    }
 
     init {
         // Send a hello when we start so we get SentinelHellos in return

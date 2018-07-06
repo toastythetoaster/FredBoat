@@ -83,7 +83,7 @@ class MessageEventHandler(
             return
         }
 
-        if (sentinel.selfUser.id == event.author) log.info(event.content)
+        if (sentinel.selfUser.id == event.author) log.info(if(event.content.isBlank()) "<empty>" else event.content)
         if (event.fromBot) return
 
         //Preliminary permission filter to avoid a ton of parsing

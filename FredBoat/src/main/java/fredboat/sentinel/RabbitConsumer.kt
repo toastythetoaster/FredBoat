@@ -133,7 +133,6 @@ class RabbitConsumer(
 
     @RabbitHandler
     fun receive(event: MessageReceivedEvent) {
-        log.info(event.toString())
         // Before execution set some variables that can help with finding traces that belong to each other
         MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_GUILD, event.guild.toString()).use {
             MDC.putCloseable(SentryConfiguration.SENTRY_MDC_TAG_CHANNEL, event.channel.toString()).use {
