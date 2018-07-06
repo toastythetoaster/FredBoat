@@ -4,23 +4,22 @@ import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.GuildSubscribeRequest
 import fredboat.config.property.AppConfig
 import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeoutException
 
 @Service
 class GuildCache(private val sentinel: Sentinel,
                  private val appConfig: AppConfig) {
 
     init {
+        @Suppress("LeakingThis")
         INSTANCE = this
     }
 
     companion object {
-        private val log: Logger = LoggerFactory.getLogger(GuildCache::class.java)
         lateinit var INSTANCE: GuildCache
     }
 
@@ -45,7 +44,7 @@ class GuildCache(private val sentinel: Sentinel,
         )
                 .doOnError { sink.error(it) }
                 .subscribe { sink.success(it) }
-    }.timeout(Duration.ofSeconds(10), Mono.empty())
+    }.timeout(Duration.ofSeconds(10), Mono.error(TimeoutException("Timed out while subscribing to $id")))
 
     fun getIfCached(id: Long): Guild? = cache[id]
 
