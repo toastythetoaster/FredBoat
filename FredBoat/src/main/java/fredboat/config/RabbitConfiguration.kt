@@ -6,6 +6,7 @@ import com.fredboat.sentinel.SentinelExchanges
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
+import org.springframework.amqp.rabbit.listener.RabbitListenerErrorHandler
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
 import org.springframework.amqp.support.converter.MessageConverter
 import org.springframework.context.annotation.Bean
@@ -28,6 +29,12 @@ class RabbitConfiguration {
 
     @Bean
     fun eventQueue() = Queue(SentinelExchanges.EVENTS, false)
+
+    @Bean
+    fun rabbitListenerErrorHandler() = RabbitListenerErrorHandler { _, msg, exception ->
+        val name = msg.payload?.javaClass?.simpleName ?: "unknown"
+        throw RuntimeException("Failed to consume $name", exception)
+    }
 
     /* Don't retry ad infinitum */
     @Bean
