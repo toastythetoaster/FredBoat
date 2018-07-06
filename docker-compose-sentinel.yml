@@ -50,7 +50,7 @@ services:
   ##                               Lavalink
   ################################################################################
   lavalink:
-    image: fredboat/lavalink:latest
+    image: fredboat/lavalink:v3
     restart: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
@@ -58,8 +58,8 @@ services:
   ################################################################################
   ##                               Sentinel
   ################################################################################
-  lavalink:
-    image: fredboat/sentinel:latest
+  sentinel:
+    image: fredboat/sentinel:dev
     restart: on-failure:3
     depends_on:
       - rabbitmq
@@ -67,6 +67,9 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
     environment:
       - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
+
+      # Find the token of your bot on https://discordapp.com/developers/applications/me
+      # Tutorial: https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token
       - "SENTINEL_DISCORDTOKEN=write_your_discord_bot_token_here"
 
   ################################################################################
@@ -110,6 +113,8 @@ services:
       - lavalink
     ports:
       - 1356:1356
+    environment:
+      - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
     volumes:
       - ./fredboat.yaml:/opt/FredBoat/fredboat.yaml
       - ./fredboat_logs:/opt/FredBoat/logs

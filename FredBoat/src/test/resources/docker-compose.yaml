@@ -20,7 +20,7 @@ services:
   rabbitmq:
     image: rabbitmq:latest
     ports:
-        - 5672:5672
+      - 5672:5672
 
   lavalink:
     image: fredboat/lavalink:dev-v2
