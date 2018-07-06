@@ -8,7 +8,7 @@ import fredboat.test.config.RabbitConfig
 import fredboat.test.sentinel.CommandTester
 import fredboat.test.sentinel.SentinelState
 import fredboat.test.sentinel.delayUntil
-import junit.framework.Assert.assertTrue
+import org.junit.Assert.assertTrue
 import kotlinx.coroutines.experimental.launch
 import org.junit.jupiter.api.extension.*
 import org.slf4j.Logger
