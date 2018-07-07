@@ -28,6 +28,7 @@ package fredboat.messaging.internal
 import com.fredboat.sentinel.entities.Embed
 import com.fredboat.sentinel.entities.SendMessageResponse
 import com.fredboat.sentinel.entities.embed
+import com.fredboat.sentinel.entities.passed
 import fredboat.command.config.PrefixCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.feature.I18n
