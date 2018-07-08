@@ -10,6 +10,7 @@ import kotlinx.coroutines.experimental.delay
 import kotlinx.coroutines.experimental.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.amqp.AmqpConnectException
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
@@ -22,8 +23,16 @@ class SentinelTracker(private val appConfig: AppConfig, rabbit: RabbitTemplate, 
     }
 
     init {
-        fun hello(startup: Boolean) {
-            rabbit.convertAndSend(SentinelExchanges.FANOUT, "", FredBoatHello(startup, appConfig.status))
+        suspend fun hello(startup: Boolean) {
+            // This loop finishes only if we are connected
+            while (true) {
+                try {
+                    rabbit.convertAndSend(SentinelExchanges.FANOUT, "", FredBoatHello(startup, appConfig.status))
+                    break
+                } catch (e: AmqpConnectException) {
+                    delay(1000)
+                }
+            }
         }
 
         val task = launch {
