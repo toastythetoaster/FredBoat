@@ -6,13 +6,13 @@ import com.palantir.docker.compose.connection.waiting.SuccessOrFailure
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import fredboat.test.extensions.DockerExtension.Companion.docker
-import fredboat.test.extensions.DockerExtension.Companion.execute
 import fredboat.util.rest.Http
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
+import java.sql.DriverManager
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -20,16 +20,27 @@ object DockerHealthChecks {
 
     private val log: Logger = LoggerFactory.getLogger(DockerHealthChecks::class.java)
 
-    //executing it via the built in DockerComposeRule#exec() is not possible due to quotation marks handling
     fun checkPostgres(c: Container) = wrap(c) { container ->
-        val id = docker.dockerCompose().id(container)
-        val dockerCommand = "src/test/resources/is-db-init.sh " + id.get()
+        /*val dockerCommand = "src/test/resources/is-db-init.sh " +
         val result = execute(dockerCommand)
 
         return if (result.equals("1", ignoreCase = true)) {
             SuccessOrFailure.success()
         } else {
             SuccessOrFailure.failure("not ready yet")
+        }*/
+
+        DriverManager.getConnection("jdbc:postgresql://localhost/fredboat_cache", "postgres", "").use { conn ->
+            conn.createStatement().use { statement ->
+                val resultSet = statement.executeQuery("SELECT 1 FROM pg_database WHERE datname='fredboat_cache';")
+                resultSet.next()
+                val result = resultSet.getString(1)
+                if(result.equals("1", ignoreCase = true)) {
+                    SuccessOrFailure.success()
+                } else {
+                    SuccessOrFailure.failure("Unexpected result $result")
+                }
+            }
         }
     }
 

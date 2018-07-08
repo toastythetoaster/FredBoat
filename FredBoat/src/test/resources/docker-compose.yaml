@@ -2,13 +2,15 @@ version: '3'
 services:
   db:
     image: fredboat/postgres:latest
+    ports:
+      - 127.0.0.1:5432:5432
 
   quarterdeck:
     image: fredboat/quarterdeck:dev-v1
     depends_on:
       - db
     ports:
-      - 4269:4269
+      - 127.0.0.1:4269:4269
     entrypoint:
       - java
       - -Xmx128m
@@ -20,12 +22,12 @@ services:
   rabbitmq:
     image: rabbitmq:latest
     ports:
-      - 5672:5672
+      - 127.0.0.1:5672:5672
 
   lavalink:
     image: fredboat/lavalink:dev-v2
     ports:
-      - 5555:5555
+      - 127.0.0.1:5555:5555
     entrypoint:
       - java
       - -Xmx256m
