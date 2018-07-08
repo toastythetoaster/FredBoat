@@ -40,7 +40,7 @@ import java.util.function.Supplier
     HibernateJpaAutoConfiguration::class,
     FlywayAutoConfiguration::class])
 @ComponentScan(basePackages = ["fredboat"])
-open class Launcher(
+class Launcher(
         botController: BotController,
         private val configProvider: ConfigPropertiesProvider,
         private val executor: ExecutorService,

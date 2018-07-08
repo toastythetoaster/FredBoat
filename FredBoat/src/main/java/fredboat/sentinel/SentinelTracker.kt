@@ -1,6 +1,8 @@
 package fredboat.sentinel
 
 import com.fredboat.sentinel.entities.SentinelHello
+import fredboat.agent.FredBoatAgent
+import fredboat.agent.HelloSender
 import fredboat.config.property.AppConfig
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -9,9 +11,13 @@ import java.util.concurrent.ConcurrentHashMap
 
 /** Class that tracks Sentinels and their routing keys */
 @Service
-class SentinelTracker(private val appConfig: AppConfig) {
+class SentinelTracker(private val appConfig: AppConfig, private val helloSender: HelloSender) {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(SentinelTracker::class.java)
+    }
+
+    init {
+        FredBoatAgent.startNow(helloSender)
     }
 
     /** Shard id mapped to [SentinelHello] */
