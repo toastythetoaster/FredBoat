@@ -20,16 +20,7 @@ object DockerHealthChecks {
 
     private val log: Logger = LoggerFactory.getLogger(DockerHealthChecks::class.java)
 
-    fun checkPostgres(c: Container) = wrap(c) { container ->
-        /*val dockerCommand = "src/test/resources/is-db-init.sh " +
-        val result = execute(dockerCommand)
-
-        return if (result.equals("1", ignoreCase = true)) {
-            SuccessOrFailure.success()
-        } else {
-            SuccessOrFailure.failure("not ready yet")
-        }*/
-
+    fun checkPostgres(c: Container) = wrap(c) { _ ->
         DriverManager.getConnection("jdbc:postgresql://localhost/fredboat_cache", "postgres", "").use { conn ->
             conn.createStatement().use { statement ->
                 val resultSet = statement.executeQuery("SELECT 1 FROM pg_database WHERE datname='fredboat_cache';")
