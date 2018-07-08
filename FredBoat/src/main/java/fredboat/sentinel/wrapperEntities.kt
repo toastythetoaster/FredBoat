@@ -8,6 +8,7 @@ import fredboat.perms.IPermissionSet
 import fredboat.perms.NO_PERMISSIONS
 import fredboat.perms.Permission
 import fredboat.perms.PermissionSet
+import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.util.*
@@ -68,7 +69,7 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     /* Helper properties */
 
     val selfMember: Member
-        get() = _members[sentinel.selfUser.id] ?: throw IllegalStateException("Unable to find self in guild")
+        get() = _members[sentinel.selfUser.id] ?: throw AmqpRejectAndDontRequeueException("Unable to find self in guild")
     val shardId: Int
         get() = ((id shr 22) % appConfig.shardCount.toLong()).toInt()
     val shardString: String
@@ -108,7 +109,7 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
     var lastUsed: Long = System.currentTimeMillis()
 
     fun update(raw: RawGuild) {
-        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+        if (id != raw.id) throw AmqpRejectAndDontRequeueException("Attempt to update $id with the data of ${raw.id}")
 
         _name = raw.name
 
@@ -207,7 +208,7 @@ class InternalMember(guild: Guild, raw: RawMember) : Member(guild, raw) {
     }
 
     fun update(raw: RawMember) {
-        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+        if (id != raw.id) throw AmqpRejectAndDontRequeueException("Attempt to update $id with the data of ${raw.id}")
 
         val newRoleList = mutableListOf<Role>()
         raw.roles.flatMapTo(newRoleList) {
@@ -295,7 +296,7 @@ class InternalTextChannel(override val guild: Guild, raw: RawTextChannel) : Text
     }
 
     fun update(raw: RawTextChannel) {
-        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+        if (id != raw.id) throw AmqpRejectAndDontRequeueException("Attempt to update $id with the data of ${raw.id}")
 
         _name = raw.name
         _ourEffectivePermissions = raw.ourEffectivePermissions
@@ -331,7 +332,7 @@ class InternalVoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : Vo
     }
 
     fun update(raw: RawVoiceChannel) {
-        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+        if (id != raw.id) throw AmqpRejectAndDontRequeueException("Attempt to update $id with the data of ${raw.id}")
 
         _name = raw.name
         _ourEffectivePermissions = raw.ourEffectivePermissions
@@ -378,7 +379,7 @@ class InternalRole(override val guild: Guild, raw: RawRole) : Role(guild, raw) {
     }
 
     fun update(raw: RawRole) {
-        if (id != raw.id) throw IllegalArgumentException("Attempt to update $id with the data of ${raw.id}")
+        if (id != raw.id) throw AmqpRejectAndDontRequeueException("Attempt to update $id with the data of ${raw.id}")
 
         _name = raw.name
         _permissions = raw.permissions

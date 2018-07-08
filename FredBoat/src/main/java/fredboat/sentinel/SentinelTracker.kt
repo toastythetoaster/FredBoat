@@ -31,7 +31,7 @@ class SentinelTracker(private val appConfig: AppConfig, rabbit: RabbitTemplate, 
             hello(true)
             delay(5000)
             while (map.isEmpty()) {
-                log.info("Still haven't received hello from any sentinel. Resending hello....")
+                log.info("Still haven't received hello from any sentinel. Resending hello...")
                 hello(false)
                 delay(5000)
             }

@@ -7,6 +7,7 @@ import fredboat.event.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.amqp.rabbit.annotation.RabbitHandler
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Service
@@ -89,8 +90,8 @@ class RabbitConsumer(
         val channel = guild.getVoiceChannel(event.channel)
         val member = guild.getMember(event.member)
 
-        if (channel == null) throw IllegalStateException("Got VoiceJoinEvent for unknown channel ${event.channel}")
-        if (member == null) throw IllegalStateException("Got VoiceJoinEvent for unknown member ${event.member}")
+        if (channel == null) throw AmqpRejectAndDontRequeueException("Got VoiceJoinEvent for unknown channel ${event.channel}")
+        if (member == null) throw AmqpRejectAndDontRequeueException("Got VoiceJoinEvent for unknown member ${event.member}")
         (channel as InternalVoiceChannel).handleVoiceJoin(member)
 
         eventHandlers.forEach { it.onVoiceJoin(channel, member) }
@@ -103,8 +104,8 @@ class RabbitConsumer(
         val member = guild.getMember(event.member)
 
         (guild as InternalGuild).removeMemberFromAllVoiceChannels(event.member)
-        if (channel == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown channel ${event.channel}")
-        if (member == null) throw IllegalStateException("Got VoiceLeaveEvent for unknown member ${event.member}")
+        if (channel == null) throw AmqpRejectAndDontRequeueException("Got VoiceLeaveEvent for unknown channel ${event.channel}")
+        if (member == null) throw AmqpRejectAndDontRequeueException("Got VoiceLeaveEvent for unknown member ${event.member}")
 
         eventHandlers.forEach { it.onVoiceLeave(channel, member) }
     }
@@ -116,9 +117,9 @@ class RabbitConsumer(
         val new = guild.getVoiceChannel(event.newChannel)
         val member = guild.getMember(event.member)
 
-        if (old == null) throw IllegalStateException("Got VoiceMoveEvent for unknown old channel ${event.oldChannel}")
-        if (new == null) throw IllegalStateException("Got VoiceMoveEvent for unknown new channel ${event.newChannel}")
-        if (member == null) throw IllegalStateException("Got VoiceMoveEvent for unknown member ${event.member}")
+        if (old == null) throw AmqpRejectAndDontRequeueException("Got VoiceMoveEvent for unknown old channel ${event.oldChannel}")
+        if (new == null) throw AmqpRejectAndDontRequeueException("Got VoiceMoveEvent for unknown new channel ${event.newChannel}")
+        if (member == null) throw AmqpRejectAndDontRequeueException("Got VoiceMoveEvent for unknown member ${event.member}")
         (new as InternalVoiceChannel).handleVoiceJoin(member)
 
         eventHandlers.forEach { it.onVoiceMove(old, new, member) }
