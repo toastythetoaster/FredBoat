@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 /** Class that tracks Sentinels and their routing keys */
 @Service
-class SentinelTracker(private val appConfig: AppConfig, private val helloSender: HelloSender) {
+class SentinelTracker(private val appConfig: AppConfig, helloSender: HelloSender) {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(SentinelTracker::class.java)
     }
