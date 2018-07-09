@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
-@RabbitListener(queues = [SentinelExchanges.EVENTS], errorHandler = "#{rabbitListenerErrorHandler}")
+@RabbitListener(queues = [SentinelExchanges.EVENTS], errorHandler = "rabbitListenerErrorHandler")
 class RabbitConsumer(
         private val guildCache: GuildCache,
         private val sentinelTracker: SentinelTracker,

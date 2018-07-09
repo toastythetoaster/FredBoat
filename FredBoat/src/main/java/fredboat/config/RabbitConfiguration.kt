@@ -31,10 +31,7 @@ class RabbitConfiguration {
     fun eventQueue() = Queue(SentinelExchanges.EVENTS, false)
 
     @Bean
-    fun rabbitListenerErrorHandler() = RabbitListenerErrorHandler { _, msg, exception ->
-        val name = msg.payload?.javaClass?.simpleName ?: "unknown"
-        throw RuntimeException("Failed to consume $name", exception)
-    }
+    fun rabbitListenerErrorHandler() = RabbitListenerErrorHandler { _, _, _ -> null }
 
     /* Don't retry ad infinitum */
     @Bean
