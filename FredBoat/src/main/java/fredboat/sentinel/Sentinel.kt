@@ -35,7 +35,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                 )
     }
 
-    internal fun <R, T> genericMonoSendAndReceive(
+    fun <R, T> genericMonoSendAndReceive(
             exchange: String = SentinelExchanges.REQUESTS,
             routingKey: String,
             request: Any,
@@ -170,6 +170,19 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         }
     }
 
+    fun getBanList(guild: Guild): Flux<Ban> {
+        val req = BanListRequest(guild.id)
+        return Flux.create { sink ->
+            template.convertSendAndReceive<List<Ban>>(SentinelExchanges.REQUESTS, guild.routingKey, req).addCallback(
+                    { r ->
+                        r!!.forEach { sink.next(it) }
+                        sink.complete()
+                    },
+                    { exc -> sink.error(exc) }
+            )
+        }
+    }
+
     /* Extended info requests */
 
     fun getGuildInfo(guild: Guild): Mono<GuildInfo> =
@@ -198,6 +211,14 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     mayBeEmpty = false,
                     transform = { it }
             )
+
+    fun getUser(id: Long, routingKey: String): Mono<User> = genericMonoSendAndReceive<User, User>(
+            exchange = SentinelExchanges.REQUESTS,
+            routingKey = routingKey,
+            mayBeEmpty = true,
+            request = GetUserRequest(id),
+            transform = { it }
+    )
 
     /* Mass requests */
 

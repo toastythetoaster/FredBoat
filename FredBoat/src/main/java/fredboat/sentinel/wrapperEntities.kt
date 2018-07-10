@@ -89,7 +89,7 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     fun getRole(id: Long): Role? = _roles[id]
     fun getTextChannel(id: Long): TextChannel? = _textChannels[id]
     fun getVoiceChannel(id: Long): VoiceChannel? = _voiceChannels[id]
-
+    fun isMember(user: User) = members.containsKey(user.id)
     override fun equals(other: Any?): Boolean = other is Guild && id == other.id
     override fun hashCode() = id.hashCode()
 }
