@@ -26,6 +26,7 @@ import org.springframework.context.ApplicationContextAware
 import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.support.AbstractApplicationContext
 import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.function.Supplier
@@ -166,13 +167,13 @@ class Launcher(
     }
 
     override fun setApplicationContext(applicationContext: ApplicationContext) {
-        springContext = applicationContext
+        springContext = applicationContext as AbstractApplicationContext
         // Make the launcher available for integration testing
         instance = this
     }
 
     companion object {
-        lateinit var springContext: ApplicationContext
+        lateinit var springContext: AbstractApplicationContext
         private val log = LoggerFactory.getLogger(Launcher::class.java)
         val START_TIME = System.currentTimeMillis()
         lateinit var botController: BotController
@@ -181,7 +182,7 @@ class Launcher(
             private set
 
         @Bean
-        fun springContextSupplier() = Supplier { this.springContext }
+        fun springContextSupplier() = Supplier { this.springContext as ApplicationContext }
 
         @Throws(IllegalArgumentException::class)
         @JvmStatic
