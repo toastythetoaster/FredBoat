@@ -7,11 +7,13 @@ import fredboat.audio.player.PlayerRegistry
 import fredboat.audio.player.VideoSelectionCache
 import fredboat.sentinel.GuildCache
 import fredboat.testutil.IntegrationTest
+import fredboat.testutil.extensions.RetryRule
 import fredboat.testutil.sentinel.*
 import fredboat.testutil.util.cachedGuild
 import fredboat.testutil.util.queue
 import org.junit.Assert
 import org.junit.Assert.*
+import org.junit.Rule
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Duration
@@ -22,6 +24,9 @@ internal class PlayCommandTest : IntegrationTest() {
         const val url = "https://www.youtube.com/watch?v=8EdW28B-In4"
         const val url2 = "https://www.youtube.com/watch?v=pqUuvRkFfLI"
     }
+
+    @Rule
+    val retryRule = RetryRule(3)
 
     @Test
     fun notInChannel() {
