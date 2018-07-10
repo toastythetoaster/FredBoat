@@ -6,10 +6,10 @@ import com.fredboat.sentinel.entities.EditMessageRequest
 import fredboat.audio.player.PlayerRegistry
 import fredboat.audio.player.VideoSelectionCache
 import fredboat.sentinel.GuildCache
-import fredboat.test.IntegrationTest
-import fredboat.test.sentinel.*
-import fredboat.test.util.cachedGuild
-import fredboat.test.util.queue
+import fredboat.testutil.IntegrationTest
+import fredboat.testutil.sentinel.*
+import fredboat.testutil.util.cachedGuild
+import fredboat.testutil.util.queue
 import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.jupiter.api.BeforeEach

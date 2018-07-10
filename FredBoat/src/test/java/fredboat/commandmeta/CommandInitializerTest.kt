@@ -24,7 +24,7 @@
 
 package fredboat.commandmeta
 
-import fredboat.test.IntegrationTest
+import fredboat.testutil.IntegrationTest
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 

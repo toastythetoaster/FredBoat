@@ -22,24 +22,7 @@
  * SOFTWARE.
  */
 
-package fredboat.test.feature;
-
-import fredboat.feature.I18n;
-import fredboat.test.BaseTest;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.util.ResourceBundle;
-
-public class I18nTest extends BaseTest {
-
-    @Test
-    public void testTranslatedStrings() {
-        I18n.start();
-
-        ResourceBundle id_ID = I18n.LANGS.get("id_ID").getProps();
-        for(String key :  I18n.DEFAULT.getProps().keySet()){
-            Assertions.assertNotNull(id_ID.getString(key), () -> key + " prop missing in language files");
-        }
-    }
-}
+@space.npstr.annotations.FieldsAreNonNullByDefault
+@space.npstr.annotations.ParametersAreNonnullByDefault
+@space.npstr.annotations.ReturnTypesAreNonNullByDefault
+package fredboat.testutil;

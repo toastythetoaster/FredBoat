@@ -1,11 +1,11 @@
-package fredboat.test.extensions
+package fredboat.testutil.extensions
 
 import com.palantir.docker.compose.connection.Container
 import com.palantir.docker.compose.connection.State
 import com.palantir.docker.compose.connection.waiting.SuccessOrFailure
 import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
-import fredboat.test.extensions.DockerExtension.Companion.docker
+import fredboat.testutil.extensions.DockerExtension.Companion.docker
 import fredboat.util.rest.Http
 import org.java_websocket.client.WebSocketClient
 import org.java_websocket.handshake.ServerHandshake

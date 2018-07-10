@@ -22,7 +22,24 @@
  * SOFTWARE.
  */
 
-@space.npstr.annotations.FieldsAreNonNullByDefault
-@space.npstr.annotations.ParametersAreNonnullByDefault
-@space.npstr.annotations.ReturnTypesAreNonNullByDefault
-package fredboat.test;
+package fredboat.testutil;
+
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Created by napster on 21.01.18.
+ */
+public class LogExceptionExtension implements TestExecutionExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(LogExceptionExtension.class);
+
+    @Override
+    public void handleTestExecutionException(ExtensionContext context, Throwable throwable)
+            throws Throwable {
+        log.error("Uncaught exception during test execution", throwable);
+        throw throwable;
+    }
+}

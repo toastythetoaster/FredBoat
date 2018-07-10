@@ -1,8 +1,8 @@
 package fredboat.sentinel
 
 import com.fredboat.sentinel.entities.GuildSubscribeRequest
-import fredboat.test.IntegrationTest
-import fredboat.test.sentinel.SentinelState
+import fredboat.testutil.IntegrationTest
+import fredboat.testutil.sentinel.SentinelState
 import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.Test
 

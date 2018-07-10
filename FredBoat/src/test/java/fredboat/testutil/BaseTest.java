@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package fredboat.test;
+package fredboat.testutil;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;

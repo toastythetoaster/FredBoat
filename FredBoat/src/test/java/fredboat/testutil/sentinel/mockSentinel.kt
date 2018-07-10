@@ -1,10 +1,10 @@
-package fredboat.test.sentinel
+package fredboat.testutil.sentinel
 
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
 import fredboat.perms.Permission
 import fredboat.sentinel.*
-import fredboat.test.sentinel.SentinelState.outgoing
+import fredboat.testutil.sentinel.SentinelState.outgoing
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.rabbit.annotation.RabbitHandler

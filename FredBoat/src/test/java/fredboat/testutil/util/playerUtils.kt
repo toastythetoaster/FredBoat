@@ -1,4 +1,4 @@
-package fredboat.test.util
+package fredboat.testutil.util
 
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
@@ -10,9 +10,9 @@ import fredboat.main.Launcher
 import fredboat.sentinel.Guild
 import fredboat.sentinel.InternalVoiceChannel
 import fredboat.sentinel.Member
-import fredboat.test.sentinel.DefaultSentinelRaws
-import fredboat.test.sentinel.SentinelState
-import fredboat.test.sentinel.guildCache
+import fredboat.testutil.sentinel.DefaultSentinelRaws
+import fredboat.testutil.sentinel.SentinelState
+import fredboat.testutil.sentinel.guildCache
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 

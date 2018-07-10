@@ -1,7 +1,7 @@
 package fredboat.command.`fun`
 
-import fredboat.test.IntegrationTest
-import fredboat.test.sentinel.assertReply
+import fredboat.testutil.IntegrationTest
+import fredboat.testutil.sentinel.assertReply
 import fredboat.util.TextUtils
 import org.junit.jupiter.api.Test
 

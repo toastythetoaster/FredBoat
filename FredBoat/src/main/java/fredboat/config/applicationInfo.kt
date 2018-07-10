@@ -15,10 +15,10 @@ private const val APP_URL = "https://discordapp.com/api/v6/oauth2/applications/@
 private const val USER_URL = "https://discordapp.com/api/v6/users/@me"
 
 @Configuration
-open class DiscordInfoProvider{
+class DiscordInfoProvider{
     @Bean
-    @ConditionalOnMissingClass("fredboat.test.Flag")
-    open fun applicationInfo(credentials: Credentials): ApplicationInfo {
+    @ConditionalOnMissingClass("fredboat.testutil.Flag")
+    fun applicationInfo(credentials: Credentials): ApplicationInfo {
         log.info("Retrieving application info")
         Http(Http.DEFAULT_BUILDER).get(APP_URL)
                 .header("Authorization", "Bot " + credentials.botToken)
@@ -37,8 +37,8 @@ open class DiscordInfoProvider{
     }
 
     @Bean
-    @ConditionalOnMissingClass("fredboat.test.Flag")
-    open fun selfUser(credentials: Credentials): RawUser {
+    @ConditionalOnMissingClass("fredboat.testutil.Flag")
+    fun selfUser(credentials: Credentials): RawUser {
         log.info("Retrieving self user info")
         Http(Http.DEFAULT_BUILDER).get(USER_URL)
                 .header("Authorization", "Bot " + credentials.botToken)

@@ -22,24 +22,23 @@
  * SOFTWARE.
  */
 
-package fredboat.test;
+package fredboat.feature;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import fredboat.testutil.BaseTest;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-/**
- * Created by napster on 21.01.18.
- */
-public class LogExceptionExtension implements TestExecutionExceptionHandler {
+import java.util.ResourceBundle;
 
-    private static final Logger log = LoggerFactory.getLogger(LogExceptionExtension.class);
+public class I18nTest extends BaseTest {
 
-    @Override
-    public void handleTestExecutionException(ExtensionContext context, Throwable throwable)
-            throws Throwable {
-        log.error("Uncaught exception during test execution", throwable);
-        throw throwable;
+    @Test
+    public void testTranslatedStrings() {
+        I18n.start();
+
+        ResourceBundle id_ID = I18n.LANGS.get("id_ID").getProps();
+        for(String key :  I18n.DEFAULT.getProps().keySet()){
+            Assertions.assertNotNull(id_ID.getString(key), () -> key + " prop missing in language files");
+        }
     }
 }

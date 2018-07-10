@@ -1,13 +1,13 @@
-package fredboat.test.extensions
+package fredboat.testutil.extensions
 
 import fredboat.commandmeta.CommandInitializer
 import fredboat.main.Launcher
 import fredboat.sentinel.SentinelTracker
-import fredboat.test.IntegrationTest
-import fredboat.test.config.RabbitConfig
-import fredboat.test.sentinel.CommandTester
-import fredboat.test.sentinel.SentinelState
-import fredboat.test.sentinel.delayUntil
+import fredboat.testutil.IntegrationTest
+import fredboat.testutil.config.RabbitConfig
+import fredboat.testutil.sentinel.CommandTester
+import fredboat.testutil.sentinel.SentinelState
+import fredboat.testutil.sentinel.delayUntil
 import kotlinx.coroutines.experimental.launch
 import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.extension.*

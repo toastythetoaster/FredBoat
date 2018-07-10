@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package fredboat.test.config
+package fredboat.testutil.config
 
 import fredboat.config.property.*
 import fredboat.shared.constant.DistributionEnum

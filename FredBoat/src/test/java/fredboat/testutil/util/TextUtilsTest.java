@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-package fredboat.test.util;
+package fredboat.testutil.util;
 
-import fredboat.test.BaseTest;
+import fredboat.testutil.BaseTest;
 import fredboat.util.TextUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DynamicTest;

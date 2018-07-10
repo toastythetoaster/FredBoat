@@ -1,4 +1,4 @@
-package fredboat.test.config
+package fredboat.testutil.config
 
 import fredboat.config.ApplicationInfo
 import fredboat.sentinel.RawUser

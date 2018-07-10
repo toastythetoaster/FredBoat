@@ -1,4 +1,4 @@
-package fredboat.test.sentinel
+package fredboat.testutil.sentinel
 
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.MessageReceivedEvent

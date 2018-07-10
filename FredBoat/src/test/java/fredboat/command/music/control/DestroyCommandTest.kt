@@ -1,9 +1,9 @@
 package fredboat.command.music.control
 
-import fredboat.test.IntegrationTest
-import fredboat.test.sentinel.assertReply
-import fredboat.test.util.cachedGuild
-import fredboat.test.util.queue
+import fredboat.testutil.IntegrationTest
+import fredboat.testutil.sentinel.assertReply
+import fredboat.testutil.util.cachedGuild
+import fredboat.testutil.util.queue
 import org.junit.jupiter.api.Test
 
 internal class DestroyCommandTest : IntegrationTest() {

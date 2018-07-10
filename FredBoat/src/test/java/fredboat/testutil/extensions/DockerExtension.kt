@@ -1,4 +1,4 @@
-package fredboat.test.extensions
+package fredboat.testutil.extensions
 
 /*
  * MIT License
