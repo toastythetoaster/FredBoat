@@ -31,6 +31,10 @@ import fredboat.command.`fun`.img.*
 import fredboat.command.admin.*
 import fredboat.command.config.*
 import fredboat.command.info.*
+import fredboat.command.moderation.HardbanCommand
+import fredboat.command.moderation.KickCommand
+import fredboat.command.moderation.SoftbanCommand
+import fredboat.command.moderation.UnbanCommand
 import fredboat.command.music.control.*
 import fredboat.command.music.info.*
 import fredboat.command.music.seeking.ForwardCommand
@@ -128,11 +132,11 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
 
 
         // Moderation Module - Anything related to managing Discord guilds
-        val moderationModule = CommandRegistry(Module.MOD)/*
-        moderationModule.registerCommand(new HardbanCommand("hardban", "ban", "hb"));
-        moderationModule.registerCommand(new UnbanCommand("unban"));
-        moderationModule.registerCommand(new KickCommand("kick"));
-        moderationModule.registerCommand(new SoftbanCommand("softban", "sb"));*/
+        val moderationModule = CommandRegistry(Module.MOD)
+        moderationModule.registerCommand(HardbanCommand("hardban", "ban", "hb"))
+        moderationModule.registerCommand(UnbanCommand("unban"))
+        moderationModule.registerCommand(KickCommand("kick"))
+        moderationModule.registerCommand(SoftbanCommand("softban", "sb"))
 
 
         // Utility Module - Like Fun commands but without the fun ¯\_(ツ)_/¯
