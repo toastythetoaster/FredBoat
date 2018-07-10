@@ -27,7 +27,10 @@ class GuildCache(private val sentinel: Sentinel,
 
     fun get(id: Long): Mono<Guild?> = Mono.create<Guild?> { sink ->
         val guild = cache[id]
-        if (guild != null) sink.success(guild)
+        if (guild != null) {
+            sink.success(guild)
+            return@create
+        }
 
         sentinel.genericMonoSendAndReceive<RawGuild?, Guild?>(
                 SentinelExchanges.REQUESTS,

@@ -93,6 +93,7 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
 
     @RabbitHandler
     fun subscribe(request: GuildSubscribeRequest): RawGuild {
+        default(request)
         log.info("Got subscription request")
         return SentinelState.guild
     }
