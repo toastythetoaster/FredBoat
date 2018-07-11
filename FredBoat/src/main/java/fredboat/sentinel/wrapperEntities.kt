@@ -177,6 +177,7 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
                 isBot
         ))
     val info: Mono<MemberInfo> get() = sentinel.getMemberInfo(this)
+    fun isOwner() = this == guild.owner
 
     fun getPermissions(channel: Channel? = null): Mono<PermissionSet> {
         return when (channel) {

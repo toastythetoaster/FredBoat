@@ -25,7 +25,6 @@
 
 package fredboat.command.moderation
 
-import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.Ban
 import fredboat.command.info.HelpCommand
 import fredboat.commandmeta.abs.Command
@@ -39,14 +38,13 @@ import fredboat.sentinel.Sentinel
 import fredboat.sentinel.User
 import fredboat.util.ArgumentUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
 import java.text.MessageFormat
-import java.util.function.Consumer
 import java.util.regex.Pattern
 import javax.annotation.CheckReturnValue
 
@@ -64,7 +62,7 @@ import javax.annotation.CheckReturnValue
  *
  * @param <T> Class of the return value of the AuditableRestAction of this command
 </T> */
-abstract class DiscordModerationCommand<T> protected constructor(name: String, vararg aliases: String)
+abstract class DiscordModerationCommand protected constructor(name: String, vararg aliases: String)
     : Command(name, *aliases), IModerationCommand {
 
     companion object {
@@ -96,26 +94,12 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
             else
                 plainReason
         }
-
-        /**
-         * Fetch the banlist of the guild of the context. If that's not possible of fails, the context is informed about
-         * the issue. Returns null when we do not have permission.
-         */
-        protected suspend fun fetchBanlist(context: CommandContext): Flux<Ban>? {
-            //need ban perms to read the ban list
-            if (!context.checkSelfPermissionsWithFeedback(Permission.BAN_MEMBERS)) return null
-
-            val guild = context.guild
-            return guild.sentinel.getBanList(guild).doOnError {
-                context.replyWithName(context.i18n("modBanlistFail"))
-            }
-        }
     }
 
     /**
      * Returns the [Mono] to be issued by this command
      */
-    protected abstract fun modAction(modActionInfo: ModActionInfo): Mono<Unit>
+    protected abstract fun modAction(args: ModActionInfo): Mono<Unit>
 
     /**
      * @return true if this mod action requires the target to be a member of the guild (example: kick). The invoker will
@@ -126,12 +110,12 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
     /**
      * Returns the success handler for the mod action
      */
-    protected abstract fun onSuccess(modActionInfo: ModActionInfo): Consumer<T>
+    protected abstract fun onSuccess(args: ModActionInfo): () -> Unit
 
     /**
      * Returns the failure handler for the mod action
      */
-    protected abstract fun onFail(modActionInfo: ModActionInfo): Consumer<Throwable>
+    protected abstract fun onFail(args: ModActionInfo): (t: Throwable) -> Unit
 
     /**
      * Checks ourself, the context.invoker, and the target member for proper authorization, and replies with appropriate
@@ -142,7 +126,7 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
      * @return true if all checks are successful, false otherwise. In case the return value is false, the invoker has
      * received feedback as to why.
      */
-    protected abstract fun checkAuthorizationWithFeedback(modActionInfo: ModActionInfo): Mono<Boolean>
+    protected abstract suspend fun checkAuthorizationWithFeedback(args: ModActionInfo): Boolean
 
     /**
      * Parse the context of the command into a ModActionInfo.
@@ -155,7 +139,7 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
      * @return a mono that may emit a ModActionInfo. Mono may be empty if something could not be parsed. In that case
      * the user will have been notified of the issue, no further action by the caller is necessary
      */
-    protected open fun parseModActionInfoWithFeedback(context: CommandContext): Mono<ModActionInfo> {
+    protected open suspend fun parseModActionInfoWithFeedback(context: CommandContext): Mono<ModActionInfo> {
         //Ensure we have a search term
         if (!context.hasArguments()) {
             HelpCommand.sendFormattedCommandHelp(context)
@@ -199,7 +183,7 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
 
         if (!userIdGroup.isEmpty()) {
             try {
-                targetId = java.lang.Long.parseUnsignedLong(userIdGroup)
+                targetId = userIdGroup.toLong()
             } catch (e: NumberFormatException) {
                 log.error("Failed to parse unsigned long from {}. Fix the regexes?", userIdGroup)
             }
@@ -227,17 +211,19 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
                 sink.success() // Unable to find user, already sent feedback
                 return@create
             }
-            checkPreconditionWithFeedback(user!!, context)
-                    .doOnError { sink.error(it) }
-                    .subscribe { preconditionMet ->
-                        if (!preconditionMet) {
-                            sink.success() // Already given feedback
-                            return@subscribe
-                        }
+            launch {
+                checkPreconditionWithFeedback(user!!, context)
+                        .doOnError { sink.error(it) }
+                        .subscribe { preconditionMet ->
+                            if (!preconditionMet) {
+                                sink.success() // Already given feedback
+                                return@subscribe
+                            }
 
-                        val guildMember = context.guild.getMember(user!!.id)
-                        sink.success(ModActionInfo(context, guildMember, user!!, keep, finalReason))
-                    }
+                            val guildMember = context.guild.getMember(user!!.id)
+                            sink.success(ModActionInfo(context, guildMember, user!!, keep, finalReason))
+                        }
+            }
         })
     }
 
@@ -261,7 +247,7 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
      * @return Does a fuzzy search for a user. Default implementation fuzzy searches the guild of the context.
      */
     @CheckReturnValue
-    protected open fun fromFuzzySearch(context: CommandContext, searchTerm: String): Mono<User> =
+    protected open suspend fun fromFuzzySearch(context: CommandContext, searchTerm: String): Mono<User> =
             ArgumentUtil.checkSingleFuzzyMemberSearchResult(context, searchTerm, true)?.user?.toMono()
                     ?: Mono.empty()
 
@@ -271,7 +257,7 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
      * - To unban a user, they need to be on the banlist.
      * If the precondition is not met, this method should give feedback to the invoker about the unmet precondition.
      */
-    protected open fun checkPreconditionWithFeedback(user: User, context: CommandContext): Mono<Boolean> {
+    protected open suspend fun checkPreconditionWithFeedback(user: User, context: CommandContext): Mono<Boolean> {
         if (requiresMember() && !context.guild.isMember(user)) {
             context.reply(context.i18nFormat("parseNotAMember", user.asMention))
             return false.toMono()
@@ -287,19 +273,11 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
                 }.awaitFirstOrNull() ?: return
 
         val hasAuthorization = checkAuthorizationWithFeedback(modActionInfo)
-                .doOnError { t ->
-                    TextUtils.handleException("Failed to check authorization for a moderation command", t, context)
-                }.awaitFirst()
 
         if (!hasAuthorization) return // The invoker has been told
 
         val modAction = {
-            context.sentinel.genericMonoSendAndReceive<Unit, Unit>(
-                    exchange = SentinelExchanges.REQUESTS,
-                    request = modAction(modActionInfo),
-                    routingKey = context.routingKey,
-                    mayBeEmpty = true,
-                    transform = {})
+            modAction(modActionInfo)
                     .doOnError { onFail(modActionInfo) }
                     .doOnSuccess { onSuccess(modActionInfo) }
                     .subscribe()
@@ -319,10 +297,24 @@ abstract class DiscordModerationCommand<T> protected constructor(name: String, v
     }
 
     /**
+     * Fetch the banlist of the guild of the context. If that's not possible of fails, the context is informed about
+     * the issue. Returns null when we do not have permission.
+     */
+    protected suspend fun fetchBanlist(context: CommandContext): Flux<Ban>? {
+        //need ban perms to read the ban list
+        if (!context.checkSelfPermissionsWithFeedback(Permission.BAN_MEMBERS)) return null
+
+        val guild = context.guild
+        return guild.sentinel.getBanList(guild).doOnError {
+            context.replyWithName(context.i18n("modBanlistFail"))
+        }
+    }
+
+    /**
      * @return An optional message that will be attempted to be sent to the target user before executing the moderation
      * action against them, so that they know what happened to them.
      */
-    protected abstract fun dmForTarget(modActionInfo: ModActionInfo): String?
+    protected abstract fun dmForTarget(args: ModActionInfo): String?
 
 
     //pass information between methods called inside this class and its subclasses
