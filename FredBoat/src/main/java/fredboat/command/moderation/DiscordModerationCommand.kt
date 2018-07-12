@@ -59,9 +59,7 @@ import javax.annotation.CheckReturnValue
  * ;;command memberNameThatWillBeFuzzySearched audit reason with whitespace allowed
  * or
  * ;;command id snowflakeUserId audit reason with whitespace allowed
- *
- * @param <T> Class of the return value of the AuditableRestAction of this command
-</T> */
+ */
 abstract class DiscordModerationCommand protected constructor(name: String, vararg aliases: String)
     : Command(name, *aliases), IModerationCommand {
 
@@ -118,7 +116,7 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
     protected abstract fun onFail(args: ModActionInfo): (t: Throwable) -> Unit
 
     /**
-     * Checks ourself, the context.invoker, and the target member for proper authorization, and replies with appropriate
+     * Checks ourself, the context.member, and the target member for proper authorization, and replies with appropriate
      * feedback if any check fails. Some guild specific checks are only run if the target member is not null, assuming
      * that in that case a mod action is being performed on a user that is not a member of the guild (for example,
      * banning a user that left the guild)
@@ -230,11 +228,11 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
     /**
      * @param routingGuild Provides routing key and [Sentinel]
      * @param userId The user to fetch from discord.
-     * @return A future that will complete with an optional user. The optional will be empty if Discord doesn't know
-     * any user by the userId that was passed to this method, otherwise if will contain a (possibly fake from JDAs point
+     * @return A [Mono] that will complete with an optional [User]. The Mono will be empty if Discord doesn't know
+     * any user by the [userId] that was passed to this method, otherwise if will contain a (possibly fake from JDAs point
      * of view) user.
      *
-     * This method will handle ( = log) any unexpected exceptions, and return an empty Optional instead. Callers of this
+     * This method will log any unexpected exceptions, and return an empty Mono instead. Callers of this
      * don't need to handle throwables in the return completion stage.
      */
     @CheckReturnValue
@@ -297,7 +295,7 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
     }
 
     /**
-     * Fetch the banlist of the guild of the context. If that's not possible of fails, the context is informed about
+     * Fetch the banlist of the guild of the context. If that fails, the context is informed about
      * the issue. Returns null when we do not have permission.
      */
     protected suspend fun fetchBanlist(context: CommandContext): Flux<Ban>? {
@@ -336,7 +334,7 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
 
         /**
          * Suitable for display discord audit logs. Will add information about who issued the ban, and respect Discords
-         * lenght limit for audit log reasons.
+         * length limit for audit log reasons.
          */
         val formattedReason: String
             get() = formatReasonForAuditLog(this.plainReason, this.context.member, this.targetUser)
