@@ -112,7 +112,7 @@ public class ListCommand extends JCommand implements IMusicCommand {
             String username = member.getEffectiveName();
             mb.code("[" +
                     TextUtils.forceNDigits(i + 1, numberLength)
-                    + "]", "")
+                    + "]")
                     .append(status)
                     .append(context.i18nFormat("listAddedBy", TextUtils.escapeAndDefuse(atc.getEffectiveTitle()),
                             TextUtils.escapeAndDefuse(username), TextUtils.formatTime(atc.getEffectiveDuration())))
