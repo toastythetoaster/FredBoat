@@ -1,5 +1,6 @@
 package fredboat.command.admin;
 
+import com.fredboat.sentinel.SentinelExchanges;
 import com.fredboat.sentinel.entities.SetAvatarRequest;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
@@ -150,7 +151,7 @@ public class SetAvatarCommand extends JCommand implements ICommandRestricted {
 
     private void setBotAvatar(CommandContext context, byte[] binary) {
         String encoded = Base64.getEncoder().encodeToString(binary);
-        context.getSentinel().send(context.getRoutingKey(), new SetAvatarRequest(encoded))
+        context.getSentinel().send(context.getRoutingKey(), new SetAvatarRequest(encoded), SentinelExchanges.REQUESTS)
                 .doOnError(throwable -> context.reply("Error setting avatar. Please try again later."))
                 .subscribe(__ -> context.reply("Avatar has been set successfully!"));
     }
