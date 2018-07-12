@@ -24,7 +24,7 @@ class PingCommand(name: String, vararg aliases: String) : Command(name, *aliases
         val response = context.sentinel.send<GetPingReponse>(context.routingKey, GetPingRequest(context.guild.shardId))
                 .awaitFirst()
         context.reply(
-                "Ping of shard ${context.guild.shardId}: ${response.shardPing}ms" +
+                "Ping of shard ${context.guild.shardId}: ${response.shardPing}ms, " +
                         "Average: ${response.average.roundToInt()}ms"
         )
     }
