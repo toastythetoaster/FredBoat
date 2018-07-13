@@ -92,28 +92,18 @@ class UnbanCommand(name: String, vararg aliases: String) : DiscordModerationComm
     }
 
     override suspend fun fromFuzzySearch(context: CommandContext, searchTerm: String): Mono<User> {
-        val listFlux = fetchBanlist(context) ?: return Mono.empty()
-
-        return listFlux
-                .buffer()
-                .singleOrEmpty()
+        return fetchBanlist(context)
+                .collectList()
                 .map { banlist ->
-            if (banlist == null) return@map null
             ArgumentUtil.checkSingleFuzzyUserSearchResult(
                     banlist.map { User(it.user) }, context, searchTerm, true).orElse(null)
         }
     }
 
     override suspend fun checkPreconditionWithFeedback(user: User, context: CommandContext): Mono<Boolean> {
-        val listFlux = fetchBanlist(context) ?: return Mono.empty()
-
-        return listFlux
-                .buffer()
-                .singleOrEmpty()
+        return fetchBanlist(context)
+                .collectList()
                 .map { banlist ->
-                    if (banlist == null) {
-                        return@map false
-                    }
                     if (banlist.stream().noneMatch { it.user.id == user.id }) {
                         context.reply(context.i18nFormat("modUnbanFailNotBanned", user.asMention))
                         return@map false

@@ -298,9 +298,9 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
      * Fetch the banlist of the guild of the context. If that fails, the context is informed about
      * the issue. Returns null when we do not have permission.
      */
-    protected suspend fun fetchBanlist(context: CommandContext): Flux<Ban>? {
+    protected suspend fun fetchBanlist(context: CommandContext): Flux<Ban> {
         //need ban perms to read the ban list
-        if (!context.checkSelfPermissionsWithFeedback(Permission.BAN_MEMBERS)) return null
+        if (!context.checkSelfPermissionsWithFeedback(Permission.BAN_MEMBERS)) return Flux.empty()
 
         val guild = context.guild
         return guild.sentinel.getBanList(guild).doOnError {

@@ -121,7 +121,7 @@ class SoftbanCommand(name: String, vararg aliases: String) : DiscordModerationCo
         // essentially an UNBAN, and we dont want to allow users to unban anyone with just kick perms
         if (targetMember == null) {
             var isUnban = false
-            fetchBanlist(context)!!.doOnNext {
+            fetchBanlist(context).doOnNext {
                 if(it.user == args.targetUser.raw) isUnban = false
             }.awaitLast()
             if (!isUnban) return false
