@@ -99,7 +99,7 @@ class PermissionsCommand(
         val permissionLevel = PermsUtil.getPerms(invoker)
         val discordPerms = invoker.getPermissions(channel = null).awaitFirst()
 
-        Launcher.botController.guildPermsService.transformGuildPerms(context.guild, { gp ->
+        Launcher.botController.guildPermsService.transformGuildPerms(context.guild) { gp ->
             if (!gp.getFromEnum(permissionLevel).contains(mentionableToId(selected))) {
                 context.replyWithName(context.i18nFormat("permsNotAdded", "`" + mentionableToName(selected) + "`", "`$permissionLevel`"))
                 return@transformGuildPerms gp
@@ -119,8 +119,6 @@ class PermissionsCommand(
             context.replyWithName(context.i18nFormat("permsRemoved", mentionableToName(selected), permissionLevel))
             gp.setFromEnum(permissionLevel, newList)
         }
-
-                )
     }
 
     fun add(context: CommandContext) {
@@ -134,7 +132,7 @@ class PermissionsCommand(
 
         val selected = ArgumentUtil.checkSingleFuzzySearchResult(list, context, term) ?: return
 
-        Launcher.botController.guildPermsService.transformGuildPerms(context.guild, { gp ->
+        Launcher.botController.guildPermsService.transformGuildPerms(context.guild) { gp ->
             if (gp.getFromEnum(permissionLevel).contains(mentionableToId(selected))) {
                 context.replyWithName(context.i18nFormat("permsAlreadyAdded",
                         "`" + TextUtils.escapeMarkdown(mentionableToName(selected)) + "`",
@@ -148,7 +146,7 @@ class PermissionsCommand(
             context.replyWithName(context.i18nFormat("permsAdded",
                     TextUtils.escapeMarkdown(mentionableToName(selected)), permissionLevel))
             gp.setFromEnum(permissionLevel, newList)
-        })
+        }
     }
 
     suspend fun list(context: CommandContext) {
@@ -222,6 +220,7 @@ class PermissionsCommand(
 
     private fun idsToMentionables(guild: Guild, list: List<String>): List<IMentionable> =
             list.flatMap<String, IMentionable> { idStr ->
+                if (idStr == "") return@flatMap emptyList()
                 val id = idStr.toLong()
                 guild.getRole(id)?.apply {
                     return@flatMap listOf(this)
