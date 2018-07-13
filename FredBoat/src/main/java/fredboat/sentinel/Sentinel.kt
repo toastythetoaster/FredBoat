@@ -128,7 +128,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         return genericMonoSendAndReceive<PermissionCheckResponse, PermissionCheckResponse>(
                 SentinelExchanges.REQUESTS,
                 guild.routingKey,
-                GuildPermissionRequest(guild.id, member?.id, role?.id, permissions.raw),
+                GuildPermissionRequest(guild.id, role?.id, member?.id, permissions.raw),
                 mayBeEmpty = true,
                 transform = { it }
         )
