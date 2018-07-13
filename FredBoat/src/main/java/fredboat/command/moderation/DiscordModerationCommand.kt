@@ -128,11 +128,9 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
 
     /**
      * Parse the context of the command into a ModActionInfo.
-     * If that is not possible, reply a reason to the user, and return null.
+     * If that is not possible, reply a reason to the user, and return an empty Mono.
      *
      * Can be overridden for custom behaviour.
-     *
-     * NOTE: Since it may be necessary to poll ddoscord to identify a User, this method should not be called blocking.
      *
      * @return a mono that may emit a ModActionInfo. Mono may be empty if something could not be parsed. In that case
      * the user will have been notified of the issue, no further action by the caller is necessary
