@@ -42,6 +42,7 @@ import fredboat.shared.constant.BotConstants
 import fredboat.util.ArgumentUtil
 import fredboat.util.TextUtils
 import fredboat.util.extension.addFooter
+import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.extension.escapeMarkdown
 import kotlinx.coroutines.experimental.reactive.awaitFirst
 import kotlinx.coroutines.experimental.reactive.awaitSingle
@@ -164,7 +165,8 @@ class PermissionsCommand(
                 roleMentions = if (mentionable.isPublicRole) {
                     "$roleMentions@everyone\n" // Prevents ugly double double @@
                 } else {
-                    roleMentions + mentionable.asMention + "\n"
+                    // Lazy guilds update breaks display of roles in embeds
+                    "$roleMentions@${mentionable.name.escapeAndDefuse()}\n"
                 }
             } else {
                 memberMentions = memberMentions + mentionable.asMention + "\n"
