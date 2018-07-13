@@ -2,8 +2,10 @@ package fredboat.testutil.sentinel
 
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
-import fredboat.perms.Permission
-import fredboat.sentinel.*
+import fredboat.sentinel.GuildCache
+import fredboat.sentinel.RawGuild
+import fredboat.sentinel.RawMember
+import fredboat.sentinel.RawVoiceChannel
 import fredboat.testutil.sentinel.SentinelState.outgoing
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,6 +23,7 @@ lateinit var guildCache: GuildCache
 /** State of the fake Rabbit client */
 object SentinelState {
     var guild = DefaultSentinelRaws.guild
+    var banList = DefaultSentinelRaws.banList
     val outgoing = mutableMapOf<Class<*>, LinkedBlockingQueue<Any>>()
     private val log: Logger = LoggerFactory.getLogger(SentinelState::class.java)
 
@@ -29,6 +32,7 @@ object SentinelState {
         log.info("Resetting sentinel state")
 
         guild = DefaultSentinelRaws.guild.copy()
+        banList = DefaultSentinelRaws.banList
         outgoing.clear()
         guildCache.cache.remove(guild.id)
         //rabbit.convertAndSend(SentinelExchanges.EVENTS, GuildUpdateEvent(DefaultSentinelRaws.guild))
@@ -112,6 +116,12 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
         return SendMessageResponse(request.messageId)
     }
 
+    @RabbitHandler
+    fun editMessage(request: BanListRequest): List<Ban> {
+        default(request)
+        return SentinelState.banList
+    }
+
     @RabbitHandler(isDefault = true)
     fun default(request: Any) {
         val queue = outgoing.getOrPut(request.javaClass) { LinkedBlockingQueue() }
@@ -119,58 +129,3 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
     }
 }
 
-/** Don't use immutable lists here. We want to be able to modify state directly */
-@Suppress("MemberVisibilityCanBePrivate")
-object DefaultSentinelRaws {
-    val owner = RawMember(
-            81011298891993088,
-            "Fre_d",
-            "Fred",
-            "0310",
-            174820236481134592,
-            false,
-            mutableListOf(),
-            null
-    )
-
-    val self = RawMember(
-            152691313123393536,
-            "FredBoat♪♪",
-            "FredBoat",
-            "7284",
-            174820236481134592,
-            true,
-            mutableListOf(),
-            null
-    )
-
-    val generalChannel = RawTextChannel(
-            174820236481134592,
-            "general",
-            (Permission.MESSAGE_READ + Permission.MESSAGE_WRITE).raw
-    )
-
-    val privateChannel = RawTextChannel(
-            184358843206074368,
-            "private",
-            0
-    )
-
-    val musicChannel = RawVoiceChannel(
-            226661001754443776,
-            "Music",
-            mutableListOf(),
-            5,
-            (Permission.VOICE_CONNECT + Permission.VOICE_SPEAK).raw
-    )
-
-    val guild = RawGuild(
-            174820236481134592,
-            "FredBoat Hangout",
-            owner.id,
-            mutableListOf(owner, self),
-            mutableListOf(generalChannel, privateChannel),
-            mutableListOf(musicChannel),
-            mutableListOf()
-    )
-}
