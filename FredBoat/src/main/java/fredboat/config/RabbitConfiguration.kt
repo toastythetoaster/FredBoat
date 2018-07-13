@@ -1,5 +1,6 @@
 package fredboat.config
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.fredboat.sentinel.SentinelExchanges
@@ -19,7 +20,10 @@ class RabbitConfiguration {
     @Bean
     fun jsonMessageConverter(): MessageConverter {
         // We must register this Kotlin module to get deserialization to work with data classes
-        return Jackson2JsonMessageConverter(ObjectMapper().registerKotlinModule())
+        val mapper = ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .registerKotlinModule()
+        return Jackson2JsonMessageConverter(mapper)
     }
 
     @Bean

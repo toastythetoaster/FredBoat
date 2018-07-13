@@ -6,6 +6,7 @@ allprojects {
         maven { url 'https://dl.bintray.com/palantir/releases' }
         mavenLocal()                       // useful for developing
         maven { url "https://jitpack.io" } // build projects directly from github
+        maven { url "https://dl.bintray.com/iherasymenko/lombok" } // Temporary, see fredboat build
     }
 
     apply plugin: 'idea'
@@ -41,8 +42,8 @@ subprojects {
     }
     apply plugin: 'java'
 
-    sourceCompatibility = 9
-    targetCompatibility = 9
+    sourceCompatibility = 10
+    targetCompatibility = 10
 
     compileJava.options.encoding = 'UTF-8'
     compileJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
@@ -98,6 +99,7 @@ subprojects {
         apiGuardianVersion          = '1.0.0'
         dockerComposeRuleVersion    = '0.33.0'
         postgresJdbcVersion         = '42.2.2'
+        rerunnerVersion             = '1.1.0'
 
 
         //@formatter:on

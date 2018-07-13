@@ -42,6 +42,7 @@ import fredboat.shared.constant.BotConstants
 import fredboat.util.ArgumentUtil
 import fredboat.util.TextUtils
 import fredboat.util.extension.addFooter
+import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.extension.escapeMarkdown
 import kotlinx.coroutines.experimental.reactive.awaitFirst
 import kotlinx.coroutines.experimental.reactive.awaitSingle
@@ -99,7 +100,7 @@ class PermissionsCommand(
         val permissionLevel = PermsUtil.getPerms(invoker)
         val discordPerms = invoker.getPermissions(channel = null).awaitFirst()
 
-        Launcher.botController.guildPermsService.transformGuildPerms(context.guild, { gp ->
+        Launcher.botController.guildPermsService.transformGuildPerms(context.guild) { gp ->
             if (!gp.getFromEnum(permissionLevel).contains(mentionableToId(selected))) {
                 context.replyWithName(context.i18nFormat("permsNotAdded", "`" + mentionableToName(selected) + "`", "`$permissionLevel`"))
                 return@transformGuildPerms gp
@@ -119,8 +120,6 @@ class PermissionsCommand(
             context.replyWithName(context.i18nFormat("permsRemoved", mentionableToName(selected), permissionLevel))
             gp.setFromEnum(permissionLevel, newList)
         }
-
-                )
     }
 
     fun add(context: CommandContext) {
@@ -134,7 +133,7 @@ class PermissionsCommand(
 
         val selected = ArgumentUtil.checkSingleFuzzySearchResult(list, context, term) ?: return
 
-        Launcher.botController.guildPermsService.transformGuildPerms(context.guild, { gp ->
+        Launcher.botController.guildPermsService.transformGuildPerms(context.guild) { gp ->
             if (gp.getFromEnum(permissionLevel).contains(mentionableToId(selected))) {
                 context.replyWithName(context.i18nFormat("permsAlreadyAdded",
                         "`" + TextUtils.escapeMarkdown(mentionableToName(selected)) + "`",
@@ -148,7 +147,7 @@ class PermissionsCommand(
             context.replyWithName(context.i18nFormat("permsAdded",
                     TextUtils.escapeMarkdown(mentionableToName(selected)), permissionLevel))
             gp.setFromEnum(permissionLevel, newList)
-        })
+        }
     }
 
     suspend fun list(context: CommandContext) {
@@ -166,7 +165,8 @@ class PermissionsCommand(
                 roleMentions = if (mentionable.isPublicRole) {
                     "$roleMentions@everyone\n" // Prevents ugly double double @@
                 } else {
-                    roleMentions + mentionable.asMention + "\n"
+                    // Lazy guilds update breaks display of roles in embeds
+                    "$roleMentions@${mentionable.name.escapeAndDefuse()}\n"
                 }
             } else {
                 memberMentions = memberMentions + mentionable.asMention + "\n"
@@ -222,6 +222,7 @@ class PermissionsCommand(
 
     private fun idsToMentionables(guild: Guild, list: List<String>): List<IMentionable> =
             list.flatMap<String, IMentionable> { idStr ->
+                if (idStr == "") return@flatMap emptyList()
                 val id = idStr.toLong()
                 guild.getRole(id)?.apply {
                     return@flatMap listOf(this)

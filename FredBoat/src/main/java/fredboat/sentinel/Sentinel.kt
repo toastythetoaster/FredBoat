@@ -23,10 +23,18 @@ class Sentinel(private val template: AsyncRabbitTemplate,
         blockingTemplate.convertAndSend(SentinelExchanges.REQUESTS, routingKey, request)
     }
 
-    fun <T> send(guild: Guild, request: Any): Mono<T> = send(guild.routingKey, request)
+    fun <T> send(
+            guild: Guild,
+            request: Any,
+            exchange: String = SentinelExchanges.REQUESTS
+    ): Mono<T> = send(guild.routingKey, request, exchange)
 
-    fun <T> send(routingKey: String, request: Any): Mono<T> = Mono.create<T> {
-        template.convertSendAndReceive<T>(routingKey, request)
+    fun <T> send(
+            routingKey: String,
+            request: Any,
+            exchange: String = SentinelExchanges.REQUESTS
+    ): Mono<T> = Mono.create<T> {
+        template.convertSendAndReceive<T>(exchange, routingKey, request)
                 .addCallback(
                         { res ->
                             if (res != null) it.success(res) else it.success()

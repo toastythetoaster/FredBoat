@@ -1,5 +1,6 @@
 package fredboat.agent
 
+import com.fredboat.sentinel.entities.GuildUnsubscribeRequest
 import fredboat.sentinel.GuildCache
 import fredboat.sentinel.InternalGuild
 import lavalink.client.io.Link
@@ -47,6 +48,7 @@ class GuildCacheInvalidationAgent(
 
     private fun InternalGuild.beforeInvalidation() {
         link.destroy()
+        sentinel.sendAndForget(routingKey, GuildUnsubscribeRequest(id))
     }
 
 }
