@@ -22,7 +22,9 @@ lateinit var guildCache: GuildCache
 
 /** State of the fake Rabbit client */
 object SentinelState {
+    @Volatile
     var guild = DefaultSentinelRaws.guild
+    @Volatile
     var banList = DefaultSentinelRaws.banList
     val outgoing = mutableMapOf<Class<*>, LinkedBlockingQueue<Any>>()
     private val log: Logger = LoggerFactory.getLogger(SentinelState::class.java)
@@ -74,6 +76,10 @@ object SentinelState {
             throw RuntimeException("Failed to join VC. Debug info: $info")
         }
         log.info("${member.name} joined ${channel.name}")
+    }
+
+    fun setRoles(guild: RawGuild = DefaultSentinelRaws.guild, member: RawMember, roles: List<Long>) {
+        SentinelState.guild = setMember(guild, member.copy(roles = roles))
     }
 
     private fun setMember(guild: RawGuild, member: RawMember): RawGuild {

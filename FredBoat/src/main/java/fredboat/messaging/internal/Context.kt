@@ -151,7 +151,6 @@ abstract class Context {
      */
     suspend fun checkSelfPermissionsWithFeedback(permissions: IPermissionSet): Boolean {
         val result = guild.sentinel.checkPermissions(guild.selfMember, permissions).awaitSingle()
-
         if (result.passed) return true
         if (result.missingEntityFault) return false // Error
 
