@@ -43,6 +43,7 @@ import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import reactor.core.publisher.MonoSink
 import reactor.core.publisher.toMono
 import java.text.MessageFormat
 import java.util.regex.Pattern
@@ -202,7 +203,7 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
         val finalReason = reason
         var user: User? = null
         userMono = userMono.doOnSuccess { user = it }
-        return userMono.then(Mono.create { sink ->
+        return userMono.then(Mono.create { sink: MonoSink<ModActionInfo> ->
             if (user == null) {
                 sink.success() // Unable to find user, already sent feedback
                 return@create
@@ -276,6 +277,7 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
             modAction(modActionInfo)
                     .doOnError { onFail(modActionInfo) }
                     .doOnSuccess { onSuccess(modActionInfo) }
+                    .log("action")
                     .subscribe()
         }
 

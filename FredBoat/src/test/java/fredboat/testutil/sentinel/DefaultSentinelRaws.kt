@@ -27,6 +27,12 @@ object DefaultSentinelRaws {
             (Permission.BAN_MEMBERS + Permission.KICK_MEMBERS).raw
     )
 
+    val uberAdminRole = RawRole(
+            318730262314834812,
+            "Über Admin",
+            (Permission.BAN_MEMBERS + Permission.KICK_MEMBERS).raw
+    )
+
     val owner = RawMember(
             81011298891993088,
             "Fre_d",
@@ -45,7 +51,7 @@ object DefaultSentinelRaws {
             "7284",
             174820236481134592,
             true,
-            mutableListOf(),
+            mutableListOf(adminRole.id),
             null
     )
 
@@ -98,7 +104,7 @@ object DefaultSentinelRaws {
             mutableListOf(owner, self, napster, realkc),
             mutableListOf(generalChannel, privateChannel),
             mutableListOf(musicChannel),
-            mutableListOf(adminRole)
+            mutableListOf(uberAdminRole, adminRole)
     )
 
     val banList = mutableListOf(Ban(RawUser(

@@ -83,7 +83,7 @@ object SentinelState {
 
 @Service
 @Suppress("MemberVisibilityCanBePrivate")
-@RabbitListener(queues = [SentinelExchanges.REQUESTS])
+@RabbitListener(queues = [SentinelExchanges.REQUESTS], errorHandler = "rabbitListenerErrorHandler")
 class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
 
     companion object {
@@ -122,10 +122,52 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
         return SentinelState.banList
     }
 
+    @RabbitHandler
+    fun guildPermissionRequest(request: GuildPermissionRequest): PermissionCheckResponse {
+        default(request)
+
+        /** Performs converse nonimplication */
+        fun getMissing(expected: Long, actual: Long) = (expected.inv() or actual).inv()
+
+        // This implementation is very limited, and only works for members without overrides
+        val member = SentinelState.guild.members.find { it.id == request.member }!!
+        var effective = 0L
+        SentinelState.guild.roles.forEach {
+            if (member.roles.contains(it.id)) {
+                effective = it.permissions or effective
+            }
+        }
+        return PermissionCheckResponse(
+                effective = effective,
+                missing = getMissing(request.rawPermissions, effective),
+                missingEntityFault = false
+        )
+
+    }
+
+    @RabbitHandler
+    fun roleInfoRequest(request: RoleInfoRequest): RoleInfo {
+        default(request)
+        return when (request.id) {
+            DefaultSentinelRaws.adminRole.id -> RoleInfo(request.id, 0, 0, false, false, false)
+            DefaultSentinelRaws.uberAdminRole.id -> RoleInfo(request.id, 1, 0, false, false, false)
+            else -> throw IllegalArgumentException()
+        }
+    }
+
+    @RabbitHandler
+    fun modRequest(request: ModRequest) {
+        default(request)
+        request.run {
+            log.info("$type: $reason")
+        }
+    }
+
     @RabbitHandler(isDefault = true)
-    fun default(request: Any) {
+    fun default(request: Any): Any {
         val queue = outgoing.getOrPut(request.javaClass) { LinkedBlockingQueue() }
         queue.put(request)
+        return ""
     }
 }
 
