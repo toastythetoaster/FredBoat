@@ -163,11 +163,13 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
         }
     }
 
+    @RabbitHandler
+    fun privateMessage(request: SendPrivateMessageRequest): String { default(request); return "" }
+
     @RabbitHandler(isDefault = true)
-    fun default(request: Any): Any {
+    fun default(request: Any) {
         val queue = outgoing.getOrPut(request.javaClass) { LinkedBlockingQueue() }
         queue.put(request)
-        return ""
     }
 }
 
