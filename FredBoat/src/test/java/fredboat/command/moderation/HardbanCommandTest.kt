@@ -1,20 +1,22 @@
 package fredboat.command.moderation
 
-import com.fredboat.sentinel.entities.ModRequest
 import com.fredboat.sentinel.entities.ModRequestType
-import fredboat.testutil.IntegrationTest
 import fredboat.testutil.sentinel.DefaultSentinelRaws
-import fredboat.testutil.sentinel.assertRequest
 import org.junit.jupiter.api.Test
 
-class HardbanCommandTest : IntegrationTest() {
+class HardbanCommandTest : AbstractModerationTest() {
 
     @Test
     fun testWorking() {
         testCommand(message = ";;ban realkc Generic shitposting", invoker = DefaultSentinelRaws.napster) {
-            assertRequest<ModRequest> {
-                it.guildId == guild.id && it.reason.contains("Generic shitposting") && it.type == ModRequestType.BAN
-            }
+            expect(ModRequestType.BAN, DefaultSentinelRaws.realkc, "Generic shitposting")
+        }
+    }
+
+    @Test
+    fun testWorkingOwner() {
+        testCommand(message = ";;ban napster Generic shitposting", invoker = DefaultSentinelRaws.owner) {
+            expect(ModRequestType.BAN, DefaultSentinelRaws.napster, "Generic shitposting")
         }
     }
 

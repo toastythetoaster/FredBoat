@@ -168,6 +168,7 @@ abstract class Context {
      * missing permissions, given there is a channel to reply in.
      */
     suspend fun checkInvokerPermissionsWithFeedback(permissions: IPermissionSet): Boolean {
+        if (member.isOwner()) return true
         val result = guild.sentinel.checkPermissions(member, permissions).awaitSingle()
 
         if (result.passed) return true

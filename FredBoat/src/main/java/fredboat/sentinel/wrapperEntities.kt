@@ -11,6 +11,7 @@ import fredboat.perms.PermissionSet
 import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.core.publisher.toMono
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
@@ -183,6 +184,7 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
     fun isOwner() = this == guild.owner
 
     fun getPermissions(channel: Channel? = null): Mono<PermissionSet> {
+        if (isOwner()) return PermissionSet(-1).toMono() // Owner perms are implied. -1 is all ones in two's compliement
         return when (channel) {
             null -> sentinel.checkPermissions(this, NO_PERMISSIONS)
                     .map { PermissionSet(it.effective) }
@@ -192,6 +194,7 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
     }
 
     fun hasPermission(permissions: IPermissionSet, channel: Channel? = null): Mono<Boolean> {
+        if (isOwner()) return true.toMono() // Owner perms are implied
         return when (channel) {
             null -> sentinel.checkPermissions(this, permissions)
                     .map { it.passed }

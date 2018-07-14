@@ -51,7 +51,7 @@ object DefaultSentinelRaws {
             "7284",
             174820236481134592,
             true,
-            mutableListOf(adminRole.id),
+            mutableListOf(uberAdminRole.id),
             null
     )
 
