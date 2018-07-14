@@ -78,12 +78,16 @@ object SentinelState {
         log.info("${member.name} joined ${channel.name}")
     }
 
-    fun setRoles(guild: RawGuild = DefaultSentinelRaws.guild, member: RawMember, roles: List<Long>) {
+    fun setRoles(guild: RawGuild = SentinelState.guild, member: RawMember, roles: List<Long>) {
         SentinelState.guild = setMember(guild, member.copy(roles = roles))
+        log.info(SentinelState.guild.toString())
     }
 
     private fun setMember(guild: RawGuild, member: RawMember): RawGuild {
-        return guild.copy(members = guild.members.toMutableSet().apply { add(member) }.toList())
+        return guild.copy(members = guild.members.toMutableList().apply {
+            removeIf { it.id == member.id }
+            add(member)
+        }.toList())
     }
 }
 

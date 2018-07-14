@@ -156,9 +156,13 @@ abstract class Context {
 
         val builder = StringBuilder()
         PermissionSet(result.missing).asList().forEach{
-            builder.append(it.uiName).append("\"**, **")
+            builder.append(it.uiName).append("**, **")
         }
-        reply("${i18n("permissionMissingBot")} **$builder**")
+
+        // Remove the dangling last characters
+        val str = builder.toString().substring(0, builder.length - 6)
+
+        reply("${i18n("permissionMissingBot")} **$str**")
         return false
     }
 
