@@ -9,9 +9,9 @@ import fredboat.testutil.sentinel.delayUntil
 import fredboat.testutil.sentinel.delayedAssertEquals
 import fredboat.testutil.util.cachedGuild
 import fredboat.testutil.util.queue
+import io.github.artsok.RepeatedIfExceptionsTest
 import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 
 class SeekingTests : IntegrationTest() {
 
@@ -35,7 +35,7 @@ class SeekingTests : IntegrationTest() {
         position = 0
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 5, minSuccess = 2)
     fun forward() {
         testCommand(";;forward 5") { delayedAssertEquals(expected = 5000) { position } }
         testCommand(";;forward 5:6") { delayedAssertEquals(expected = 5000 + 6000 + 60000 * 5) { position } }
@@ -43,14 +43,15 @@ class SeekingTests : IntegrationTest() {
         testCommand(";;forward 1:0:0") { delayedAssertEquals(expected = 60 * 60 * 1000) { position } }
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 5, minSuccess = 2)
     fun restart() {
         position = 1000
         testCommand(";;restart") { delayedAssertEquals(expected = 0) { position } }
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 5, minSuccess = 2)
     fun rewind() {
+        AssertionError("")
         position = 60000
         testCommand(";;rewind 5") { delayedAssertEquals(expected = 55000) { position } }
         testCommand(";;rewind 60") { delayedAssertEquals(expected = 0) { position } }
@@ -60,7 +61,7 @@ class SeekingTests : IntegrationTest() {
         testCommand(";;rewind 1:0:4") { delayedAssertEquals(expected = 1000) { position } }
     }
 
-    @Test
+    @RepeatedIfExceptionsTest(repeats = 5, minSuccess = 2)
     fun seek() {
         val tests = mapOf(
                 "5" to 5 * 1000,
