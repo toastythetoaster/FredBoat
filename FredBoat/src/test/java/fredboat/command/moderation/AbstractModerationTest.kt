@@ -11,9 +11,13 @@ import org.junit.Assert.assertTrue
 
 open class AbstractModerationTest : IntegrationTest() {
     protected fun CommandContext.expect(type: ModRequestType, target: RawMember, reasonContains: String? = null) {
+        expect(type, target.id, reasonContains)
+    }
+
+    protected fun CommandContext.expect(type: ModRequestType, target: Long, reasonContains: String? = null) {
         assertRequest<ModRequest> {
             assertEquals(guild.id, it.guildId)
-            assertEquals(target.id, it.userId)
+            assertEquals(target, it.userId)
             reasonContains?.run {
                 assertTrue("Expected reason to contain $reasonContains", it.reason.contains(reasonContains))
             }

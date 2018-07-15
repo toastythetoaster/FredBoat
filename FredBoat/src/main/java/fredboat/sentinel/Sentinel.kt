@@ -181,7 +181,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
     fun getBanList(guild: Guild): Flux<Ban> {
         val req = BanListRequest(guild.id)
         return Flux.create { sink ->
-            template.convertSendAndReceive<List<Ban>>(SentinelExchanges.REQUESTS, guild.routingKey, req).addCallback(
+            template.convertSendAndReceive<Array<Ban>>(SentinelExchanges.REQUESTS, guild.routingKey, req).addCallback(
                     { r ->
                         r!!.forEach { sink.next(it) }
                         sink.complete()

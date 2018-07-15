@@ -127,9 +127,9 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
     }
 
     @RabbitHandler
-    fun editMessage(request: BanListRequest): List<Ban> {
+    fun getBanList(request: BanListRequest): Array<Ban> {
         default(request)
-        return SentinelState.banList
+        return SentinelState.banList.toTypedArray()
     }
 
     @RabbitHandler

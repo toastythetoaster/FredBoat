@@ -191,13 +191,17 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
         if (targetId == -1L) {
             val search = context.args[0]
             reason = processed.replaceFirst(Pattern.quote(search).toRegex(), "").trim { it <= ' ' }
-            userMono = fromFuzzySearch(context, search).toMono()
+            userMono = fromFuzzySearch(context, search)
         } else {
-            userMono = fetchUser(context.guild, targetId).doOnError {
+            userMono = fetchUser(context.guild, targetId)
+        }
+        userMono = userMono.onErrorResume {
+            if(targetId != -1L) {
                 var reply = context.i18nFormat("parseNotAUser", "`$finalTargetId`")
                 reply += "\n" + context.i18nFormat("parseSnowflakeIdHelp", HelpCommand.LINK_DISCORD_DOCS_IDS)
                 context.reply(reply)
             }
+            Mono.empty()
         }
 
         val finalReason = reason
