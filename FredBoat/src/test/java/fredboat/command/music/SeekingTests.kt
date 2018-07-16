@@ -10,8 +10,8 @@ import fredboat.testutil.sentinel.delayedAssertEquals
 import fredboat.testutil.util.cachedGuild
 import fredboat.testutil.util.queue
 import org.junit.Assert.assertNotNull
-import org.junit.Test
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class SeekingTests : IntegrationTest() {
 
