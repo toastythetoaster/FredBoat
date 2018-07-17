@@ -31,11 +31,13 @@ import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IModerationCommand
 import fredboat.feature.I18n
+import fredboat.main.getBotController
 import fredboat.perms.Permission
 import fredboat.sentinel.Guild
 import fredboat.sentinel.Member
 import fredboat.sentinel.Sentinel
 import fredboat.sentinel.User
+import fredboat.shared.constant.DistributionEnum
 import fredboat.util.ArgumentUtil
 import fredboat.util.TextUtils
 import kotlinx.coroutines.experimental.launch
@@ -268,6 +270,15 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
     }
 
     override suspend fun invoke(context: CommandContext) {
+        if (getBotController().appConfig.distribution != DistributionEnum.DEVELOPMENT) {
+            if (this is UnbanCommand || this is SoftbanCommand) {
+                context.reply("The unban and softban commands have been temporarily disabled. We have made significant" +
+                        " changes to these, but have yet to thoroughly test that they are secure. We do not want to" +
+                        " risk exploit of these commands.")
+                return
+            }
+        }
+
         val modActionInfo = parseModActionInfoWithFeedback(context)
                 .doOnError { t ->
                     TextUtils.handleException("Failed to parse a moderation action", t, context)
