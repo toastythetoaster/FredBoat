@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import com.fredboat.sentinel.SentinelExchanges
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.rabbit.AsyncRabbitTemplate
 import org.springframework.amqp.rabbit.core.RabbitTemplate
@@ -16,6 +19,10 @@ import org.springframework.retry.interceptor.RetryInterceptorBuilder
 
 @Configuration
 class RabbitConfiguration {
+
+    companion object {
+        private val log: Logger = LoggerFactory.getLogger(RabbitConfiguration::class.java)
+    }
 
     @Bean
     fun jsonMessageConverter(): MessageConverter {
@@ -35,7 +42,11 @@ class RabbitConfiguration {
     fun eventQueue() = Queue(SentinelExchanges.EVENTS, false)
 
     @Bean
-    fun rabbitListenerErrorHandler() = RabbitListenerErrorHandler { _, _, _ -> null }
+    fun rabbitListenerErrorHandler() = RabbitListenerErrorHandler {
+        _, _, t ->
+        log.error("Consumer caught exception", t)
+        throw AmqpRejectAndDontRequeueException(t)
+    }
 
     /* Don't retry ad infinitum */
     @Bean

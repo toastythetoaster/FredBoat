@@ -151,15 +151,18 @@ abstract class Context {
      */
     suspend fun checkSelfPermissionsWithFeedback(permissions: IPermissionSet): Boolean {
         val result = guild.sentinel.checkPermissions(guild.selfMember, permissions).awaitSingle()
-
         if (result.passed) return true
         if (result.missingEntityFault) return false // Error
 
         val builder = StringBuilder()
         PermissionSet(result.missing).asList().forEach{
-            builder.append(it.uiName).append("\"**, **")
+            builder.append(it.uiName).append("**, **")
         }
-        reply("${i18n("permissionMissingBot")} **$builder**")
+
+        // Remove the dangling last characters
+        val str = builder.toString().substring(0, builder.length - 6)
+
+        reply("${i18n("permissionMissingBot")} **$str**")
         return false
     }
 
@@ -168,6 +171,7 @@ abstract class Context {
      * missing permissions, given there is a channel to reply in.
      */
     suspend fun checkInvokerPermissionsWithFeedback(permissions: IPermissionSet): Boolean {
+        if (member.isOwner()) return true
         val result = guild.sentinel.checkPermissions(member, permissions).awaitSingle()
 
         if (result.passed) return true
@@ -175,9 +179,13 @@ abstract class Context {
 
         val builder = StringBuilder()
         PermissionSet(result.missing).asList().forEach{
-            builder.append(it.uiName).append("\"**, **")
+            builder.append(it.uiName).append("**, **")
         }
-        reply("${i18n("permissionMissingInvoker")} **$builder**")
+
+        // Remove the dangling last characters
+        val str = builder.toString().substring(0, builder.length - 6)
+
+        reply("${i18n("permissionMissingInvoker")} **$str**")
         return false
     }
 

@@ -11,6 +11,7 @@ import fredboat.perms.PermissionSet
 import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
+import reactor.core.publisher.toMono
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
@@ -89,7 +90,7 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     fun getRole(id: Long): Role? = _roles[id]
     fun getTextChannel(id: Long): TextChannel? = _textChannels[id]
     fun getVoiceChannel(id: Long): VoiceChannel? = _voiceChannels[id]
-
+    fun isMember(user: User) = members.containsKey(user.id)
     override fun equals(other: Any?): Boolean = other is Guild && id == other.id
     override fun hashCode() = id.hashCode()
 }
@@ -177,8 +178,13 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
                 isBot
         ))
     val info: Mono<MemberInfo> get() = sentinel.getMemberInfo(this)
+    val raw: RawMember get() =
+        RawMember(id, name, nickname ?: "", discrim, guild.id, isBot, roles.map { id }, voiceChannel?.id)
+
+    fun isOwner() = this == guild.owner
 
     fun getPermissions(channel: Channel? = null): Mono<PermissionSet> {
+        if (isOwner()) return PermissionSet(-1).toMono() // Owner perms are implied. -1 is all ones in two's compliement
         return when (channel) {
             null -> sentinel.checkPermissions(this, NO_PERMISSIONS)
                     .map { PermissionSet(it.effective) }
@@ -188,6 +194,7 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
     }
 
     fun hasPermission(permissions: IPermissionSet, channel: Channel? = null): Mono<Boolean> {
+        if (isOwner()) return true.toMono() // Owner perms are implied
         return when (channel) {
             null -> sentinel.checkPermissions(this, permissions)
                     .map { it.passed }

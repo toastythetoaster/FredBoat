@@ -33,13 +33,17 @@ import reactor.core.publisher.Mono
 
 object DiscordUtil {
 
-    fun getHighestRolePosition(member: Member): Mono<Int> = Mono.create { sink ->
-        Flux.merge(member.roles.map { it.info })
-                .reduce { a, b ->
-                    return@reduce if (a.position > b.position) a else b
-                }
-                .doOnError { sink.error(it) }
-                .subscribe { sink.success(it.position) }
+    fun getHighestRolePosition(member: Member): Mono<Int> {
+        if (member.roles.isEmpty()) return Mono.just(-1) // @ everyone role
+
+        return Mono.create { sink ->
+            Flux.merge(member.roles.map { it.info })
+                    .reduce { a, b ->
+                        return@reduce if (a.position > b.position) a else b
+                    }
+                    .doOnError { sink.error(it) }
+                    .subscribe { sink.success(it.position) }
+        }
     }
 
     /**

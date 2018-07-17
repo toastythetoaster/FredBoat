@@ -51,6 +51,7 @@ class SeekingTests : IntegrationTest() {
 
     @Test
     fun rewind() {
+        AssertionError("")
         position = 60000
         testCommand(";;rewind 5") { delayedAssertEquals(expected = 55000) { position } }
         testCommand(";;rewind 60") { delayedAssertEquals(expected = 0) { position } }

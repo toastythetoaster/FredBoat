@@ -31,8 +31,7 @@ internal class PlayCommandTest : IntegrationTest() {
             assertReply("You must join a voice channel first.")
         }
     }
-
-    @Test
+    
     @RepeatedIfExceptionsTest(repeats = 5, minSuccess = 2, exceptions = [TimeoutException::class])
     fun search(selections: VideoSelectionCache, players: PlayerRegistry) {
         SentinelState.joinChannel()

@@ -8,9 +8,9 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.sentinel.RawGuild
 import fredboat.sentinel.RawMember
 import fredboat.sentinel.RawTextChannel
-import org.junit.Assert.assertEquals
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert
+import org.junit.Assert.assertEquals
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service
 import java.lang.Thread.sleep
@@ -80,6 +80,12 @@ fun assertReply(expected: String, testMsg: String = "Assert outgoing message {}"
     val message = (SentinelState.poll(SendMessageRequest::class.java)
             ?: throw TimeoutException("Command failed to send message"))
     Assert.assertEquals(testMsg.replace("{}", message.toString()), expected, message.message)
+}
+
+fun assertReplyContains(expected: String, testMsg: String = "Assert outgoing message contains {}") {
+    val message = (SentinelState.poll(SendMessageRequest::class.java)
+            ?: throw TimeoutException("Command failed to send message"))
+    Assert.assertTrue(testMsg.replace("{}", message.toString()), message.message.contains(expected))
 }
 
 fun <T> assertRequest(testMsg: String = "Failed to assert outgoing request {}", assertion: (T) -> Boolean) {
