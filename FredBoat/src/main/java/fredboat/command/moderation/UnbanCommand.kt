@@ -51,7 +51,7 @@ class UnbanCommand(name: String, vararg aliases: String) : DiscordModerationComm
     }
 
     override fun modAction(args: DiscordModerationCommand.ModActionInfo): Mono<Unit> {
-        return args.context.sentinel.genericMonoSendAndReceive<Unit, Unit>(
+        return args.context.sentinel.genericMonoSendAndReceive<String, Unit>(
                 exchange = SentinelExchanges.REQUESTS,
                 request = ModRequest(
                         guildId = args.context.guild.id,

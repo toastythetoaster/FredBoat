@@ -279,8 +279,8 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
 
         val modAction = {
             modAction(modActionInfo)
-                    .doOnError { onFail(modActionInfo) }
-                    .doOnSuccess { onSuccess(modActionInfo) }
+                    .doOnError { onFail(modActionInfo)(it) }
+                    .doOnSuccess { onSuccess(modActionInfo)() }
                     .log("action")
                     .subscribe()
         }

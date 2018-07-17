@@ -166,11 +166,13 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
     }
 
     @RabbitHandler
-    fun modRequest(request: ModRequest) {
+    fun modRequest(request: ModRequest): String {
         default(request)
         request.run {
             log.info("$type: $reason")
         }
+
+        return ""
     }
 
     @RabbitHandler

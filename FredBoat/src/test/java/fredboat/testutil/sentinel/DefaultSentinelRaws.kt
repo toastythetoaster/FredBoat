@@ -24,13 +24,13 @@ object DefaultSentinelRaws {
     val adminRole = RawRole(
             174824663258497024,
             "Admin",
-            (Permission.BAN_MEMBERS + Permission.KICK_MEMBERS).raw
+            (Permission.BAN_MEMBERS + Permission.KICK_MEMBERS + Permission.MESSAGE_MANAGE).raw
     )
 
     val uberAdminRole = RawRole(
             318730262314834812,
             "Über Admin",
-            (Permission.BAN_MEMBERS + Permission.KICK_MEMBERS).raw
+            (Permission.BAN_MEMBERS + Permission.KICK_MEMBERS + Permission.MESSAGE_MANAGE).raw
     )
 
     val owner = RawMember(

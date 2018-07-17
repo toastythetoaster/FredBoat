@@ -49,7 +49,7 @@ class SoftbanCommand(name: String, vararg aliases: String) : DiscordModerationCo
 
     override fun modAction(args: DiscordModerationCommand.ModActionInfo): Mono<Unit> {
         val deleteDays = if(args.isKeepMessages) 0 else DiscordModerationCommand.DEFAULT_DELETE_DAYS
-        return args.context.sentinel.genericMonoSendAndReceive<Unit, Unit>(
+        return args.context.sentinel.genericMonoSendAndReceive<String, Unit>(
                 exchange = SentinelExchanges.REQUESTS,
                 request = ModRequest(
                         guildId = args.context.guild.id,
@@ -66,7 +66,7 @@ class SoftbanCommand(name: String, vararg aliases: String) : DiscordModerationCo
     }
 
     private fun unbanAsync(args: DiscordModerationCommand.ModActionInfo) {
-        args.context.sentinel.genericMonoSendAndReceive<Unit, Unit>(
+        args.context.sentinel.genericMonoSendAndReceive<String, Unit>(
                 exchange = SentinelExchanges.REQUESTS,
                 request = ModRequest(
                         guildId = args.context.guild.id,
