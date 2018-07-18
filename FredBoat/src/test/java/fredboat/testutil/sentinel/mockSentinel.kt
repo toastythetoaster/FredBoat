@@ -80,7 +80,6 @@ object SentinelState {
 
     fun setRoles(guild: RawGuild = SentinelState.guild, member: RawMember, roles: List<Long>) {
         SentinelState.guild = setMember(guild, member.copy(roles = roles))
-        log.info(SentinelState.guild.toString())
     }
 
     private fun setMember(guild: RawGuild, member: RawMember): RawGuild {

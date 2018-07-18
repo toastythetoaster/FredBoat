@@ -47,9 +47,12 @@ object PermsUtil {
         else -> {
             val gp = Launcher.botController.guildPermsService.fetchGuildPermissions(member.guild)
 
-            if (checkList(gp.adminList, member)) PermissionLevel.ADMIN
-            if (checkList(gp.djList, member)) PermissionLevel.DJ
-            if (checkList(gp.userList, member)) PermissionLevel.USER else PermissionLevel.BASE
+            when {
+                checkList(gp.adminList, member) -> PermissionLevel.ADMIN
+                checkList(gp.djList, member) -> PermissionLevel.DJ
+                checkList(gp.userList, member) -> PermissionLevel.USER
+                else -> PermissionLevel.BASE
+            }
         }
     }
 

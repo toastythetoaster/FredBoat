@@ -21,6 +21,13 @@ import fredboat.sentinel.*
 /* Don't use immutable lists here. We want to be able to modify state directly */
 @Suppress("MemberVisibilityCanBePrivate")
 object DefaultSentinelRaws {
+
+    val botAdminRole = RawRole(
+            236842565855147826,
+            "Bot Admin",
+            0
+    )
+
     val adminRole = RawRole(
             174824663258497024,
             "Admin",
@@ -104,7 +111,7 @@ object DefaultSentinelRaws {
             mutableListOf(owner, self, napster, realkc),
             mutableListOf(generalChannel, privateChannel),
             mutableListOf(musicChannel),
-            mutableListOf(uberAdminRole, adminRole)
+            mutableListOf(botAdminRole, uberAdminRole, adminRole)
     )
 
     val banList = mutableListOf(Ban(RawUser(

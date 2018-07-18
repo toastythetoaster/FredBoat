@@ -26,6 +26,7 @@ package fredboat.testutil.config
 
 import fredboat.config.property.*
 import fredboat.shared.constant.DistributionEnum
+import fredboat.testutil.sentinel.DefaultSentinelRaws
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Component
 
@@ -43,7 +44,7 @@ class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig
 
     override fun getDistribution() = distributionEnum
 
-    override fun getAdminIds() = emptyList<Long>()
+    override fun getAdminIds() = listOf(DefaultSentinelRaws.botAdminRole.id)
 
     override fun useAutoBlacklist() = false
 
