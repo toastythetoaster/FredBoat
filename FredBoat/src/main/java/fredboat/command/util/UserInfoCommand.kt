@@ -40,6 +40,7 @@ import kotlinx.coroutines.experimental.reactive.awaitSingle
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 /**
@@ -64,7 +65,7 @@ class UserInfoCommand(name: String, vararg aliases: String) : Command(name, *ali
             title = context.i18nFormat("userinfoTitle", target.effectiveName)
             val joinTimestamp = OffsetDateTime.ofInstant(
                     Instant.ofEpochMilli(targetInfo.joinDateMillis),
-                    ZoneId.of("gmt")
+                    ZoneId.ofOffset("GMT", ZoneOffset.ofHours(0))
             ).format(dtf)
 
             field(context.i18n("userinfoUsername"), "${TextUtils.escapeMarkdown(target.user.name)}#${target.discrim}", true)
