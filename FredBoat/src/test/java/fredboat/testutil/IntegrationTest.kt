@@ -8,7 +8,7 @@ import fredboat.sentinel.RawTextChannel
 import fredboat.testutil.extensions.DockerExtension
 import fredboat.testutil.extensions.SharedSpringContext
 import fredboat.testutil.sentinel.CommandTester
-import fredboat.testutil.sentinel.DefaultSentinelRaws
+import fredboat.testutil.sentinel.Raws
 import fredboat.util.ArgumentUtil
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -20,9 +20,9 @@ open class IntegrationTest : BaseTest() {
 
     fun testCommand(
             message: String,
-            invoker: RawMember = DefaultSentinelRaws.owner,
-            guild: RawGuild = DefaultSentinelRaws.guild,
-            channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
+            invoker: RawMember = Raws.owner,
+            guild: RawGuild = Raws.guild,
+            channel: RawTextChannel = Raws.generalChannel,
             block: suspend CommandContext.() -> Unit
     ) {
         commandTester.testCommand(message, guild, channel, invoker, block)
@@ -31,8 +31,8 @@ open class IntegrationTest : BaseTest() {
     fun testCommand(
             message: String,
             invoker: String,
-            guild: RawGuild = DefaultSentinelRaws.guild,
-            channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
+            guild: RawGuild = Raws.guild,
+            channel: RawTextChannel = Raws.generalChannel,
             block: suspend CommandContext.() -> Unit
     ) {
         val user = ArgumentUtil.fuzzyMemberSearch(InternalGuild(guild), invoker, true)[0]

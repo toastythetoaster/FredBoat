@@ -10,7 +10,7 @@ import fredboat.main.Launcher
 import fredboat.sentinel.Guild
 import fredboat.sentinel.InternalVoiceChannel
 import fredboat.sentinel.Member
-import fredboat.testutil.sentinel.DefaultSentinelRaws
+import fredboat.testutil.sentinel.Raws
 import fredboat.testutil.sentinel.SentinelState
 import fredboat.testutil.sentinel.guildCache
 import java.time.Duration
@@ -20,7 +20,7 @@ private val loadedTracks = mutableMapOf<String, AudioTrack>()
 
 fun Guild.queue(
         identifier: String,
-        member: Member = getMember(DefaultSentinelRaws.owner.id)!!
+        member: Member = getMember(Raws.owner.id)!!
 ): GuildPlayer {
     val player = Launcher.botController.playerRegistry.getOrCreate(this)
     val track = loadedTracks.getOrPut(identifier) {
@@ -31,8 +31,8 @@ fun Guild.queue(
     }
 
     if (member.voiceChannel == null) {
-        (getVoiceChannel(DefaultSentinelRaws.musicChannel.id)!! as InternalVoiceChannel).handleVoiceJoin(member)
-        SentinelState.joinChannel(DefaultSentinelRaws.owner)
+        (getVoiceChannel(Raws.musicChannel.id)!! as InternalVoiceChannel).handleVoiceJoin(member)
+        SentinelState.joinChannel(Raws.owner)
     }
 
     player.queue(AudioTrackContext(track, member))
@@ -48,4 +48,4 @@ private class TestAudioLoader : AudioLoadResultHandler {
     override fun playlistLoaded(playlist: AudioPlaylist) {TODO()}
 }
 
-val cachedGuild get() = guildCache.get(DefaultSentinelRaws.guild.id).block(Duration.ofSeconds(5))!!
+val cachedGuild get() = guildCache.get(Raws.guild.id).block(Duration.ofSeconds(5))!!

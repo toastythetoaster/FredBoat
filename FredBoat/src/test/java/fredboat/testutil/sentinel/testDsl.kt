@@ -29,9 +29,9 @@ class CommandTester(private val commandContextParser: CommandContextParser, temp
 
     fun testCommand(
             message: String,
-            guild: RawGuild = DefaultSentinelRaws.guild,
-            channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
-            invoker: RawMember = DefaultSentinelRaws.owner,
+            guild: RawGuild = Raws.guild,
+            channel: RawTextChannel = Raws.generalChannel,
+            invoker: RawMember = Raws.owner,
             block: suspend CommandContext.() -> Unit
     ) {
         doTest(parseContext(
@@ -52,9 +52,9 @@ class CommandTester(private val commandContextParser: CommandContextParser, temp
 
     fun parseContext(
             message: String,
-            guild: RawGuild = DefaultSentinelRaws.guild,
-            channel: RawTextChannel = DefaultSentinelRaws.generalChannel,
-            invoker: RawMember = DefaultSentinelRaws.owner
+            guild: RawGuild = Raws.guild,
+            channel: RawTextChannel = Raws.generalChannel,
+            invoker: RawMember = Raws.owner
     ): CommandContext = runBlocking {
         val event = MessageReceivedEvent(
                 Math.random().toLong(),

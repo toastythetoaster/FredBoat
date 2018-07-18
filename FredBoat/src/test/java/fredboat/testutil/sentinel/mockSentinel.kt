@@ -23,9 +23,9 @@ lateinit var guildCache: GuildCache
 /** State of the fake Rabbit client */
 object SentinelState {
     @Volatile
-    var guild = DefaultSentinelRaws.guild
+    var guild = Raws.guild
     @Volatile
-    var banList = DefaultSentinelRaws.banList
+    var banList = Raws.banList
     val outgoing = mutableMapOf<Class<*>, LinkedBlockingQueue<Any>>()
     private val log: Logger = LoggerFactory.getLogger(SentinelState::class.java)
 
@@ -33,8 +33,8 @@ object SentinelState {
         Thread.sleep(200) // Give messages a bit of time to come in - prevents race conditions
         log.info("Resetting sentinel state")
 
-        guild = DefaultSentinelRaws.guild.copy()
-        banList = DefaultSentinelRaws.banList
+        guild = Raws.guild.copy()
+        banList = Raws.banList
         outgoing.clear()
         guildCache.cache.remove(guild.id)
         //rabbit.convertAndSend(SentinelExchanges.EVENTS, GuildUpdateEvent(DefaultSentinelRaws.guild))
@@ -47,8 +47,8 @@ object SentinelState {
     }
 
     fun joinChannel(
-            member: RawMember = DefaultSentinelRaws.owner,
-            channel: RawVoiceChannel = DefaultSentinelRaws.musicChannel
+            member: RawMember = Raws.owner,
+            channel: RawVoiceChannel = Raws.musicChannel
     ) {
         val newList = guild.voiceChannels.toMutableList().apply {
             var removed: RawVoiceChannel? = null
@@ -61,7 +61,7 @@ object SentinelState {
         guild = setMember(guild, member.copy(voiceChannel = channel.id))
         guildCache.get(guild.id).block(Duration.ofSeconds(4)) // Our event gets ignored if this is not cached and we time out
         rabbit.convertAndSend(SentinelExchanges.EVENTS, VoiceJoinEvent(
-                DefaultSentinelRaws.guild.id,
+                Raws.guild.id,
                 channel.id,
                 member.id))
 
@@ -158,8 +158,8 @@ class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
     fun roleInfoRequest(request: RoleInfoRequest): RoleInfo {
         default(request)
         return when (request.id) {
-            DefaultSentinelRaws.adminRole.id -> RoleInfo(request.id, 0, 0, false, false, false)
-            DefaultSentinelRaws.uberAdminRole.id -> RoleInfo(request.id, 1, 0, false, false, false)
+            Raws.adminRole.id -> RoleInfo(request.id, 0, 0, false, false, false)
+            Raws.uberAdminRole.id -> RoleInfo(request.id, 1, 0, false, false, false)
             else -> throw IllegalArgumentException()
         }
     }

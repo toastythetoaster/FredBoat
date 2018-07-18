@@ -5,7 +5,7 @@ import fredboat.definitions.PermissionLevel
 import fredboat.sentinel.RawMember
 import fredboat.sentinel.getGuild
 import fredboat.testutil.IntegrationTest
-import fredboat.testutil.sentinel.DefaultSentinelRaws
+import fredboat.testutil.sentinel.Raws
 import fredboat.testutil.sentinel.SentinelState
 import fredboat.testutil.util.MockGuildPermsService
 import kotlinx.coroutines.experimental.runBlocking
@@ -16,18 +16,18 @@ internal class PermsUtilTest : IntegrationTest() {
 
     @Test
     fun testBotOwner() {
-        assertEquals(PermissionLevel.BOT_OWNER, DefaultSentinelRaws.owner.level)
+        assertEquals(PermissionLevel.BOT_OWNER, Raws.owner.level)
     }
 
     @Test
     fun testBotAdmin() {
         SentinelState.setRoles(
                 SentinelState.guild,
-                DefaultSentinelRaws.napster,
-                listOf(DefaultSentinelRaws.botAdminRole.id)
+                Raws.napster,
+                listOf(Raws.botAdminRole.id)
         )
 
-        assertEquals(PermissionLevel.BOT_ADMIN, DefaultSentinelRaws.napster.level)
+        assertEquals(PermissionLevel.BOT_ADMIN, Raws.napster.level)
     }
 
     @Test
@@ -35,10 +35,10 @@ internal class PermsUtilTest : IntegrationTest() {
         permsService.factory = {
             GuildPermissions().apply {
                 id = it.id.toString()
-                adminList = listOf(DefaultSentinelRaws.adminRole.id.toString())
+                adminList = listOf(Raws.adminRole.id.toString())
             }
         }
-        assertEquals(PermissionLevel.ADMIN, DefaultSentinelRaws.napster.level)
+        assertEquals(PermissionLevel.ADMIN, Raws.napster.level)
     }
 
     @Test
@@ -46,10 +46,10 @@ internal class PermsUtilTest : IntegrationTest() {
         permsService.factory = {
             GuildPermissions().apply {
                 id = it.id.toString()
-                djList = listOf(DefaultSentinelRaws.adminRole.id.toString())
+                djList = listOf(Raws.adminRole.id.toString())
             }
         }
-        assertEquals(PermissionLevel.DJ, DefaultSentinelRaws.napster.level)
+        assertEquals(PermissionLevel.DJ, Raws.napster.level)
     }
 
     @Test
@@ -57,15 +57,15 @@ internal class PermsUtilTest : IntegrationTest() {
         permsService.factory = {
             GuildPermissions().apply {
                 id = it.id.toString()
-                userList = listOf(DefaultSentinelRaws.adminRole.id.toString())
+                userList = listOf(Raws.adminRole.id.toString())
             }
         }
-        assertEquals(PermissionLevel.USER, DefaultSentinelRaws.napster.level)
+        assertEquals(PermissionLevel.USER, Raws.napster.level)
     }
 
     @Test
     fun testBase() {
-        assertEquals(PermissionLevel.BASE, DefaultSentinelRaws.napster.level)
+        assertEquals(PermissionLevel.BASE, Raws.napster.level)
     }
 
     @Test
@@ -77,7 +77,7 @@ internal class PermsUtilTest : IntegrationTest() {
         get() {
             var level: PermissionLevel? = null
             runBlocking {
-                val guild = getGuild(DefaultSentinelRaws.guild.id)
+                val guild = getGuild(Raws.guild.id)
                 val member = guild!!.getMember(id)
                 level = PermsUtil.getPerms(member!!)
             }

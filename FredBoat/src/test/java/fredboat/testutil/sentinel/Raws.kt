@@ -20,7 +20,7 @@ import fredboat.sentinel.*
 
 /* Don't use immutable lists here. We want to be able to modify state directly */
 @Suppress("MemberVisibilityCanBePrivate")
-object DefaultSentinelRaws {
+object Raws {
 
     val botAdminRole = RawRole(
             236842565855147826,

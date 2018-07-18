@@ -63,9 +63,9 @@ internal class PlayCommandTest : IntegrationTest() {
 
     @Test
     fun playUrl(players: PlayerRegistry) {
-        SentinelState.joinChannel(channel = DefaultSentinelRaws.musicChannel)
+        SentinelState.joinChannel(channel = Raws.musicChannel)
         testCommand(";;play $url") {
-            assertRequest<AudioQueueRequest> { it.channel == DefaultSentinelRaws.musicChannel.id }
+            assertRequest<AudioQueueRequest> { it.channel == Raws.musicChannel.id }
             assertReply { it.contains("Best of Demetori") && it.contains("will now play") }
             assertNotNull(players.getExisting(guild))
 
@@ -75,7 +75,7 @@ internal class PlayCommandTest : IntegrationTest() {
         }
 
         testCommand(";;play $url2") {
-            assertRequest<AudioQueueRequest> { it.channel == DefaultSentinelRaws.musicChannel.id }
+            assertRequest<AudioQueueRequest> { it.channel == Raws.musicChannel.id }
             assertReply { it.contains("BEGIERDE DES ZAUBERER") && it.contains("has been added to the queue") }
 
             delayUntil { players.getOrCreate(guild).remainingTracks.size == 2 }
@@ -88,7 +88,7 @@ internal class PlayCommandTest : IntegrationTest() {
     fun unpause(players: PlayerRegistry) {
         // Setup
         SentinelState.joinChannel()
-        SentinelState.joinChannel(DefaultSentinelRaws.self)
+        SentinelState.joinChannel(Raws.self)
         cachedGuild.queue(url).setPause(true)
 
         // We should unpause
