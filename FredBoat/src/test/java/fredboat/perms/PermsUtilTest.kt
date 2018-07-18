@@ -10,6 +10,7 @@ import fredboat.testutil.sentinel.SentinelState
 import fredboat.testutil.util.MockGuildPermsService
 import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 
 internal class PermsUtilTest : IntegrationTest() {
@@ -68,7 +69,7 @@ internal class PermsUtilTest : IntegrationTest() {
         assertEquals(PermissionLevel.BASE, Raws.napster.level)
     }
 
-    @Test
+    @AfterEach
     fun afterEach(permsService: MockGuildPermsService) {
         permsService.factory = permsService.default
     }
