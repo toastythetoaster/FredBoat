@@ -88,13 +88,13 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     transform = { it }
             )
 
-    fun sendPrivateMessage(user: User, message: String): Mono<Unit> =
-            genericMonoSendAndReceive<Unit, Unit>(
+    fun sendPrivateMessage(user: User, message: String): Mono<SendMessageResponse> =
+            genericMonoSendAndReceive<SendMessageResponse, SendMessageResponse>(
                     SentinelExchanges.REQUESTS,
                     tracker.getKey(0),
                     SendPrivateMessageRequest(user.id, message),
                     mayBeEmpty = true,
-                    transform = {}
+                    transform = {it}
             )
 
     fun editMessage(channel: TextChannel, messageId: Long, message: String): Mono<Unit> =
