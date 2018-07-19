@@ -97,7 +97,6 @@ class PermissionsCommand(
         search.addAll(ArgumentUtil.fuzzyMemberSearch(guild, term, false))
 
         val selected = ArgumentUtil.checkSingleFuzzySearchResult(search, context, term) ?: return
-        val permissionLevel = PermsUtil.getPerms(invoker)
         val discordPerms = invoker.getPermissions(channel = null).awaitFirst()
 
         Launcher.botController.guildPermsService.transformGuildPerms(context.guild) { gp ->
