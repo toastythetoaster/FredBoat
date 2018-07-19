@@ -119,8 +119,8 @@ class SelectCommand(private val videoSelectionCache: VideoSelectionCache, name: 
                     }
 
                     videoSelectionCache.remove(invoker)
-                    val tc = selection.message.channel
-                    tc.editMessage(selection.message.id, outputMsgBuilder.toString()).subscribe()
+                    val tc = selection.context.textChannel
+                    tc.editMessage(selection.message, outputMsgBuilder.toString()).subscribe()
 
                     player.setPause(false)
                     context.deleteMessage()

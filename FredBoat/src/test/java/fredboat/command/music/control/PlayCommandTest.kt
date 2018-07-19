@@ -46,7 +46,7 @@ internal class PlayCommandTest : IntegrationTest() {
             delayUntil { selections[member] != null }
             selection = selections[member]
             assertNotNull(selection)
-            assertEquals(selection!!.message.id, editedMessage)
+            assertEquals(selection!!.message, editedMessage)
         }
         testCommand(";;play 5") {
             assertRequest { req: EditMessageRequest ->

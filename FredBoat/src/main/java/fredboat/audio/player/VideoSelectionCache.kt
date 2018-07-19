@@ -27,8 +27,8 @@ package fredboat.audio.player
 
 import com.google.common.cache.CacheBuilder
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import fredboat.commandmeta.abs.CommandContext
 import fredboat.sentinel.Member
-import fredboat.sentinel.Message
 import io.prometheus.client.guava.cache.CacheMetricsCollector
 import org.springframework.stereotype.Component
 import java.util.concurrent.TimeUnit
@@ -59,8 +59,8 @@ class VideoSelectionCache(
         return remove(member.guild.id, member.id)
     }
 
-    fun put(message: Message, choices: List<AudioTrack>) {
-        videoSelections.put(asKey(message.member), VideoSelection(message, choices))
+    fun put(message: Long, context: CommandContext, choices: List<AudioTrack>) {
+        videoSelections.put(asKey(context.member), VideoSelection(message, context, choices))
     }
 
     private operator fun get(guildId: Long, userId: Long): VideoSelection? {
@@ -82,17 +82,13 @@ class VideoSelectionCache(
         return guildId.toString() + ":" + userId
     }
 
-    class VideoSelection internal constructor(
-            val message: Message,
+    data class VideoSelection internal constructor(
+            val message: Long,
+            val context: CommandContext,
             val choices: List<AudioTrack>
     ) {
-
-        private val tcId = message.channel.id
-        private val guild = message.guild
-
         fun deleteMessage() {
-            val tc = guild.getTextChannel(tcId)
-            tc?.deleteMessage(message.id)?.subscribe()
+            context.textChannel.deleteMessage(message).subscribe()
         }
     }
 }
