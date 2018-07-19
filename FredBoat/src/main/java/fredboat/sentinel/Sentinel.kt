@@ -58,14 +58,14 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     try {
                         if (res == null) {
                             if (mayBeEmpty) it.success()
-                            else it.error(RuntimeException("RPC response was null"))
+                            else it.error(SentinelException("RPC response was null"))
                         } else it.success(transform(res))
                     } catch (e: Exception) {
-                        it.error(e)
+                        it.error(e.asCause())
                     }
                 },
                 { t ->
-                    it.error(t)
+                    it.error(t.asCause())
                 }
         )
     }
@@ -173,7 +173,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                         r!!.effectivePermissions.forEach { sink.next(it ?: 0) }
                         sink.complete()
                     },
-                    { exc -> sink.error(exc) }
+                    { exc -> sink.error(exc.asCause()) }
             )
         }
     }
@@ -186,7 +186,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                         r!!.forEach { sink.next(it) }
                         sink.complete()
                     },
-                    { exc -> sink.error(exc) }
+                    { exc -> sink.error(exc.asCause()) }
             )
         }
     }
@@ -261,7 +261,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     list!!.forEach { sink.next(it) }
                     sink.complete()
                 },
-                { e -> sink.error(e) }
+                { e -> sink.error(e.asCause()) }
         )
     }
 
@@ -274,5 +274,8 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                 1 // Not sure what this is -- hardly even documented
         )
     }
+
+    /** Provides a trace of the actual method invoked */
+    private fun Throwable.asCause() = SentinelException("Sentinel request failed", this)
 
 }
