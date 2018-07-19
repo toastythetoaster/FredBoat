@@ -61,11 +61,11 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                             else it.error(SentinelException("RPC response was null"))
                         } else it.success(transform(res))
                     } catch (e: Exception) {
-                        it.error(e.asCause())
+                        it.error(e.asCause(request))
                     }
                 },
                 { t ->
-                    it.error(t.asCause())
+                    it.error(t.asCause(request))
                 }
         )
     }
@@ -173,7 +173,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                         r!!.effectivePermissions.forEach { sink.next(it ?: 0) }
                         sink.complete()
                     },
-                    { exc -> sink.error(exc.asCause()) }
+                    { exc -> sink.error(exc.asCause(req)) }
             )
         }
     }
@@ -186,7 +186,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                         r!!.forEach { sink.next(it) }
                         sink.complete()
                     },
-                    { exc -> sink.error(exc.asCause()) }
+                    { exc -> sink.error(exc.asCause(req)) }
             )
         }
     }
@@ -261,7 +261,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
                     list!!.forEach { sink.next(it) }
                     sink.complete()
                 },
-                { e -> sink.error(e.asCause()) }
+                { e -> sink.error(e.asCause("UserListRequest")) }
         )
     }
 
@@ -276,6 +276,6 @@ class Sentinel(private val template: AsyncRabbitTemplate,
     }
 
     /** Provides a trace of the actual method invoked */
-    private fun Throwable.asCause() = SentinelException("Sentinel request failed", this)
+    private fun Throwable.asCause(request: Any) = SentinelException("Sentinel request failed $request", this)
 
 }
