@@ -60,7 +60,7 @@ class UserInfoCommand(name: String, vararg aliases: String) : Command(name, *ali
 
         //DMify if I can
         context.reply(embed {
-            color = targetInfo.color
+            color = targetInfo.colorRgb
             thumbnail = targetInfo.iconUrl
             title = context.i18nFormat("userinfoTitle", target.effectiveName)
             val joinTimestamp = OffsetDateTime.ofInstant(

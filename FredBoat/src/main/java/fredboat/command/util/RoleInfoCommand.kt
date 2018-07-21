@@ -64,7 +64,11 @@ class RoleInfoCommand(name: String, vararg aliases: String) : Command(name, *ali
 
             field("Name", role.name, true)
             field("Id", role.idString, true)
-            field("Color", colorToHex(roleInfo.colorRgb), true)
+            if (roleInfo.colorRgb != null) {
+                field("Color", colorToHex(roleInfo.colorRgb!!), true)
+            } else {
+                field("Color", "❌", true)
+            }
             field("Hoisted", roleInfo.isHoisted.toString(), true)
             field("Mentionable", roleInfo.isMentionable.toString(), true)
             field("Managed", roleInfo.isManaged.toString(), true)
