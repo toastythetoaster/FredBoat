@@ -27,7 +27,6 @@ package fredboat.command.`fun`.img
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IFunCommand
 import fredboat.messaging.internal.Context
-import java.util.*
 
 /**
  * Created by napster on 30.04.17.
@@ -39,17 +38,17 @@ class HugCommand(imgurAlbumUrl: String, name: String, vararg aliases: String)
     : RandomImageCommand(imgurAlbumUrl, name, *aliases), IFunCommand {
 
     override suspend fun invoke(context: CommandContext) {
-        var hugMessage: String? = null
+        var hugMessage = ""
         if (!context.mentionedMembers.isEmpty()) {
-            if (context.mentionedMembers[0].id == context.guild.selfMember.id) {
-                hugMessage = context.i18n("hugBot")
+            hugMessage = if (context.mentionedMembers[0].id == context.guild.selfMember.id) {
+                context.i18n("hugBot")
             } else {
-                hugMessage = ("_"
+                ("_"
                         + context.i18nFormat("hugSuccess", context.mentionedMembers[0].asMention)
                         + "_")
             }
         }
-        context.replyImage(super.randomImageUrl, Objects.requireNonNull<String>(hugMessage))
+        context.replyImage(super.randomImageUrl, hugMessage)
     }
 
     override fun help(context: Context): String {

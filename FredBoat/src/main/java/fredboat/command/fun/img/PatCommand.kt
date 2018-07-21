@@ -28,13 +28,12 @@ package fredboat.command.`fun`.img
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IFunCommand
 import fredboat.messaging.internal.Context
-import java.util.*
 
 class PatCommand(imgurAlbumUrl: String, name: String, vararg aliases: String)
     : RandomImageCommand(imgurAlbumUrl, name, *aliases), IFunCommand {
 
     override suspend fun invoke(context: CommandContext) {
-        var patMessage: String? = null
+        var patMessage = ""
         if (!context.mentionedMembers.isEmpty()) {
             patMessage = if (context.mentionedMembers[0].id == context.selfMember.id) {
                 context.i18n("patBot")
@@ -42,7 +41,7 @@ class PatCommand(imgurAlbumUrl: String, name: String, vararg aliases: String)
                 "_${context.i18nFormat("patSuccess", context.mentionedMembers[0].asMention)}_"
             }
         }
-        context.replyImage(super.randomImageUrl, Objects.requireNonNull<String>(patMessage))
+        context.replyImage(super.randomImageUrl, patMessage)
     }
 
     override fun help(context: Context): String {

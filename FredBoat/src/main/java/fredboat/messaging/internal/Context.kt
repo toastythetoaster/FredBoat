@@ -107,7 +107,7 @@ abstract class Context {
 
     fun replyImageMono(url: String, message: String = ""): Mono<SendMessageResponse> {
         val embed = embedImage(url)
-        embed.content = message
+        embed.description = message
         return textChannel.send(embed)
     }
 
