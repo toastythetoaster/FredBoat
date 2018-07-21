@@ -13,6 +13,7 @@ class GuildDebugCommand(name: String, vararg aliases: String) : Command(name, *a
     override suspend fun invoke(context: CommandContext) {
         val builder = StringBuilder()
         builder.append("Guild: ${context.guild}\n")
+        builder.append("Routing key: ${context.routingKey}\n")
 
         builder.append("\nMembers:\n")
         context.guild.members.values.forEach {
@@ -37,10 +38,11 @@ class GuildDebugCommand(name: String, vararg aliases: String) : Command(name, *a
             builder.append("  $it\n")
         }
 
-        builder.append("\nRouting key: ${context.routingKey}\n")
+        builder.append("\n")
+
         TextUtils.postToPasteService(builder.toString()).thenApply {
             if (it.isPresent) {
-                context.reply(it.get())
+                context.replyPrivate(it.get())
             } else {
                 context.reply("Failed to post to paste service")
             }
