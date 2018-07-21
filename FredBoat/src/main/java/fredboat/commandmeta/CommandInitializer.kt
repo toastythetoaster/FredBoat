@@ -99,6 +99,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         adminModule.registerCommand(SentryDsnCommand(sentryConfiguration, "sentrydsn"))
         adminModule.registerCommand(SetAvatarCommand("setavatar"))
         adminModule.registerCommand(UnblacklistCommand("unblacklist", "unlimit"))
+        adminModule.registerCommand(GuildDebugCommand("guilddebug", "guilddump", "dumpguild", "gdump"))
 
 
         // Informational / Debugging / Maintenance - always on
