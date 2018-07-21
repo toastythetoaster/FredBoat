@@ -96,6 +96,7 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     fun isMember(user: User) = members.containsKey(user.id)
     override fun equals(other: Any?): Boolean = other is Guild && id == other.id
     override fun hashCode() = id.hashCode()
+    override fun toString() = "[G:$name:$id]"
 }
 
 /** Has public members we want to hide */
@@ -226,6 +227,7 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
 
     override fun equals(other: Any?): Boolean = other is Member && id == other.id
     override fun hashCode(): Int = id.hashCode()
+    override fun toString() = "[$effectiveName#$discrim:$id in ${guild.id}]"
 
 }
 
@@ -291,6 +293,8 @@ class User(@Suppress("MemberVisibilityCanBePrivate") val raw: RawUser) : IMentio
     override fun hashCode(): Int {
         return id.hashCode()
     }
+
+    override fun toString() = "[U:$name:$id]"
 }
 
 @Suppress("PropertyName")
@@ -315,6 +319,7 @@ abstract class TextChannel(override val guild: Guild, raw: RawTextChannel) : Cha
 
     override fun equals(other: Any?) = other is TextChannel && id == other.id
     override fun hashCode() = id.hashCode()
+    override fun toString() = "[TC:$name:$id]"
 }
 
 class InternalTextChannel(override val guild: Guild, raw: RawTextChannel) : TextChannel(guild, raw) {
@@ -353,6 +358,7 @@ abstract class VoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : C
     fun connect() = SentinelLavalink.INSTANCE.getLink(guild).connect(this)
     override fun equals(other: Any?) = other is VoiceChannel && id == other.id
     override fun hashCode() = id.hashCode()
+    override fun toString() = "[VC:$name:$id]"
 }
 
 class InternalVoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : VoiceChannel(guild, raw) {
@@ -403,6 +409,7 @@ abstract class Role(open val guild: Guild, raw: RawRole) : IMentionable, Sentine
 
     override fun equals(other: Any?) = other is Role && id == other.id
     override fun hashCode() = id.hashCode()
+    override fun toString() = "[R:$name:$id]"
 }
 
 class InternalRole(override val guild: Guild, raw: RawRole) : Role(guild, raw) {
@@ -447,4 +454,5 @@ class Message(val guild: Guild, @Suppress("MemberVisibilityCanBePrivate") val ra
         get() = raw.attachments
 
     fun delete(): Mono<Unit> = sentinel.deleteMessages(channel, listOf(id))
+    override fun toString() = "[${member.effectiveName} -> M:$id]"
 }
