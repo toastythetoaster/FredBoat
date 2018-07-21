@@ -11,6 +11,7 @@ import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.amqp.rabbit.annotation.RabbitHandler
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import org.springframework.stereotype.Service
+import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
@@ -79,7 +80,8 @@ class RabbitConsumer(
             (it as InternalGuild).onSelfLeaving()
             guildCache.cache.remove(event.guild)
         }
-        eventHandlers.forEach { it.onGuildLeave(event.guild, event.joinTime) }
+        val instant = Instant.ofEpochMilli(event.joinTime)
+        eventHandlers.forEach { it.onGuildLeave(event.guild, instant) }
     }
 
     /* Voice events */
