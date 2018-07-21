@@ -315,7 +315,7 @@ class GuildPlayer(
     }
 
     //Success, fail message
-    suspend fun canMemberSkipTracks(member: Member, trackIds: Collection<Long>): Pair<Boolean, String> {
+    private suspend fun canMemberSkipTracks(member: Member, trackIds: Collection<Long>): Pair<Boolean, String> {
         if (PermsUtil.checkPerms(PermissionLevel.DJ, member)) {
             return ImmutablePair(true, null)
         } else {

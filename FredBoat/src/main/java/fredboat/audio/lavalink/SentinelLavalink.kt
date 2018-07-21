@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service
 class SentinelLavalink(
         val sentinel: Sentinel,
         val appConfig: AppConfig,
-        val lavalinkConfig: LavalinkConfig
+        lavalinkConfig: LavalinkConfig
 ) : Lavalink<SentinelLink>(
         sentinel.selfUser.idString,
         appConfig.shardCount
@@ -25,6 +25,7 @@ class SentinelLavalink(
     }
 
     init {
+        @Suppress("LeakingThis")
         INSTANCE = this
         lavalinkConfig.nodes.forEach { addNode(it.name, it.uri, it.password) }
     }

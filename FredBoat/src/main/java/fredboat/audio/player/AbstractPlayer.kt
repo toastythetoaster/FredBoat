@@ -198,7 +198,7 @@ abstract class AbstractPlayer internal constructor(
     }
 
     override fun onTrackEnd(player: AudioPlayer?, track: AudioTrack?, endReason: AudioTrackEndReason?) {
-        log.trace("onTrackEnd({} {} {}) called", track!!.info.title, endReason!!.name, endReason.mayStartNext)
+        log.debug("onTrackEnd({} {} {}) called", track!!.info.title, endReason!!.name, endReason.mayStartNext)
 
         if (endReason == AudioTrackEndReason.FINISHED || endReason == AudioTrackEndReason.STOPPED) {
             updateHistoryQueue()
