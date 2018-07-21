@@ -8,6 +8,8 @@ import fredboat.perms.IPermissionSet
 import fredboat.perms.NO_PERMISSIONS
 import fredboat.perms.Permission
 import fredboat.perms.PermissionSet
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.amqp.AmqpRejectAndDontRequeueException
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -36,6 +38,7 @@ class WrapperEntityBeans(appConfigParam: AppConfig, lavalinkParam: SentinelLaval
     }
 }
 
+private val log: Logger = LoggerFactory.getLogger("wrapperEntities")
 private lateinit var appConfig: AppConfig
 private lateinit var lavalink: SentinelLavalink
 
@@ -141,6 +144,24 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
 
     fun onSelfLeaving() {
         _stale = true
+    }
+
+    fun handlePermissionsUpdate(update: ChannelPermissionsUpdate) {
+        update.changes.forEach { id, perms ->
+            val idL = id.toLong()
+            val channel: Channel? = getTextChannel(idL) ?: getVoiceChannel(idL)
+
+            if (channel == null) {
+                log.warn("Got permission update for unknown guild $id")
+                return@forEach
+            }
+
+            when (channel) {
+                is InternalTextChannel -> channel.updatePerms(perms)
+                is InternalVoiceChannel -> channel.updatePerms(perms)
+                else -> throw IllegalArgumentException()
+            }
+        }
     }
 
 }
@@ -309,6 +330,8 @@ class InternalTextChannel(override val guild: Guild, raw: RawTextChannel) : Text
         _ourEffectivePermissions = raw.ourEffectivePermissions
     }
 
+    fun updatePerms(perms: Long) { _ourEffectivePermissions = perms }
+
 }
 
 @Suppress("PropertyName")
@@ -359,6 +382,8 @@ class InternalVoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : Vo
     fun removeMember(memberId: Long) {
         _members.removeIf { it.id == memberId }
     }
+
+    fun updatePerms(perms: Long) { _ourEffectivePermissions = perms }
 }
 
 @Suppress("PropertyName")

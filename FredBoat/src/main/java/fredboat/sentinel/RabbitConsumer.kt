@@ -210,4 +210,9 @@ class RabbitConsumer(
         guild.removeMemberFromAllVoiceChannels(event.member)
     }
 
+    @RabbitHandler
+    fun handlePermissionsUpdate(event: ChannelPermissionsUpdate) {
+        (guildCache.getIfCached(event.guild) as? InternalGuild)?.handlePermissionsUpdate(event)
+    }
+
 }
