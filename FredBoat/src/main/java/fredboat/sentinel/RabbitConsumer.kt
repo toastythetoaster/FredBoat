@@ -156,7 +156,6 @@ class RabbitConsumer(
                 eventHandlers.forEach { it.onPrivateMessage(author, event.content) }
             }
         }
-        eventHandlers.forEach { it.onPrivateMessage(author, event.content) }
     }
 
     @RabbitHandler
