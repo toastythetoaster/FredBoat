@@ -7,18 +7,21 @@ import fredboat.audio.player.PlayerRegistry
 import fredboat.audio.player.VideoSelectionCache
 import fredboat.sentinel.GuildCache
 import fredboat.testutil.IntegrationTest
+import fredboat.testutil.RetryableTest
 import fredboat.testutil.sentinel.*
 import fredboat.testutil.util.cachedGuild
 import fredboat.testutil.util.queue
-import io.github.artsok.RepeatedIfExceptionsTest
 import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.Duration
-import java.util.concurrent.TimeoutException
 
-internal class PlayCommandTest : IntegrationTest() {
+internal class PlayCommandTest(
+        private val players: PlayerRegistry,
+        private val guildCache: GuildCache,
+        private val selections: VideoSelectionCache
+) : IntegrationTest(), RetryableTest {
 
     companion object {
         const val url = "https://www.youtube.com/watch?v=8EdW28B-In4"
@@ -32,8 +35,8 @@ internal class PlayCommandTest : IntegrationTest() {
         }
     }
     
-    @RepeatedIfExceptionsTest(repeats = 5, minSuccess = 2, exceptions = [TimeoutException::class])
-    fun search(selections: VideoSelectionCache, players: PlayerRegistry) {
+    @Test
+    fun search(players: PlayerRegistry) = retryable {
         SentinelState.joinChannel()
         var editedMessage = -1L
         var selection: VideoSelectionCache.VideoSelection? = null
@@ -56,7 +59,7 @@ internal class PlayCommandTest : IntegrationTest() {
             Assert.assertNull(selections[member])
             delayUntil { players.getExisting(guild) != null }
             assertNotNull(players.getExisting(guild))
-            assertEquals(selection!!.choices[4], players.getExisting(guild)!!.playingTrack?.track)
+            assertEquals(selection!!.choices[4].identifier, players.getExisting(guild)!!.playingTrack?.track?.identifier)
             assertEquals(member, players.getExisting(guild)!!.playingTrack?.member)
         }
     }
@@ -99,8 +102,11 @@ internal class PlayCommandTest : IntegrationTest() {
         }
     }
 
+    override fun beforeRetry() = beforeEach()
+
+    @Suppress("MemberVisibilityCanBePrivate")
     @BeforeEach
-    fun beforeEach(players: PlayerRegistry, guildCache: GuildCache) {
+    fun beforeEach() {
         val guild = guildCache.get(SentinelState.guild.id).block(Duration.ofSeconds(5))!!
         val link = guild.existingLink
         players.destroyPlayer(guild)
@@ -114,5 +120,6 @@ internal class PlayCommandTest : IntegrationTest() {
                 AudioQueueRequestEnum.QUEUE_DISCONNECT,
                 it.type
         ) }
+        selections.videoSelections.invalidateAll()
     }
 }

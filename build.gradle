@@ -6,7 +6,6 @@ allprojects {
         maven { url 'https://dl.bintray.com/palantir/releases' }
         mavenLocal()                       // useful for developing
         maven { url "https://jitpack.io" } // build projects directly from github
-        maven { url "https://dl.bintray.com/iherasymenko/lombok" } // Temporary, see fredboat build
     }
 
     apply plugin: 'idea'

@@ -42,10 +42,10 @@ class VideoSelectionCache(
 ) {
 
     //the key looks like this: guildId:userId
-    private val videoSelections = CacheBuilder.newBuilder()
+    val videoSelections = CacheBuilder.newBuilder()
             .recordStats()
             .expireAfterWrite(60, TimeUnit.MINUTES)
-            .build<String, VideoSelection>()
+            .build<String, VideoSelection>()!!
 
     init {
         cacheMetrics.addCache("videoSelections", videoSelections)

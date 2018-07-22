@@ -4,6 +4,7 @@ import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.PlayerRegistry
 import fredboat.command.music.control.PlayCommandTest
 import fredboat.testutil.IntegrationTest
+import fredboat.testutil.RetryableTest
 import fredboat.testutil.sentinel.SentinelState.joinChannel
 import fredboat.testutil.sentinel.delayUntil
 import fredboat.testutil.sentinel.delayedAssertEquals
@@ -13,9 +14,9 @@ import org.junit.Assert.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class SeekingTests : IntegrationTest() {
-
+class SeekingTests(private val players: PlayerRegistry) : IntegrationTest(), RetryableTest {
     private lateinit var player: GuildPlayer
+
     private var position: Int // Int because of assertions errors
         get() = player.position.toInt()
         set(pos) {
@@ -23,8 +24,11 @@ class SeekingTests : IntegrationTest() {
             delayUntil { position == pos }
         }
 
+    override fun beforeRetry() = beforeEach()
+
+    @Suppress("MemberVisibilityCanBePrivate")
     @BeforeEach
-    fun beforeEach(players: PlayerRegistry) {
+    fun beforeEach() {
         joinChannel()
         players.destroyPlayer(cachedGuild)
         player = players.getOrCreate(cachedGuild)
@@ -36,7 +40,7 @@ class SeekingTests : IntegrationTest() {
     }
 
     @Test
-    fun forward() {
+    fun forward() = retryable {
         testCommand(";;forward 5") { delayedAssertEquals(expected = 5000) { position } }
         testCommand(";;forward 5:6") { delayedAssertEquals(expected = 5000 + 6000 + 60000 * 5) { position } }
         position = 0
@@ -44,13 +48,13 @@ class SeekingTests : IntegrationTest() {
     }
 
     @Test
-    fun restart() {
+    fun restart() = retryable {
         position = 1000
         testCommand(";;restart") { delayedAssertEquals(expected = 0) { position } }
     }
 
     @Test
-    fun rewind() {
+    fun rewind() = retryable {
         AssertionError("")
         position = 60000
         testCommand(";;rewind 5") { delayedAssertEquals(expected = 55000) { position } }
@@ -62,7 +66,7 @@ class SeekingTests : IntegrationTest() {
     }
 
     @Test
-    fun seek() {
+    fun seek() = retryable {
         val tests = mapOf(
                 "5" to 5 * 1000,
                 "5:5" to (5*60+5) * 1000,
