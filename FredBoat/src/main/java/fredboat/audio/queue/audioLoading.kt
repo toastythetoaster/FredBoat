@@ -41,7 +41,6 @@ import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.localMessageBuilder
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
-import kotlinx.coroutines.experimental.async
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import org.slf4j.Logger
@@ -281,8 +280,6 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             } else {
                 pairs.add(ImmutablePair(timestamp, title2))
             }
-
-
         }
 
         if (pairs.size < 2) {
@@ -312,8 +309,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             val atc = SplitAudioTrackContext(newAt, context.member, startPos, endPos, pair.right)
 
             list.add(atc)
-            async { loader.gplayer.queue(atc) }
-
+            loader.gplayer.queue(atc)
         }
 
         var mb = localMessageBuilder()
