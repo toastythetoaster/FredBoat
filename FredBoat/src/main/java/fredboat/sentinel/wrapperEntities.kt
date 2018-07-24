@@ -140,7 +140,6 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
         _voiceChannels.forEach {
             (it.value as InternalVoiceChannel).removeMember(memberId)
         }
-        _members[memberId]?.setVc(null)
     }
 
     fun onSelfLeaving() {
@@ -181,8 +180,7 @@ abstract class Member(val guild: Guild, raw: RawMember) : IMentionable, Sentinel
     protected var _nickname: String? = null
     val nickname: String? get() = _nickname
 
-    protected var _voiceChannel: Long? = null
-    val voiceChannel: VoiceChannel? get() = _voiceChannel?.let { guild.getVoiceChannel(it) }
+    val voiceChannel: VoiceChannel? get() = guild.voiceChannels.values.find { it.members.contains(this) }
 
     protected var _roles = mutableListOf<Role>()
     val roles: List<Role> get() = _roles // Cast to immutable
@@ -249,26 +247,7 @@ class InternalMember(guild: Guild, raw: RawMember) : Member(guild, raw) {
         _name = raw.name
         _discrim = raw.discrim
         _nickname = raw.nickname
-        _voiceChannel = raw.voiceChannel
     }
-
-    fun setVc(vc: VoiceChannel?) {
-        _voiceChannel = vc?.id
-    }
-
-    // We send a user update instead. This could be handled for improved performance
-    /*
-    fun handleRoleAdd(member: Member, role: Role) {
-        // First make sure we don't duplicate
-        _roles.removeIf { it.id == role.id }
-
-        _roles.add(role)
-    }
-
-    fun handleRoleRemove(guild: InternalGuild, roleId: Long) {
-        _roles.removeIf { it.id == roleId }
-    }*/
-
 }
 
 /** Note: This is not cached or subject to updates */
@@ -382,7 +361,6 @@ class InternalVoiceChannel(override val guild: Guild, raw: RawVoiceChannel) : Vo
     fun handleVoiceJoin(member: Member) {
         (guild as InternalGuild).removeMemberFromAllVoiceChannels(member.id) // For good measure
         _members.add(member)
-        (member as InternalMember).setVc(this)
     }
 
     fun removeMember(memberId: Long) {
