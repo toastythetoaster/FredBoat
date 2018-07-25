@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
@@ -34,8 +33,7 @@ import java.util.function.Supplier
 /**
  * The class responsible for launching FredBoat
  */
-@SpringBootApplication
-@EnableAutoConfiguration(exclude = [ // Excluded because we manage these already
+@SpringBootApplication(exclude = [ // Excluded because we manage these already
     DataSourceAutoConfiguration::class,
     DataSourceTransactionManagerAutoConfiguration::class,
     HibernateJpaAutoConfiguration::class,
