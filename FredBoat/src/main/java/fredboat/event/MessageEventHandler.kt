@@ -47,7 +47,6 @@ import fredboat.sentinel.User
 import fredboat.sentinel.getGuild
 import fredboat.util.ratelimit.Ratelimiter
 import io.prometheus.client.guava.cache.CacheMetricsCollector
-import kotlinx.coroutines.experimental.async
 import kotlinx.coroutines.experimental.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -158,14 +157,14 @@ class MessageEventHandler(
             //hack in / hardcode some commands; this is not meant to look clean
             val lowered = content.toLowerCase()
             if (lowered.contains("shard")) {
-                async {
+                launch {
                     for (message in ShardsCommand.getShardStatus(author.sentinel, content)) {
                         author.sendPrivate(message).subscribe()
                     }
                 }
                 return
             } else if (lowered.contains("stats")) {
-                async {
+                launch {
                     author.sendPrivate(StatsCommand.getStats(null)).subscribe()
                 }
                 return
