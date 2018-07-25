@@ -1,6 +1,18 @@
+################################################################################
+###                           Table of contents
+################################################################################
+# docker-compose.yml - Docker configuration for all services but FredBoat. For development
+# selfhosting.yml    - The same file but *including* FredBoat
+# common.sh          - Contains the bot token for both Sentinel and FredBoat
+# fredboat.yml       - FredBoat config
+# lavalink.yml       - Lavalink config
+# quarterdeck.yml    - Quarterdeck config
+#
+
+# TODO: Switch to the stable branches once Sentinel is release, then rename this file back to the original
 
 ################################################################################
-###                  Running FredBoat with docker-compose
+###                  Selfhosting FredBoat with docker-compose
 ################################################################################
 ###
 ### Use a proper text editor like Sublime when editing this file
@@ -35,11 +47,47 @@ services:
       #- postgres-data-volume:/var/lib/postgresql/data
 
   ################################################################################
+  ##                               RabbitMQ
+  ################################################################################
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - 127.0.01:15672:15672 # Web UI
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  ################################################################################
+  ##                               Lavalink
+  ################################################################################
+  lavalink:
+    image: fredboat/lavalink:v3
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+      - ./lavalink.yml:/opt/Lavalink/application.yaml
+      - ./lavalink_logs:/opt/Lavalink/logs
+
+  ################################################################################
+  ##                               Sentinel
+  ################################################################################
+  sentinel:
+    image: fredboat/sentinel:dev
+    restart: on-failure:3
+    depends_on:
+      - rabbitmq
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+    environment:
+      - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
+    # Need a bigger memory size or any other custom JVM args? Uncomment and edit the line below accordingly
+    #entrypoint: java -Xmx512m -jar sentinel.jar
+
+  ################################################################################
   ##                     Quarterdeck (Database Backend)
   ################################################################################
   quarterdeck:
-    # pick one of these: stable or dev
-    # dev receives more frequent updates than stable but may have more bugs / things breaking
     # versions (example: v2) receive continous non-breaking (best effort) updates via watchtower. switching between versions
     # (example: going from v2 to v3) usually requires manual migration. what exactly is needed is published on the
     # FredBoat selfhosting website and/or the selfhosters channel (see top of this file for how to get to these places)
@@ -53,60 +101,10 @@ services:
     depends_on:
       - db
     volumes:
-      - ./quarterdeck.yaml:/opt/Quarterdeck/quarterdeck.yaml
+      - ./quarterdeck.yml:/opt/Quarterdeck/quarterdeck.yaml
       - ./quarterdeck_logs:/opt/Quarterdeck/logs
     # Need a bigger memory size or any other custom JVM args? uncomment and edit the line below accordingly
     #entrypoint: java -Xmx128m -jar Quarterdeck.jar
-
-  ################################################################################
-  ##                               FredBoat
-  ################################################################################
-  bot:
-    # for choosing between stable or dev, read the paragraph above in the Quarterdeck section
-    # IMPORTANT: both quarterdeck and fredboat need to either be on the stable, or on the dev branch
-    # To run on (some) arm based machines, prepend the tag with arm64v8-, for example: fredboat/fredboat:arm64v8-dev-v3
-    image: fredboat/fredboat:dev-v3
-    #build: ./FredBoat #useful alternative for developers
-
-    restart: on-failure:3
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    depends_on:
-      - quarterdeck
-    ports:
-      - 1356:1356
-    volumes:
-      - ./fredboat.yaml:/opt/FredBoat/fredboat.yaml
-      - ./fredboat_logs:/opt/FredBoat/logs
-      - ./music_persistence:/opt/FredBoat/music_persistence
-      # Local audio files (dev branch only currently)
-      # If your music directory looks like this: /home/user/music/directory/rickroll.mp3 or C:\Users\user\Music\rickroll.mp3
-      # you will be able to play that file with this command: <<play file://music/rickroll.mp3
-      # Linux example:
-      #- /home/your_user_name/music:/opt/FredBoat/music
-      # Windows example:
-      #- C:\Users\your_user_name\Music:/opt/FredBoat/music
-
-    # Need a bigger memory size or any other custom JVM args? uncomment and edit the line below accordingly
-    #entrypoint: java -Xmx256m -jar FredBoat.jar
-
-
-  ################################################################################
-  ##                         Automatic updates
-  ################################################################################
-  # if you want automatic updates, uncomment the watchtower lines below
-  # watchtower is not yet officially available for arm64v8. See https://github.com/v2tec/watchtower/pull/178 for progress
-  # but you can try using napstr/watchtower:arm64v8-latest
-
-  #watchtower:
-  #  image: v2tec/watchtower
-  #  restart: on-failure:3
-  #  labels:
-  #    - "com.centurylinklabs.watchtower.enable=true"
-  #  volumes:
-  #    - /var/run/docker.sock:/var/run/docker.sock
-  #  command: --cleanup --label-enable --interval 300 #seconds
-
 
   ################################################################################
   ##                         Windows stuff

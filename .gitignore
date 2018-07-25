@@ -109,6 +109,10 @@ local.properties
 .scala_dependencies
 .worksheet
 
+### Config files ###
+/config/*.sh
+/config/*.yml
+
 ### Custom ###
 lib/
 dist/*
@@ -144,8 +148,6 @@ gc-*.log
 .gradle/*
 */out/*
 VERSION.txt
-fredboat.yaml
-fredboat.yml
 application.yaml
 application.yml
 backend.yaml
