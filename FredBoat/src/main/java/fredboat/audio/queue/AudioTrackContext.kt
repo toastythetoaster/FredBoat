@@ -103,7 +103,11 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member) : Compar
     }
 
     fun i18n(key: String) = I18n.get(guildId).getString(key)!!
-    fun i18nFormat(key: String, vararg values: Any) = i18n(key).format(values)
+    fun i18nFormat(key: String, vararg values: Any): String {
+        var str = i18n(key)
+        values.forEachIndexed { i, v -> str = str.replace("{$i}", v.toString()) }
+        return str
+    }
 
 
 }
