@@ -55,7 +55,9 @@ import kotlin.streams.toList
 
 class GuildPlayer(
         val lavalink: SentinelLavalink,
-        val guild: Guild,
+        // TODO: GuildPlayers should be discarded when expiring the cached guild
+        // and new ones should be able to re-initiate the same settings
+        var guild: Guild,
         private val musicTextChannelProvider: MusicTextChannelProvider,
         audioPlayerManager: AudioPlayerManager,
         private val guildConfigService: GuildConfigService,
@@ -64,7 +66,7 @@ class GuildPlayer(
 ) : AbstractPlayer(lavalink, SimpleTrackProvider(), guild) {
 
     private val audioLoader: AudioLoader
-    val guildId: Long
+    val guildId = guild.id
 
     companion object {
         private val log = LoggerFactory.getLogger(GuildPlayer::class.java)
@@ -156,8 +158,6 @@ class GuildPlayer(
         log.debug("Constructing GuildPlayer({})", guild)
         onPlayHook = Consumer { this.announceTrack(it) }
         onErrorHook = Consumer { this.handleError(it) }
-
-        this.guildId = guild.id
 
         audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager,
                 this, youtubeAPI)

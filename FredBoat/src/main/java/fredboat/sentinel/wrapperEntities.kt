@@ -3,7 +3,9 @@ package fredboat.sentinel
 import com.fredboat.sentinel.entities.*
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.lavalink.SentinelLink
+import fredboat.audio.player.GuildPlayer
 import fredboat.config.property.AppConfig
+import fredboat.main.getBotController
 import fredboat.perms.IPermissionSet
 import fredboat.perms.NO_PERMISSIONS
 import fredboat.perms.Permission
@@ -104,6 +106,9 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
 
     init {
         update(raw)
+        // Any old GuildPlayer needs to be aware of the new guild object
+        val player: GuildPlayer? = getBotController().playerRegistry.getExisting(this)
+        if (player != null) player.guild = this
     }
 
 
