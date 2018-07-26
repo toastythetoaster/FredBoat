@@ -81,6 +81,8 @@ class CredentialsProperties : Credentials {
                 } else {
                     log.error("Found ${file.absolutePath} but no token!")
                 }
+            } else {
+                log.warn("common.yml is missing and no token was defined by Spring")
             }
         }
 
