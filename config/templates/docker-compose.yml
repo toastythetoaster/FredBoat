@@ -3,7 +3,7 @@
 ################################################################################
 # docker-compose.yml - Docker configuration for all services but FredBoat. For development
 # selfhosting.yml    - The same file but *including* FredBoat
-# common.sh          - Contains the bot token for both Sentinel and FredBoat
+# common.yml         - Contains essential configuration for FredBoat and Sentinel
 # fredboat.yml       - FredBoat config
 # lavalink.yml       - Lavalink config
 # quarterdeck.yml    - Quarterdeck config
@@ -35,16 +35,16 @@ services:
     #build: ./FredBoat/docker/database/ #useful alternative for developers
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
 
     # WINDOWS ONLY: if you are running under windows you need to comment out the following two lines:
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+    - ./postgres-data:/var/lib/postgresql/data
 
     # WINDOWS ONLY: if you are running under windows and want to take manual backups of the database
     # via a docker volume, uncomment the following two lines and read the snippet at the bottom of this file
     #volumes:
-      #- postgres-data-volume:/var/lib/postgresql/data
+    #- postgres-data-volume:/var/lib/postgresql/data
 
   ################################################################################
   ##                               RabbitMQ
@@ -53,9 +53,9 @@ services:
     image: rabbitmq:3-management
     restart: always
     ports:
-      - 127.0.01:15672:15672 # Web UI
+    - 127.0.01:15672:15672 # Web UI
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
 
   ################################################################################
   ##                               Lavalink
@@ -64,10 +64,10 @@ services:
     image: fredboat/lavalink:v3
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
     volumes:
-      - ./lavalink.yml:/opt/Lavalink/application.yaml
-      - ./lavalink_logs:/opt/Lavalink/logs
+    - ./lavalink.yml:/opt/Lavalink/application.yaml
+    - ./lavalink_logs:/opt/Lavalink/logs
 
   ################################################################################
   ##                               Sentinel
@@ -76,11 +76,14 @@ services:
     image: fredboat/sentinel:dev
     restart: on-failure:3
     depends_on:
-      - rabbitmq
+    - rabbitmq
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+    - ./sentinel_logs:/opt/sentinel/logs
+    - ./common.yml:/opt/sentinel/common.yml
     environment:
-      - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
+    - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
     # Need a bigger memory size or any other custom JVM args? Uncomment and edit the line below accordingly
     #entrypoint: java -Xmx512m -jar sentinel.jar
 
@@ -97,14 +100,31 @@ services:
     image: fredboat/quarterdeck:dev-v1
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
-      - db
+    - db
     volumes:
-      - ./quarterdeck.yml:/opt/Quarterdeck/quarterdeck.yaml
-      - ./quarterdeck_logs:/opt/Quarterdeck/logs
+    - ./quarterdeck.yml:/opt/Quarterdeck/quarterdeck.yaml
+    - ./quarterdeck_logs:/opt/Quarterdeck/logs
     # Need a bigger memory size or any other custom JVM args? uncomment and edit the line below accordingly
     #entrypoint: java -Xmx128m -jar Quarterdeck.jar
+
+  ################################################################################
+  ##                         Automatic updates
+  ################################################################################
+  # if you want automatic updates, uncomment the watchtower lines below
+  # watchtower is not yet officially available for arm64v8. See https://github.com/v2tec/watchtower/pull/178 for progress
+  # but you can try using napstr/watchtower:arm64v8-latest
+
+  #watchtower:
+  #  image: v2tec/watchtower
+  #  restart: on-failure:3
+  #  labels:
+  #    - "com.centurylinklabs.watchtower.enable=true"
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  command: --cleanup --label-enable --interval 300 #seconds
+
 
   ################################################################################
   ##                         Windows stuff

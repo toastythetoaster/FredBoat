@@ -93,8 +93,9 @@ backend:
     host: ""
     # Admin username and pass that you configured in the quarterdeck.yaml.
     # Do not leave any of them empty.
-    user: ""
-    pass: ""
+    # By default Quarterdeck uses admin:admin
+    user: "admin"
+    pass: "admin"
 
 
 credentials:

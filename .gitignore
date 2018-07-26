@@ -153,3 +153,4 @@ application.yml
 backend.yaml
 quarterdeck.yaml
 lavalink.yaml
+*.log
