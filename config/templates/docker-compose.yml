@@ -106,8 +106,15 @@ services:
     volumes:
     - ./quarterdeck.yml:/opt/Quarterdeck/quarterdeck.yaml
     - ./quarterdeck_logs:/opt/Quarterdeck/logs
-    # Need a bigger memory size or any other custom JVM args? uncomment and edit the line below accordingly
-    #entrypoint: java -Xmx128m -jar Quarterdeck.jar
+
+    # Need a bigger memory size or any other custom JVM args? Edit the list below accordingly
+    entrypoint:
+    - java
+    - -Xmx128m
+    - -jar
+    - Quarterdeck.jar
+    - >
+      --spring.application.json={"security": {"admins": [{"name": "docker", "pass": "docker"}]}}
 
   ################################################################################
   ##                         Automatic updates

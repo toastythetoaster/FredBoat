@@ -91,11 +91,10 @@ backend:
     # Example: https://such.example.com:4269/
     # No need set the host when running Quarterdeck in Docker.
     host: ""
-    # Admin username and pass that you configured in the quarterdeck.yaml.
-    # Do not leave any of them empty.
-    # By default Quarterdeck uses admin:admin
-    user: "admin"
-    pass: "admin"
+    # Credentials used to authenticate to with Quarterdeck.
+    # By default Quarterdeck uses docker:docker when using our docker-compose files
+    user: "docker"
+    pass: "docker"
 
 
 credentials:

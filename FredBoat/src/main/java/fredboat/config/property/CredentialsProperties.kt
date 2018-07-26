@@ -54,7 +54,7 @@ class CredentialsProperties : Credentials {
     private var sentryDsn = ""
     private var carbonKey = ""
     private var dikeUrl = ""
-    
+
     override fun getBotToken(): String = discordBotToken
     override fun getGoogleKeys() = googleApiKeys
     override fun getMalUser() = malUser
