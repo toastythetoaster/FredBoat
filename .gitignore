@@ -154,3 +154,4 @@ backend.yaml
 quarterdeck.yaml
 lavalink.yaml
 *.log
+*.gz
