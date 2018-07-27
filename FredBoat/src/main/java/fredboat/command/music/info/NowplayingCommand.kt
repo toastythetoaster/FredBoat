@@ -70,8 +70,8 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
             //at is BeamAudioTrack -> embed = getBeamEmbed(atc, at)
             else -> getDefaultEmbed(atc, player, at)
         }
-        if (embed.footer != null) embed.footer {
-            text = "Requested by ${atc.member.asMention}"
+        if (embed.footer == null) embed.footer {
+            text = "Requested by ${atc.member.asMention}" // TODO i18n
             iconUrl = atc.member.info.awaitSingle().iconUrl
         }
 
