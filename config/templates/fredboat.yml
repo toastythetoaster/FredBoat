@@ -89,21 +89,15 @@ backend:
   quarterdeck:
     # Host address of your quarterdeck backend, including port unless you are using a reverse proxy.
     # Example: https://such.example.com:4269/
-    # No need set the host when running the whole FredBoat in docker.
+    # No need set the host when running Quarterdeck in Docker.
     host: ""
-    # Admin username and pass that you configured in the quarterdeck.yaml.
-    # Do not leave any of them empty.
-    user: ""
-    pass: ""
+    # Credentials used to authenticate to with Quarterdeck.
+    # By default Quarterdeck uses docker:docker when using our docker-compose files
+    user: "docker"
+    pass: "docker"
 
 
 credentials:
-  # Add your discord bot token below, between the quotation marks
-  # Find the token of your bot on https://discordapp.com/developers/applications/me
-  # Tutorial: https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token
-  discordBotToken: "PutYourDiscordBotTokenHere"
-
-
   # Used by the ;;split and ;;np commands. Must be hooked up to the Youtube Data API.
   # You can add additional keys in case you are running a big bot
   # How to get the key: https://developers.google.com/youtube/registering_an_application
@@ -111,17 +105,14 @@ credentials:
   googleApiKeys:
     - "PutYourGoogleAPIKeyHere"
 
+  # The preferred way of setting the token is described in ./common.sh
+  #discordBotToken: ""
+
 
 
 ################################################################
 ###                     Optional APIs
 ################################################################
-
-  # For the ;;mal command
-  # Create an account on https://myanimelist.net/ and enter its login below
-  malUser:        ""
-  malPassword:    ""
-
 
   # Used to access imgur galleries for some RandomImageCommands
   # Acquired from here: https://api.imgur.com/oauth2/addclient
@@ -154,6 +145,20 @@ event-logger:
   guildStatsInterval:         60 # interval at which guild stats are posted in minutes
 
 
+# Lavalink is used for playing music.
+# More on Lavalink: https://github.com/Frederikam/Lavalink
+lavalink:
+  nodes:
+    - name : "docker"
+      host : "ws://lavalink"
+      pass : "youshallnotpass"
+#    - name : "remote1"
+#      host : "ws://192.168.1.20:5556"
+#      pass : "youshallnotpass"
+#    - name : "remote2"
+#      host : "ws://lavalink.example.com:5557"
+#      pass : "youshallnotpass"
+
 # tune these according to your needs, or just leave them as is.
 logging:
   file:
@@ -166,18 +171,3 @@ logging:
     fredboat: DEBUG
     com.fredboat: DEBUG
     net.dv8tion: DEBUG
-
-# If you are running lavalink nodes this is the place to add them.
-# Examples shown below, don't forget to uncomment them properly.
-# More on Lavalink: https://github.com/Frederikam/Lavalink
-#lavalink:
-#  nodes:
-#    - name : "local"
-#      host : "ws://localhost:5555"
-#      pass : "youshallnotpass"
-#    - name : "remote1"
-#      host : "ws://192.168.1.20:5556"
-#      pass : "youshallnotpass"
-#    - name : "remote2"
-#      host : "ws://lavalink.example.com:5557"
-#      pass : "youshallnotpass"

@@ -1,7 +1,18 @@
+################################################################################
+###                           Table of contents
+################################################################################
+# docker-compose.yml - Docker configuration for all services but FredBoat. For development
+# selfhosting.yml    - The same file but *including* FredBoat
+# common.yml         - Contains essential configuration for FredBoat and Sentinel
+# fredboat.yml       - FredBoat config
+# lavalink.yml       - Lavalink config
+# quarterdeck.yml    - Quarterdeck config
+#
+
 # TODO: Switch to the stable branches once Sentinel is release, then rename this file back to the original
 
 ################################################################################
-###                  Running FredBoat with docker-compose
+###                  Selfhosting FredBoat with docker-compose
 ################################################################################
 ###
 ### Use a proper text editor like Sublime when editing this file
@@ -24,16 +35,16 @@ services:
     #build: ./FredBoat/docker/database/ #useful alternative for developers
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
 
     # WINDOWS ONLY: if you are running under windows you need to comment out the following two lines:
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+    - ./postgres-data:/var/lib/postgresql/data
 
     # WINDOWS ONLY: if you are running under windows and want to take manual backups of the database
     # via a docker volume, uncomment the following two lines and read the snippet at the bottom of this file
     #volumes:
-      #- postgres-data-volume:/var/lib/postgresql/data
+    #- postgres-data-volume:/var/lib/postgresql/data
 
   ################################################################################
   ##                               RabbitMQ
@@ -42,9 +53,9 @@ services:
     image: rabbitmq:3-management
     restart: always
     ports:
-      - 127.0.01:15672:15672 # Web UI
+    - 127.0.01:15672:15672 # Web UI
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
 
   ################################################################################
   ##                               Lavalink
@@ -53,10 +64,10 @@ services:
     image: fredboat/lavalink:v3
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
     volumes:
-      - ./lavalink.yaml:/opt/Lavalink/application.yaml
-      - ./lavalink_logs:/opt/Lavalink/logs
+    - ./lavalink.yml:/opt/Lavalink/application.yaml
+    - ./lavalink_logs:/opt/Lavalink/logs
 
   ################################################################################
   ##                               Sentinel
@@ -65,16 +76,15 @@ services:
     image: fredboat/sentinel:dev
     restart: on-failure:3
     depends_on:
-      - rabbitmq
+    - rabbitmq
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
+    volumes:
+    - ./sentinel_logs:/opt/sentinel/logs
+    - ./common.yml:/opt/sentinel/common.yml
     environment:
-      - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
-
-      # Find the token of your bot on https://discordapp.com/developers/applications/me
-      # Tutorial: https://github.com/reactiflux/discord-irc/wiki/Creating-a-discord-bot-&-getting-a-token
-      - "SENTINEL_DISCORDTOKEN=write_your_discord_bot_token_here"
-    # Need a bigger memory size or any other custom JVM args? uncomment and edit the line below accordingly
+    - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
+    # Need a bigger memory size or any other custom JVM args? Uncomment and edit the line below accordingly
     #entrypoint: java -Xmx512m -jar sentinel.jar
 
   ################################################################################
@@ -90,51 +100,21 @@ services:
     image: fredboat/quarterdeck:dev-v1
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
-      - db
+    - db
     volumes:
-      - ./quarterdeck.yaml:/opt/Quarterdeck/quarterdeck.yaml
-      - ./quarterdeck_logs:/opt/Quarterdeck/logs
-    # Need a bigger memory size or any other custom JVM args? uncomment and edit the line below accordingly
-    #entrypoint: java -Xmx128m -jar Quarterdeck.jar
+    - ./quarterdeck.yml:/opt/Quarterdeck/quarterdeck.yaml
+    - ./quarterdeck_logs:/opt/Quarterdeck/logs
 
-  ################################################################################
-  ##                               FredBoat
-  ################################################################################
-  bot:
-    # for choosing between stable or dev, read the paragraph above in the Quarterdeck section
-    # IMPORTANT: both quarterdeck and fredboat need to either be on the stable, or on the dev branch
-    # To run on (some) arm based machines, prepend the tag with arm64v8-, for example: fredboat/fredboat:arm64v8-dev-v3
-    image: fredboat/fredboat:sentinel-v3
-    #build: ./FredBoat #useful alternative for developers
-
-    restart: on-failure:3
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-    depends_on:
-      - quarterdeck
-      - sentinel
-      - lavalink
-    ports:
-      - 1356:1356
-    environment:
-      - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
-    volumes:
-      - ./fredboat.yaml:/opt/FredBoat/fredboat.yaml
-      - ./fredboat_logs:/opt/FredBoat/logs
-      - ./music_persistence:/opt/FredBoat/music_persistence
-      # Local audio files (dev branch only currently)
-      # If your music directory looks like this: /home/user/music/directory/rickroll.mp3 or C:\Users\user\Music\rickroll.mp3
-      # you will be able to play that file with this command: <<play file://music/rickroll.mp3
-      # Linux example:
-      #- /home/your_user_name/music:/opt/FredBoat/music
-      # Windows example:
-      #- C:\Users\your_user_name\Music:/opt/FredBoat/music
-
-    # Need a bigger memory size or any other custom JVM args? uncomment and edit the line below accordingly
-    #entrypoint: java -Xmx256m -jar FredBoat.jar
-
+    # Need a bigger memory size or any other custom JVM args? Edit the list below accordingly
+    entrypoint:
+    - java
+    - -Xmx128m
+    - -jar
+    - Quarterdeck.jar
+    - >
+      --spring.application.json={"security": {"admins": [{"name": "docker", "pass": "docker"}]}}
 
   ################################################################################
   ##                         Automatic updates
