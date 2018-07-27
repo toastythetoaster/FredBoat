@@ -10,6 +10,41 @@ while building. Check out the [issues](https://github.com/Frederikam/FredBoat/is
 
 In most cases you will want to submit against the `dev` branch.
 
+## Running the bot
+FredBoat relies on a microservice architecture, which means that several tasks have been delegated to other programs:
+
+* FredBoat    - Controls everything, runs commands, queues music, etc
+* Sentinel    - Receives events from Discord and forwards them to FredBoat. FredBoat can request more data or submit requests
+* Lavalink    - Processes and streams music to Discord voice servers. Controlled by FredBoat
+* Quarterdeck - Persistence layer. Handles SQL and caching.
+* RabbitMQ    - Brokers messages between FredBoat and Sentinel
+* PostgreSQL  - Quarterdeck's database
+
+You will most likely want to work on FredBoat. We use docker-compose to automatically configure and run these services,
+with the exception of FredBoat itself, which you will want to run from your IDE. This repository only contains the code
+of FredBoat.
+
+### Requirements
+* git
+* docker
+* docker-compose
+* Java 10
+
+### Steps
+1. Clone this repository - `git clone https://github.com/Frederikam/FredBoat`
+2. Enter the config directory - `cd FredBoat/config`
+3. Copy the templates into the config directory - `cp templates/* .`
+4. Add your bot's token to `common.yml`
+5. Start all the services with `docker-compose up -d`
+
+**Protip:** View *all* the logs with `docker-compose logs --follow`
+
+6. Launch FredBoat via your IDE (main file is `fredboat.main.launcher.kt`).
+
+The working directory of FredBoat should be `<repository>/FredBoat`
+
+When you want to stop the services run `docker-compose down`
+
 ## Working with Kotlin
 FredBoat was initially a java bot, but we are relying incrementally on Kotlin. Kotlin is still very similar to
 Java, and it is fairly easy to learn for existing JVM developer. We recommend the [Kotlin Koans](https://kotlinlang.org/docs/tutorials/koans.html)
