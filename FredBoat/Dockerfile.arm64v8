@@ -4,7 +4,7 @@ ENV ENV docker
 
 WORKDIR /opt/FredBoat
 
-COPY fredboat.yml /opt/FredBoat/fredboat.yml
+COPY fredboat.yml.template /opt/FredBoat/fredboat.yml
 COPY FredBoat.jar /opt/FredBoat/FredBoat.jar
 
 EXPOSE 1356
