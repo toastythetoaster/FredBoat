@@ -55,21 +55,8 @@ class CredentialsProperties : Credentials {
     private var carbonKey = ""
     private var dikeUrl = ""
 
-    override fun getBotToken(): String = discordBotToken
-    override fun getGoogleKeys() = googleApiKeys
-    override fun getMalUser() = malUser
-    override fun getMalPassword() = malPassword
-    override fun getImgurClientId() = imgurClientId
-    override fun getSpotifyId() = spotifyId
-    override fun getSpotifySecret() = spotifySecret
-    override fun getOpenWeatherKey() = openWeatherKey
-    override fun getSentryDsn() = sentryDsn
-    override fun getCarbonKey() = carbonKey
-
-    fun setDiscordBotToken(discordBotToken: String) {
-        this.discordBotToken = discordBotToken
-
-        if (discordBotToken.isEmpty()) {
+    override fun getBotToken(): String {
+        if (discordBotToken.isBlank()) {
             val file = File("common.yml")
             if (file.exists()) {
                 val yaml = Yaml()
@@ -86,10 +73,25 @@ class CredentialsProperties : Credentials {
             }
         }
 
-        if (discordBotToken.isEmpty()) {
+        if (discordBotToken.isBlank()) {
             throw RuntimeException("No discord bot token provided." +
                     "\nMake sure to put a discord bot token into your common.yml file.")
         }
+
+        return discordBotToken
+    }
+    override fun getGoogleKeys() = googleApiKeys
+    override fun getMalUser() = malUser
+    override fun getMalPassword() = malPassword
+    override fun getImgurClientId() = imgurClientId
+    override fun getSpotifyId() = spotifyId
+    override fun getSpotifySecret() = spotifySecret
+    override fun getOpenWeatherKey() = openWeatherKey
+    override fun getSentryDsn() = sentryDsn
+    override fun getCarbonKey() = carbonKey
+
+    fun setDiscordBotToken(discordBotToken: String) {
+        this.discordBotToken = discordBotToken
     }
 
     fun setGoogleApiKeys(googleApiKeys: List<String>) {
