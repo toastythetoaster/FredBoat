@@ -61,7 +61,7 @@ services:
   ##                               Lavalink
   ################################################################################
   lavalink:
-    image: fredboat/lavalink:v3
+    image: fredboat/lavalink:experimental_magma
     restart: always
     labels:
     - "com.centurylinklabs.watchtower.enable=true"
