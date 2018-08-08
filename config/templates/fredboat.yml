@@ -147,9 +147,9 @@ event-logger:
 
 # Lavalink is used for playing music.
 # More on Lavalink: https://github.com/Frederikam/Lavalink
-# If no nodes are defined, FredBoat will automatically guess that Lavalink is hosted locally at port 2333
-lavalink:
-  nodes:
+# If fully commented out, FredBoat will automatically guess that Lavalink is hosted locally at port 2333
+#lavalink:
+#  nodes:
 #    - name : "local"
 #      host : "ws://localhost:2333"
 #      pass : "youshallnotpass"
