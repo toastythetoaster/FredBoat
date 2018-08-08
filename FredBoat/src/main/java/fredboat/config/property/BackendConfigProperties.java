@@ -83,8 +83,10 @@ public class BackendConfigProperties implements BackendConfig {
             this.host = host;
             //noinspection ConstantConditions
             if (host == null || host.isEmpty()) {
-                this.host = "http://quarterdeck:4269/";
-                log.info("No quarterdeck host found. Assuming default Docker URL: " + this.host);
+                boolean docker = "docker".equals(System.getenv("ENV"));
+                this.host = docker ? "http://quarterdeck:4269/" : "http://localhost:4269/";
+                log.info("No quarterdeck host found. FredBoat in docker = " + docker +
+                        ". Assuming default Docker URL: " + this.host);
             }
 
             //fix up a missing trailing slash
