@@ -22,37 +22,44 @@
  * SOFTWARE.
  */
 
-package fredboat.config.property;
+package fredboat.config.property
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.slf4j.LoggerFactory
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.stereotype.Component
 
 /**
  * Created by napster on 03.03.18.
  */
 @Component
 @ConfigurationProperties(prefix = "lavalink")
-public class LavalinkConfigProperties implements LavalinkConfig {
+class LavalinkConfigProperties : LavalinkConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(LavalinkConfigProperties.class);
-
-    private List<LavalinkNode> nodes = new ArrayList<>();
-
-
-    @Override
-    public List<LavalinkNode> getNodes() {
-        return nodes;
+    companion object {
+        private val log = LoggerFactory.getLogger(LavalinkConfigProperties::class.java)
     }
 
-    public void setNodes(List<LavalinkNode> nodes) {
-        this.nodes = nodes;
-        for (LavalinkNode node : nodes) {
-            log.info("Lavalink node added: {} {}", node.getName(), node.getUri());
+    private var nodes: List<LavalinkConfig.LavalinkNode> = listOf()
+
+    override fun getNodes(): List<LavalinkConfig.LavalinkNode> {
+        if (nodes.isEmpty()) {
+            val docker = "docker" == System.getenv("ENV")
+            val guessedNode = LavalinkConfig.LavalinkNode().apply {
+                name = "local"
+                setHost(if (docker) "ws://lavalink:2333/" else "ws://localhost:2333/")
+                setPass("youshallnotpass")
+            }
+            nodes = listOf(guessedNode)
+            log.info("No nodes defined, FredBoat in container = $docker, guess = $guessedNode")
+        }
+
+        return nodes
+    }
+
+    fun setNodes(nodes: List<LavalinkConfig.LavalinkNode>) {
+        this.nodes = nodes
+        for (node in nodes) {
+            log.info("Lavalink node added: {} {}", node.name, node.uri)
         }
     }
 }

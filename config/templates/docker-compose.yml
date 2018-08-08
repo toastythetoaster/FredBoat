@@ -65,6 +65,8 @@ services:
     restart: always
     labels:
     - "com.centurylinklabs.watchtower.enable=true"
+    ports:
+    - 127.0.01:2333:2333
     volumes:
     - ./lavalink.yml:/opt/Lavalink/application.yaml
     - ./lavalink_logs:/opt/Lavalink/logs

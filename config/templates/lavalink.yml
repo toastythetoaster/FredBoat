@@ -1,5 +1,5 @@
 server: # REST server
-  port: 80
+  port: 2333
   address: 0.0.0.0
 spring:
   main:
