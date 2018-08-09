@@ -3,7 +3,9 @@ package fredboat.sentinel
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.GuildSubscribeRequest
 import fredboat.config.property.AppConfig
+import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
 import java.time.Duration
@@ -23,6 +25,8 @@ class GuildCache(private val sentinel: Sentinel,
         lateinit var INSTANCE: GuildCache
     }
 
+    @Autowired /* Cyclic dependency */
+    lateinit var rabbitConsumer: RabbitConsumer
     val cache = ConcurrentHashMap<Long, InternalGuild>()
 
     fun get(id: Long): Mono<Guild?> = Mono.create<Guild?> { sink ->
@@ -42,6 +46,14 @@ class GuildCache(private val sentinel: Sentinel,
 
                     val g = InternalGuild(it)
                     cache[g.id] = g
+
+                    // Asynchronously handle existing VSU from an older FredBoat session, if it exists
+                    it.voiceServerUpdate?.let { vsu ->
+                        launch {
+                            rabbitConsumer.receive(vsu)
+                        }
+                    }
+
                     g
                 }
         )
