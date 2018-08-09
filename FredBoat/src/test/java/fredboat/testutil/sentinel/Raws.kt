@@ -111,7 +111,8 @@ object Raws {
             mutableListOf(owner, self, napster, realkc),
             mutableListOf(generalChannel, privateChannel),
             mutableListOf(musicChannel),
-            mutableListOf(botAdminRole, uberAdminRole, adminRole)
+            mutableListOf(botAdminRole, uberAdminRole, adminRole),
+            voiceServerUpdate = null
     )
 
     val banList = mutableListOf(Ban(RawUser(
