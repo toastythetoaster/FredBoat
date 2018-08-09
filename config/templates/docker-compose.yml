@@ -53,9 +53,10 @@ services:
     image: rabbitmq:3-management
     restart: always
     ports:
-    - 127.0.01:15672:15672 # Web UI
+     - 127.0.0.1:5672:5672   # The broker
+     - 127.0.0.1:15672:15672 # Web UI
     labels:
-    - "com.centurylinklabs.watchtower.enable=true"
+     - "com.centurylinklabs.watchtower.enable=true"
 
   ################################################################################
   ##                               Lavalink
@@ -105,18 +106,20 @@ services:
     - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
     - db
+    ports:
+    - 127.0.01:4269:4269
     volumes:
     - ./quarterdeck.yml:/opt/Quarterdeck/quarterdeck.yaml
     - ./quarterdeck_logs:/opt/Quarterdeck/logs
 
     # Need a bigger memory size or any other custom JVM args? Edit the list below accordingly
     entrypoint:
-    - java
-    - -Xmx128m
-    - -jar
-    - Quarterdeck.jar
-    - >
-      --spring.application.json={"security": {"admins": [{"name": "docker", "pass": "docker"}]}}
+     - java
+     - -Xmx128m
+     - -jar
+     - Quarterdeck.jar
+     - >
+       --spring.application.json={"security": {"admins": [{"name": "docker", "pass": "docker"}]}}
 
   ################################################################################
   ##                         Automatic updates
