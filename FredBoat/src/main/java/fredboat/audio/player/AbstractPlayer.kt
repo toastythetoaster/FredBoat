@@ -39,7 +39,6 @@ import fredboat.audio.queue.TrackEndMarkerHandler
 import fredboat.commandmeta.MessagingException
 import fredboat.sentinel.Guild
 import fredboat.util.TextUtils
-import lavalink.client.player.IPlayer
 import lavalink.client.player.LavalinkPlayer
 import lavalink.client.player.event.AudioEventAdapterWrapped
 import org.slf4j.LoggerFactory
@@ -53,7 +52,7 @@ abstract class AbstractPlayer internal constructor(
         guild: Guild
 ) : AudioEventAdapterWrapped() {
 
-    val player: IPlayer
+    val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
     protected var context: AudioTrackContext? = null
 
     internal var onPlayHook: Consumer<AudioTrackContext>? = null
@@ -119,7 +118,6 @@ abstract class AbstractPlayer internal constructor(
         get() = player.trackPosition
 
     init {
-        player = lavalink.getLink(java.lang.Long.toString(guild.id)).player
         player.addListener(this)
     }
 

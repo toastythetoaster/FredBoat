@@ -31,6 +31,9 @@ import fredboat.db.api.GuildConfigService
 import fredboat.sentinel.Guild
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import lavalink.client.io.Link.State
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.concurrent.ConcurrentHashMap
@@ -45,6 +48,7 @@ class PlayerRegistry(private val musicTextChannelProvider: MusicTextChannelProvi
 
     companion object {
         const val DEFAULT_VOLUME = 1f
+        private val log: Logger = LoggerFactory.getLogger(PlayerRegistry::class.java)
     }
 
     private val registry = ConcurrentHashMap<Long, GuildPlayer>()
@@ -92,7 +96,12 @@ class PlayerRegistry(private val musicTextChannelProvider: MusicTextChannelProvi
     fun destroyPlayer(guildId: Long) {
         val player = getExisting(guildId)
         if (player != null) {
-            player.destroy()
+            if (player.player.link.state == State.DESTROYED) {
+                log.warn("Attempt to destroy already destroyed player." +
+                        " This should not happen. Removing without re-destroying...")
+            } else {
+                player.destroy()
+            }
             registry.remove(guildId)
         }
     }
