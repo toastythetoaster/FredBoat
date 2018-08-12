@@ -4,6 +4,7 @@ import com.fredboat.sentinel.entities.*
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.lavalink.SentinelLink
 import fredboat.audio.player.GuildPlayer
+import fredboat.audio.player.PlayerRegistry
 import fredboat.config.property.AppConfig
 import fredboat.main.getBotController
 import fredboat.perms.IPermissionSet
@@ -33,16 +34,18 @@ private val MEMBER_MENTION_PATTERN = Pattern.compile("<@!?([0-9]+)>", Pattern.DO
 private val CHANNEL_MENTION_PATTERN = Pattern.compile("<#([0-9]+)>", Pattern.DOTALL)
 
 @Service
-class WrapperEntityBeans(appConfigParam: AppConfig, lavalinkParam: SentinelLavalink) {
+class WrapperEntityBeans(appConfigParam: AppConfig, lavalinkParam: SentinelLavalink, playerRegistryParam: PlayerRegistry) {
     init {
         appConfig = appConfigParam
         lavalink = lavalinkParam
+        playerRegistry = playerRegistryParam
     }
 }
 
 private val log: Logger = LoggerFactory.getLogger("wrapperEntities")
 private lateinit var appConfig: AppConfig
 private lateinit var lavalink: SentinelLavalink
+private lateinit var playerRegistry: PlayerRegistry
 
 @Suppress("PropertyName")
 abstract class Guild(raw: RawGuild) : SentinelEntity {
@@ -90,6 +93,9 @@ abstract class Guild(raw: RawGuild) : SentinelEntity {
     /** The routing key for the associated Sentinel */
     val routingKey: String
         get() = sentinel.tracker.getKey(shardId)
+
+    val guildPlayer: GuildPlayer? get() =  playerRegistry.getExisting(this)
+    fun getOrCreateGuildPlayer() = playerRegistry.getOrCreate(this)
 
     fun getMember(id: Long): Member? = _members[id]
     fun getRole(id: Long): Role? = _roles[id]

@@ -1,6 +1,7 @@
 package fredboat.agent
 
 import com.fredboat.sentinel.entities.GuildUnsubscribeRequest
+import fredboat.audio.player.PlayerRegistry
 import fredboat.sentinel.GuildCache
 import fredboat.sentinel.InternalGuild
 import lavalink.client.io.Link
@@ -11,7 +12,8 @@ import java.util.concurrent.TimeUnit
 
 @Controller
 class GuildCacheInvalidationAgent(
-        private val guildCache: GuildCache
+        private val guildCache: GuildCache,
+        private val playerRegistry: PlayerRegistry
 ) : FredBoatAgent("cache-invalidator", 10, TimeUnit.MINUTES) {
 
     companion object {
@@ -42,12 +44,15 @@ class GuildCacheInvalidationAgent(
         // Are we connected to voice?
         if (link.state == Link.State.CONNECTED) return false
 
+        // Are we playing music?
+        if (this.guildPlayer?.isPlaying == true) return false
+
         // If not then invalidate
         return true
     }
 
     private fun InternalGuild.beforeInvalidation() {
-        link.destroy()
+        playerRegistry.destroyPlayer(this)
         sentinel.sendAndForget(routingKey, GuildUnsubscribeRequest(id))
     }
 
