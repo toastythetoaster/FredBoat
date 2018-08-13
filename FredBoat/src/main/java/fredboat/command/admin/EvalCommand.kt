@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import javax.script.ScriptEngine
 import javax.script.ScriptEngineManager
-import javax.script.ScriptException
 
 class EvalCommand(
         private val springContext: () -> ApplicationContext,
@@ -55,24 +54,15 @@ class EvalCommand(
 
     private var lastTask: Future<*>? = null
 
-    //Thanks Dinos!
-    private val engine: ScriptEngine = ScriptEngineManager().getEngineByName("nashorn")
-
     override val minimumPerms: PermissionLevel
         get() = PermissionLevel.BOT_OWNER
 
-    init {
-        try {
-            engine.eval("var imports = new JavaImporter(java.io, java.lang, java.util);")
-
-        } catch (ex: ScriptException) {
-            log.error("Failed to init eval command", ex)
-        }
-
-    }
-
     override suspend fun invoke(context: CommandContext) {
         val started = System.currentTimeMillis()
+
+        val engine: ScriptEngine = ScriptEngineManager().getEngineByName("nashorn")
+
+        engine.eval("var imports = new JavaImporter(java.io, java.lang, java.util);")
 
         var source = context.rawArgs
 
