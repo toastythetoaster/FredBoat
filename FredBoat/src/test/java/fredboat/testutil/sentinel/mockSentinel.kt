@@ -65,13 +65,14 @@ object SentinelState {
                 channel.id,
                 member.id))
 
-        log.info("Emulating ${member.name} joining ${channel.name}")
+        log.info("Emulating ${member.id} joining ${channel.id}")
         delayUntil(timeout = 4000) { guildCache.getIfCached(guild.id)?.getMember(member.id)?.voiceChannel?.id == channel.id }
         if (guildCache.getIfCached(guild.id)?.getMember(member.id)?.voiceChannel?.id != channel.id) {
             val info = mapOf(
                     "guild" to guildCache.getIfCached(guild.id),
                     "member" to guildCache.getIfCached(guild.id)?.getMember(member.id),
-                    "vc" to guildCache.getIfCached(guild.id)?.getMember(member.id)?.voiceChannel
+                    "vc" to guildCache.getIfCached(guild.id)?.getMember(member.id)?.voiceChannel,
+                    "target" to channel
             )
             throw RuntimeException("Failed to join VC. Debug info: $info")
         }
