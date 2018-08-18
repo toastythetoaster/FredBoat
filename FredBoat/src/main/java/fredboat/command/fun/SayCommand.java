@@ -50,7 +50,10 @@ public class SayCommand extends Command implements IFunCommand {
             HelpCommand.sendFormattedCommandHelp(context);
             return;
         }
-        context.reply(TextUtils.ZERO_WIDTH_CHAR + context.rawArgs,
+
+        String out = TextUtils.escapeAndDefuse(context.rawArgs);
+
+        context.reply(TextUtils.ZERO_WIDTH_CHAR + out,
                 message -> EventListenerBoat.messagesToDeleteIfIdDeleted.put(context.msg.getIdLong(), message.getIdLong())
         );
 
