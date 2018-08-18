@@ -50,8 +50,8 @@ class Sentinel(private val template: AsyncRabbitTemplate,
             mayBeEmpty: Boolean = false,
             deliveryMode: MessageDeliveryMode = MessageDeliveryMode.NON_PERSISTENT,
             transform: (response: R) -> T) = Mono.create<T> {
-        val postProcessor = MessagePostProcessor {
-            it.messageProperties.deliveryMode = deliveryMode; it
+        val postProcessor = MessagePostProcessor { processor ->
+            processor.messageProperties.deliveryMode = deliveryMode; processor
         }
         template.convertSendAndReceive<R?>(exchange, routingKey, request, postProcessor).addCallback(
                 { res ->

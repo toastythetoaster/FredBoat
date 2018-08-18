@@ -49,7 +49,10 @@ public class SayCommand extends JCommand implements IFunCommand {
             HelpCommand.sendFormattedCommandHelp(context);
             return;
         }
-        context.replyMono(TextUtils.ZERO_WIDTH_CHAR + context.getRawArgs()).subscribe(
+
+        String out = TextUtils.escapeAndDefuse(context.getRawArgs());
+
+        context.replyMono(TextUtils.ZERO_WIDTH_CHAR + out).subscribe(
                 message -> MessageEventHandler.Companion.getMessagesToDeleteIfIdDeleted()
                         .put(context.getMsg().getId(), message.getMessageId())
         );
