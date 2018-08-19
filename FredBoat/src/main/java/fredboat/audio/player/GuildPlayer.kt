@@ -196,6 +196,11 @@ class GuildPlayer(
         val guild = targetChannel.guild
         val permissions = targetChannel.ourEffectivePermissions
 
+        if (permissions hasNot Permission.VIEW_CHANNEL) {
+            val i18n = I18n.get(guild).getString("permissionMissingBot")
+            throw MessagingException("$i18n ${Permission.VIEW_CHANNEL.uiName}")
+        }
+
         if (permissions hasNot Permission.VOICE_CONNECT && guild.selfMember.voiceChannel != targetChannel) {
             throw MessagingException(I18n.get(guild).getString("playerJoinConnectDenied"))
         }
