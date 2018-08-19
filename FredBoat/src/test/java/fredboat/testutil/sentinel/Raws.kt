@@ -101,7 +101,7 @@ object Raws {
             "Music",
             mutableListOf(),
             5,
-            (Permission.VOICE_CONNECT + Permission.VOICE_SPEAK).raw
+            (Permission.VIEW_CHANNEL + Permission.VOICE_CONNECT + Permission.VOICE_SPEAK).raw
     )
 
     val guild = RawGuild(
