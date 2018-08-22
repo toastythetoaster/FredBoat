@@ -158,6 +158,7 @@ public class BrainfuckCommand extends JCommand implements IUtilCommand {
         }
 
         String output = " " + out + "\n-------\n" + out2.substring(1);
+        output = TextUtils.escapeAndDefuse(output);
         if (output.length() < 2000) {
             context.reply(output);
             return;
