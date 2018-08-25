@@ -8,8 +8,6 @@ import fredboat.db.api.GuildConfigService
 import fredboat.feature.I18n
 import fredboat.sentinel.Member
 import fredboat.sentinel.VoiceChannel
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 
 @Component
@@ -19,10 +17,6 @@ class AudioEventHandler(
         private val lavalink: SentinelLavalink,
         private val guildConfigService: GuildConfigService
 ) : SentinelEventHandler() {
-
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(AudioEventHandler::class.java)
-    }
 
     override fun onVoiceJoin(channel: VoiceChannel, member: Member) {
         checkForAutoResume(channel, member)

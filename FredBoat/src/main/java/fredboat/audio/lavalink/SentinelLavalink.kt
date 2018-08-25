@@ -8,6 +8,8 @@ import fredboat.sentinel.Guild
 import fredboat.sentinel.Sentinel
 import lavalink.client.io.Lavalink
 import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
@@ -22,6 +24,7 @@ class SentinelLavalink(
 
     companion object {
         lateinit var INSTANCE: SentinelLavalink
+        private val log: Logger = LoggerFactory.getLogger(SentinelLavalink::class.java)
     }
 
     init {
@@ -38,6 +41,14 @@ class SentinelLavalink(
     fun onVoiceServerUpdate(update: VoiceServerUpdate) {
         val json = JSONObject(update.raw)
         val gId = json.getString("guild_id")
-        getLink(gId).onVoiceServerUpdate(json, update.sessionId)
+        val link = getLink(gId)
+
+        if (link.channel == null) {
+            log.warn("Received voice server update, but we are not expecting a particular channel. " +
+                    "This should not happen \uD83E\uDD14. Ignoring...")
+            return
+        }
+
+        link.onVoiceServerUpdate(json, update.sessionId)
     }
 }
