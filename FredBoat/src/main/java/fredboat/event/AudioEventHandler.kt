@@ -32,9 +32,9 @@ class AudioEventHandler(
 
     override fun onVoiceMove(oldChannel: VoiceChannel, newChannel: VoiceChannel, member: Member) {
         checkForAutoResume(newChannel, member)
+        checkForAutoPause(oldChannel)
         if (!member.isUs) return
         getLink(newChannel).setChannel(newChannel.id.toString())
-        checkForAutoPause(oldChannel)
     }
 
     override fun onVoiceServerUpdate(voiceServerUpdate: VoiceServerUpdate) =
