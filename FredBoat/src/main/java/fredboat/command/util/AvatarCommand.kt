@@ -38,8 +38,13 @@ class AvatarCommand(name: String, vararg aliases: String) : Command(name, *alias
         if (context.mentionedMembers.isEmpty()) {
             HelpCommand.sendFormattedCommandHelp(context)
         } else {
-            context.replyWithName(context.i18nFormat("avatarSuccess",
-                    context.mentionedMembers[0].info.awaitSingle().iconUrl))
+            val avatar = context.mentionedMembers[0].info.awaitSingle().iconUrl
+
+            if (avatar != null) {
+                context.replyWithName(context.i18nFormat("avatarSuccess", avatar))
+            } else {
+                context.replyWithName("That user has no avatar") // todo i18n
+            }
         }
     }
 
