@@ -45,7 +45,7 @@ dependencies {
         compile(group: 'lavalink', name: 'Lavalink-Client', version: '-SNAPSHOT')
     } else {
         //production
-        compile(group: 'com.github.Frederikam', name: 'Lavalink', version: lavalinkVersion)
+        compile(group: 'com.github.FredBoat', name: 'Lavalink-Client', version: lavalinkVersion)
     }
 
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-webflux', version: springBootVersion
