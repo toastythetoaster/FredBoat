@@ -31,6 +31,7 @@ import fredboat.config.property.LavalinkConfig;
 import fredboat.jda.ShardProvider;
 import fredboat.util.DiscordUtil;
 import lavalink.client.io.Lavalink;
+import lavalink.client.io.jda.JdaLavalink;
 import lavalink.client.io.metrics.LavalinkCollector;
 import lavalink.client.player.IPlayer;
 import lavalink.client.player.LavaplayerPlayerWrapper;
@@ -53,7 +54,7 @@ import java.util.List;
 public class AudioConnectionFacade implements EventListener {
 
     @Nullable
-    private final Lavalink lavalink;
+    private final JdaLavalink lavalink;
     private final DebugConnectionListenerProvider debugConnectionListenerProvider;
     private final AudioPlayerManager audioPlayerManager;
 
@@ -69,7 +70,7 @@ public class AudioConnectionFacade implements EventListener {
             return;
         }
 
-        lavalink = new Lavalink(
+        lavalink = new JdaLavalink(
                 Long.toString(DiscordUtil.getBotId(credentials)),
                 credentials.getRecommendedShardCount(),
                 shardProvider::getShardById
@@ -116,7 +117,7 @@ public class AudioConnectionFacade implements EventListener {
     }
 
     @Nullable
-    public Lavalink getLavalink() {
+    public JdaLavalink getLavalink() {
         return lavalink;
     }
 

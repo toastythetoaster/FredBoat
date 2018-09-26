@@ -276,7 +276,7 @@ public abstract class AbstractPlayer extends AudioEventAdapterWrapped implements
 
     @Override
     public byte[] provide20MsAudio() {
-        return lastFrame.data;
+        return lastFrame.getData();
     }
 
     @Override
