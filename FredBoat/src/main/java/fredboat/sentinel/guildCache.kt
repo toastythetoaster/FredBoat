@@ -53,10 +53,10 @@ class GuildCache(private val sentinel: Sentinel,
                     val timeTakenReceive = System.currentTimeMillis() - startTime
                     val g = InternalGuild(it)
                     cache[g.id] = g
-                    val timeTakenParse = System.currentTimeMillis() - timeTakenReceive
+                    val timeTakenParse = System.currentTimeMillis() - startTime - timeTakenReceive
                     val timeTaken = timeTakenReceive + timeTakenParse
 
-                    log.info("Subscribing to {} took {}ms including {}ms parsing time.\n Members:{}\nChannels:{}\nRoles:{}\n",
+                    log.info("Subscribing to {} took {}ms including {}ms parsing time.\nMembers: {}\nChannels: {}\nRoles: {}\n",
                             g,
                             timeTaken,
                             timeTakenParse,
