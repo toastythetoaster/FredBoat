@@ -6,8 +6,15 @@ import fredboat.perms.InsufficientPermissionException
 import fredboat.perms.Permission.*
 import fredboat.sentinel.VoiceChannel
 import lavalink.client.io.Link
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(lavalink, guildId) {
+
+    companion object {
+        private val log: Logger = LoggerFactory.getLogger(SentinelLink::class.java)
+    }
+
     private val routingKey: String
             get() {
                 val sId = ((guildId.toLong() shr 22) % lavalink.appConfig.shardCount.toLong()).toInt()
@@ -46,6 +53,11 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
 
         state = Link.State.CONNECTING
         queueAudioConnect(channel.id)
+    }
+
+    override fun onVoiceWebSocketClosed(code: Int, reason: String, byRemote: Boolean) {
+        val by = if (byRemote) "Discord" else "LLS"
+        log.info("Lavalink voice WS closed by {}, code {}: {}", by, code, reason)
     }
 
 }
