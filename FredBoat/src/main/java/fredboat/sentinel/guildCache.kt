@@ -81,7 +81,7 @@ class GuildCache(private val sentinel: Sentinel,
         )
                 .doOnError { sink.error(it) }
                 .subscribe { sink.success(it) }
-    }.timeout(Duration.ofSeconds(10), Mono.error(TimeoutException("Timed out while subscribing to $id")))
+    }.timeout(Duration.ofSeconds(30), Mono.error(TimeoutException("Timed out while subscribing to $id")))
 
     fun getIfCached(id: Long): Guild? = cache[id]
 
