@@ -57,7 +57,8 @@ abstract class AbstractPlayer internal constructor(
 
     internal var onPlayHook: Consumer<AudioTrackContext>? = null
     internal var onErrorHook: Consumer<Throwable>? = null
-    private var queuedTrackInHistory: AudioTrackContext? = null
+    @Volatile
+    private var lastLoadedTrack: AudioTrackContext? = null
     private val historyQueue = ConcurrentLinkedQueue<AudioTrackContext>()
 
     companion object {
@@ -218,7 +219,7 @@ abstract class AbstractPlayer internal constructor(
         log.trace("loadAndPlay()")
 
         val atc = audioTrackProvider.provideAudioTrack()
-        queuedTrackInHistory = atc
+        lastLoadedTrack = atc
         atc?.let { playTrack(it) }
     }
 
@@ -226,7 +227,7 @@ abstract class AbstractPlayer internal constructor(
         if (historyQueue.size == MAX_HISTORY_SIZE) {
             historyQueue.poll()
         }
-        historyQueue.add(queuedTrackInHistory)
+        historyQueue.add(lastLoadedTrack)
     }
 
     /**
