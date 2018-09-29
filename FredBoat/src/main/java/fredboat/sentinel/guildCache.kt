@@ -2,9 +2,12 @@ package fredboat.sentinel
 
 import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.GuildSubscribeRequest
+import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.config.property.AppConfig
 import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -14,7 +17,8 @@ import java.util.concurrent.TimeoutException
 
 @Service
 class GuildCache(private val sentinel: Sentinel,
-                 private val appConfig: AppConfig) {
+                 private val appConfig: AppConfig,
+                 private val lavalink: SentinelLavalink) {
 
     init {
         @Suppress("LeakingThis")
@@ -23,6 +27,7 @@ class GuildCache(private val sentinel: Sentinel,
 
     companion object {
         lateinit var INSTANCE: GuildCache
+        private val log: Logger = LoggerFactory.getLogger(GuildCache::class.java)
     }
 
     @Autowired /* Cyclic dependency */
@@ -50,7 +55,24 @@ class GuildCache(private val sentinel: Sentinel,
                     // Asynchronously handle existing VSU from an older FredBoat session, if it exists
                     it.voiceServerUpdate?.let { vsu ->
                         launch {
+                            val channelId = g.selfMember.voiceChannel?.idString
+
+                            val link = lavalink.getLink(g)
+                            if (channelId == null) {
+                                log.warn("Received voice server update during guild subscribe, but we are not in a channel." +
+                                        "This should not happen. Disconnecting...")
+                                link.queueAudioDisconnect()
+                                return@launch
+                            }
+
+                            link.setChannel(channelId)
                             rabbitConsumer.receive(vsu)
+                            /*
+                            // This code is an excellent way to test expired voice server updates
+                            val json = JSONObject(vsu.raw)
+                            json.put("token", "asd")
+                            rabbitConsumer.receive(VoiceServerUpdate(vsu.sessionId, json.toString()))
+                            */
                         }
                     }
 

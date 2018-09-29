@@ -13,7 +13,10 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(SentinelLink::class.java)
+        private const val MIN_RETRY_INTERVAL = 200_000L
     }
+
+    private var lastRetryTime = 0L
 
     private val routingKey: String
             get() {
@@ -27,7 +30,7 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
     override fun queueAudioConnect(channelId: Long) =
             lavalink.sentinel.sendAndForget(routingKey, AudioQueueRequest(QUEUE_CONNECT, guildId.toLong(), channelId))
 
-    override fun queueAudioDisconnect() =
+    public override fun queueAudioDisconnect() =
             lavalink.sentinel.sendAndForget(routingKey, AudioQueueRequest(QUEUE_DISCONNECT, guildId.toLong()))
 
     fun connect(channel: VoiceChannel) {
@@ -58,6 +61,23 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
     override fun onVoiceWebSocketClosed(code: Int, reason: String, byRemote: Boolean) {
         val by = if (byRemote) "Discord" else "LLS"
         log.info("Lavalink voice WS closed by {}, code {}: {}", by, code, reason)
+        if (code == 4006) { // Session expired
+            if (System.currentTimeMillis() - lastRetryTime > MIN_RETRY_INTERVAL) {
+                val vc = channel
+                if (vc == null) {
+                    log.error("Attempted to reconnect after code 4006, but channel is null. Race condition?")
+                    return
+                }
+                log.info("Queuing new voice connection after expired session from Sentinel")
+                lastRetryTime = System.currentTimeMillis()
+                queueAudioDisconnect()
+                queueAudioConnect(vc.toLong())
+            } else {
+                log.warn("Got WS close code $code twice within $MIN_RETRY_INTERVAL ms, disconnecting " +
+                        " to prevent bouncing and getting stuck...")
+                queueAudioDisconnect()
+            }
+        }
     }
 
 }

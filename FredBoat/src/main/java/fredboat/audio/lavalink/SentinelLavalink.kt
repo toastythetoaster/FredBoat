@@ -24,7 +24,6 @@ class SentinelLavalink(
 
     companion object {
         lateinit var INSTANCE: SentinelLavalink
-        private val log: Logger = LoggerFactory.getLogger(SentinelLavalink::class.java)
     }
 
     init {
@@ -42,12 +41,6 @@ class SentinelLavalink(
         val json = JSONObject(update.raw)
         val gId = json.getString("guild_id")
         val link = getLink(gId)
-
-        if (link.channel == null) {
-            log.warn("Received voice server update, but we are not expecting a particular channel. " +
-                    "This should not happen \uD83E\uDD14. Ignoring...")
-            return
-        }
 
         link.onVoiceServerUpdate(json, update.sessionId)
     }
