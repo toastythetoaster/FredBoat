@@ -40,6 +40,7 @@ class GuildCache(private val sentinel: Sentinel,
             sink.success(guild)
             return@create
         }
+        val startTime = System.currentTimeMillis()
 
         sentinel.genericMonoSendAndReceive<RawGuild?, Guild?>(
                 SentinelExchanges.REQUESTS,
@@ -49,8 +50,20 @@ class GuildCache(private val sentinel: Sentinel,
                 transform = {
                     if (it == null) return@genericMonoSendAndReceive null
 
+                    val timeTakenReceive = System.currentTimeMillis() - startTime
                     val g = InternalGuild(it)
                     cache[g.id] = g
+                    val timeTakenParse = System.currentTimeMillis() - timeTakenReceive
+                    val timeTaken = timeTakenReceive + timeTakenParse
+
+                    log.info("Subscribing to {} took {}ms including {}ms parsing time.\n Members:{}\nChannels:{}\nRoles:{}\n",
+                            g,
+                            timeTaken,
+                            timeTakenParse,
+                            g.members.size,
+                            g.textChannels.size + g.voiceChannels.size,
+                            g.roles.size
+                    )
 
                     // Asynchronously handle existing VSU from an older FredBoat session, if it exists
                     it.voiceServerUpdate?.let { vsu ->
