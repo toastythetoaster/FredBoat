@@ -60,21 +60,21 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
 
     override fun onVoiceWebSocketClosed(code: Int, reason: String, byRemote: Boolean) {
         val by = if (byRemote) "Discord" else "LLS"
-        log.info("Lavalink voice WS closed by {}, code {}: {}", by, code, reason)
+        log.info("{}: Lavalink voice WS closed by {}, code {}: {}", guild, by, code, reason)
         if (code == 4006) { // Session expired
             if (System.currentTimeMillis() - lastRetryTime > MIN_RETRY_INTERVAL) {
                 val vc = channel
                 if (vc == null) {
-                    log.error("Attempted to reconnect after code 4006, but channel is null. Race condition?")
+                    log.error("{}: Attempted to reconnect after code 4006, but channel is null. Race condition?", guild)
                     return
                 }
-                log.info("Queuing new voice connection after expired session from Sentinel")
+                log.info("{}: Queuing new voice connection after expired session from Sentinel", guild)
                 lastRetryTime = System.currentTimeMillis()
                 queueAudioDisconnect()
                 queueAudioConnect(vc.toLong())
             } else {
-                log.warn("Got WS close code $code twice within $MIN_RETRY_INTERVAL ms, disconnecting " +
-                        " to prevent bouncing and getting stuck...")
+                log.warn("{}: Got WS close code $code twice within $MIN_RETRY_INTERVAL ms, disconnecting " +
+                        " to prevent bouncing and getting stuck...", guild)
                 queueAudioDisconnect()
             }
         }

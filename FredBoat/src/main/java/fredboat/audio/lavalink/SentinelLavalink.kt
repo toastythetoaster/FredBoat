@@ -8,8 +8,6 @@ import fredboat.sentinel.Guild
 import fredboat.sentinel.Sentinel
 import lavalink.client.io.Lavalink
 import org.json.JSONObject
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Service
