@@ -154,6 +154,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
 
         // Fun Module - mostly ascii, memes, pictures, games
         val funModule = CommandRegistry(Module.FUN)
+        funModule.registerCommand(TextCommand("Ahoy, the Akinator command has been discontinued on FredBoat, but you can give the Aki bot a try: https://akibot.xyz", "akinator", "aki"))
         funModule.registerCommand(DanceCommand(cacheMetrics, "dance"))
         funModule.registerCommand(JokeCommand("joke", "jk"))
         funModule.registerCommand(RiotCommand("riot"))
