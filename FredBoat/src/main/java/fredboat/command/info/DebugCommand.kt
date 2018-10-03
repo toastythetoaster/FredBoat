@@ -81,7 +81,7 @@ class DebugCommand(name: String, vararg aliases: String) : Command(name, *aliase
 
     private fun Embed.addLavaLinkDebug(player: GuildPlayer) = field {
         title = "**LavaLink Debug**"
-        body = "State: " + (player.player as LavalinkPlayer).link.state
+        body = "State: " + player.player.link.state
         body = body.asCodeBlock()
     }
 

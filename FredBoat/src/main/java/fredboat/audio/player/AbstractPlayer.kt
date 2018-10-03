@@ -258,9 +258,7 @@ abstract class AbstractPlayer internal constructor(
     internal open fun destroy() {
         stop()
         player.removeListener(this)
-        if (player is LavalinkPlayer) {
-            player.link.destroy()
-        }
+        player.link.destroy()
     }
 
     override fun onTrackException(player: AudioPlayer?, track: AudioTrack, exception: FriendlyException?) {
