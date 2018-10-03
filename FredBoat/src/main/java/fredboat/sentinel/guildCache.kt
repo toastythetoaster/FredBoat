@@ -126,6 +126,6 @@ fun getGuildMono(id: Long, textChannelInvoked: Long? = null) = GuildCache.INSTAN
  * @param textChannelInvoked optionally the ID of the text channel used,
  *        in case we need to warn the user of long loading times
  */
-fun getGuild(id: Long, callback: (Guild) -> Unit, textChannelInvoked: Long? = null) {
+fun getGuild(id: Long, textChannelInvoked: Long? = null, callback: (Guild) -> Unit) {
     GuildCache.INSTANCE.get(id, textChannelInvoked).subscribe { callback(it!!) }
 }
