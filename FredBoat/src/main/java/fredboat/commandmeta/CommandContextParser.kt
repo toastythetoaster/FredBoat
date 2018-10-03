@@ -115,7 +115,7 @@ class CommandContextParser(
             log.info("Unknown command:\t{}", commandTrigger)
             return null
         } else {
-            val guild = getGuildMono(event.guild).retry(1).awaitFirstOrNull()
+            val guild = getGuildMono(event.guild, textChannelInvoked = event.channel).retry(1).awaitFirstOrNull()
                     ?: throw RuntimeException("Guild ${event.guild} doesn't seem to exist")
             val channel = guild.getTextChannel(event.channel) ?: throw RuntimeException("Channel was sent in null channel")
             val member = guild.getMember(event.author) ?: throw RuntimeException("Unknown message author")

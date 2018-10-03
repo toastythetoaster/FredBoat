@@ -30,11 +30,17 @@ class GuildCache(private val sentinel: Sentinel,
         private val log: Logger = LoggerFactory.getLogger(GuildCache::class.java)
     }
 
-    @Autowired /* Cyclic dependency */
+    @Autowired
+    /* Cyclic dependency */
     lateinit var rabbitConsumer: RabbitConsumer
     val cache = ConcurrentHashMap<Long, InternalGuild>()
 
-    fun get(id: Long): Mono<Guild?> = Mono.create<Guild?> { sink ->
+    /**
+     * @param id the ID of the guild
+     * @param textChannelInvoked optionally the ID of the text channel used,
+     *        in case we need to warn the user of long loading times
+     */
+    fun get(id: Long, textChannelInvoked: Long? = null): Mono<Guild?> = Mono.create<Guild?> { sink ->
         val guild = cache[id]
         if (guild != null) {
             sink.success(guild)
@@ -45,7 +51,7 @@ class GuildCache(private val sentinel: Sentinel,
         sentinel.genericMonoSendAndReceive<RawGuild?, Guild?>(
                 SentinelExchanges.REQUESTS,
                 sentinel.tracker.getKey(calculateShardId(id)),
-                GuildSubscribeRequest(id),
+                GuildSubscribeRequest(id, textChannelInvoked),
                 mayBeEmpty = true,
                 transform = {
                     if (it == null) return@genericMonoSendAndReceive null
@@ -102,8 +108,24 @@ class GuildCache(private val sentinel: Sentinel,
 
 }
 
-suspend fun getGuild(id: Long) = GuildCache.INSTANCE.get(id).awaitFirstOrNull()
-fun getGuildMono(id: Long) = GuildCache.INSTANCE.get(id)
-fun getGuild(id: Long, callback: (Guild) -> Unit) {
-    GuildCache.INSTANCE.get(id).subscribe { callback(it!!) }
+/**
+ * @param id the ID of the guild
+ * @param textChannelInvoked optionally the ID of the text channel used,
+ *        in case we need to warn the user of long loading times
+ */
+suspend fun getGuild(id: Long, textChannelInvoked: Long? = null) = GuildCache.INSTANCE.get(id, textChannelInvoked)
+        .awaitFirstOrNull()
+/**
+ * @param id the ID of the guild
+ * @param textChannelInvoked optionally the ID of the text channel used,
+ *        in case we need to warn the user of long loading times
+ */
+fun getGuildMono(id: Long, textChannelInvoked: Long? = null) = GuildCache.INSTANCE.get(id, textChannelInvoked)
+/**
+ * @param id the ID of the guild
+ * @param textChannelInvoked optionally the ID of the text channel used,
+ *        in case we need to warn the user of long loading times
+ */
+fun getGuild(id: Long, callback: (Guild) -> Unit, textChannelInvoked: Long? = null) {
+    GuildCache.INSTANCE.get(id, textChannelInvoked).subscribe { callback(it!!) }
 }
