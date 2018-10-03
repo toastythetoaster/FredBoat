@@ -270,7 +270,12 @@ public abstract class AbstractPlayer extends AudioEventAdapterWrapped implements
         stop();
         player.removeListener(this);
         if (player instanceof LavalinkPlayer) {
-            ((LavalinkPlayer) player).getLink().destroy();
+            try {
+                ((LavalinkPlayer) player).getLink().destroy();
+            } catch (RuntimeException e) {
+                log.error("Exception while destroying link", e);
+            }
+
         }
     }
 
