@@ -51,7 +51,7 @@ class GuildCache(private val sentinel: Sentinel,
         sentinel.genericMonoSendAndReceive<RawGuild?, Guild?>(
                 SentinelExchanges.REQUESTS,
                 sentinel.tracker.getKey(calculateShardId(id)),
-                GuildSubscribeRequest(id, textChannelInvoked),
+                GuildSubscribeRequest(id, channelInvoked=textChannelInvoked),
                 mayBeEmpty = true,
                 transform = {
                     if (it == null) return@genericMonoSendAndReceive null
