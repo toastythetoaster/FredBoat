@@ -25,6 +25,7 @@
 package fredboat.commandmeta
 
 import fredboat.audio.player.PlayerLimiter
+import fredboat.audio.player.PlayerRegistry
 import fredboat.audio.player.VideoSelectionCache
 import fredboat.command.`fun`.*
 import fredboat.command.`fun`.img.*
@@ -60,9 +61,9 @@ import java.util.function.Supplier
 
 @Service
 class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, trackSearcher: TrackSearcher,
-                          videoSelectionCache: VideoSelectionCache, sentryConfiguration: SentryConfiguration,
-                          playerLimiter: PlayerLimiter, youtubeAPI: YoutubeAPI, sentinel: Sentinel,
-                          springContext: Supplier<ApplicationContext>) {
+                         videoSelectionCache: VideoSelectionCache, sentryConfiguration: SentryConfiguration,
+                         playerLimiter: PlayerLimiter, youtubeAPI: YoutubeAPI, sentinel: Sentinel,
+                         playerRegistry: PlayerRegistry, springContext: Supplier<ApplicationContext>) {
 
     companion object {
         /** Used for integration testing  */
@@ -100,6 +101,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         adminModule.registerCommand(SetAvatarCommand("setavatar"))
         adminModule.registerCommand(UnblacklistCommand("unblacklist", "unlimit"))
         adminModule.registerCommand(GuildDebugCommand("guilddebug", "guilddump", "dumpguild", "gdump"))
+        adminModule.registerCommand(UnsubCommand("unsub", playerRegistry = playerRegistry))
 
 
         // Informational / Debugging / Maintenance - always on
@@ -247,7 +249,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         musicModule.registerCommand(ExportCommand("export", "ex"))
         musicModule.registerCommand(GensokyoRadioCommand("gensokyo", "gr", "gensokyoradio"))
         musicModule.registerCommand(HistoryCommand("history", "hist", "h"))
-        musicModule.registerCommand(ListCommand("list", "queue", "q", "l"))
+        musicModule.registerCommand(ListCommand("list", "queue", "q", "l", "ls"))
         musicModule.registerCommand(NowplayingCommand(youtubeAPI, "nowplaying", "np"))
 
         /* Seeking */

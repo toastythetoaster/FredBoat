@@ -19,6 +19,12 @@ class GuildCacheInvalidationAgent(
     companion object {
         private const val TIMEOUT_MILLIS: Long = 30 * 60 * 1000 // 30 minutes
         private val log: Logger = LoggerFactory.getLogger(GuildCacheInvalidationAgent::class.java)
+        lateinit var INSTANCE: GuildCacheInvalidationAgent
+    }
+
+    init {
+        @Suppress("LeakingThis")
+        INSTANCE = this
     }
 
     override fun doRun() {
@@ -29,8 +35,7 @@ class GuildCacheInvalidationAgent(
         }
         keysToRemove.forEach {
             try {
-                it.beforeInvalidation()
-                guildCache.cache.remove(it.id)
+                invalidateGuild(it)
             } catch (e: Exception) {
                 log.error("Exception while invalidating guild $it")
             }
@@ -51,9 +56,14 @@ class GuildCacheInvalidationAgent(
         return true
     }
 
-    private fun InternalGuild.beforeInvalidation() {
-        playerRegistry.destroyPlayer(this)
-        sentinel.sendAndForget(routingKey, GuildUnsubscribeRequest(id))
+    fun invalidateGuild(guild: InternalGuild) {
+        beforeInvalidation(guild)
+        guildCache.cache.remove(guild.id)
+    }
+
+    private fun beforeInvalidation(guild: InternalGuild) {
+        playerRegistry.destroyPlayer(guild)
+        guild.sentinel.sendAndForget(guild.routingKey, GuildUnsubscribeRequest(guild.id))
     }
 
 }
