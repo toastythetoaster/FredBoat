@@ -91,7 +91,8 @@ public class ShardManagerConfiguration {
                 .addEventListeners(shardReviveHandler)
                 .addEventListeners(musicPersistenceHandler)
                 .addEventListeners(audioConnectionFacade)
-                .setShardsTotal(configProvider.getCredentials().getRecommendedShardCount());
+                .setShardsTotal(1120)
+                .setShards(101, 1119);
 
         if (!System.getProperty("os.arch").equalsIgnoreCase("arm")
                 && !System.getProperty("os.arch").equalsIgnoreCase("arm-linux")) {

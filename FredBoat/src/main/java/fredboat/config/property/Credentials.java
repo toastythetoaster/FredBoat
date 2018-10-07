@@ -25,8 +25,6 @@
 package fredboat.config.property;
 
 import fredboat.commandmeta.MessagingException;
-import fredboat.util.DiscordUtil;
-import fredboat.util.rest.CacheUtil;
 
 import java.util.List;
 
@@ -95,7 +93,7 @@ public interface Credentials {
 
 
     default int getRecommendedShardCount() {
-        return CacheUtil.getUncheckedUnwrapped(DiscordUtil.shardCount, getBotToken());
+        return 1120;
     }
 
     // ********************************************************************************
