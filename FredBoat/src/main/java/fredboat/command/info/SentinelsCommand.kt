@@ -51,9 +51,9 @@ class SentinelsCommand(name: String, vararg aliases: String) : Command(name, *al
         fun toString(i: Int): String {
             hello.run {
                 return if (::data.isInitialized) {
-                    "+ $i -- [$shardStart..$shardEnd/$shardCount], key: $key, guilds ${data.response.guilds}\n"
+                    "+ $i [$shardStart..$shardEnd/$shardCount] -- key: $key, guilds ${data.response.guilds}\n"
                 } else {
-                    "- $i -- [$shardStart..$shardEnd/$shardCount], key: $key\n"
+                    "- $i [$shardStart..$shardEnd/$shardCount] -- key: $key\n"
                 }
             }
         }
