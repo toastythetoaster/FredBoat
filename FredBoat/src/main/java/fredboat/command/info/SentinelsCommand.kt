@@ -37,6 +37,10 @@ class SentinelsCommand(name: String, vararg aliases: String) : Command(name, *al
             log.error("Exception while gathering sentinel data", e)
         }
 
+        if (context.trigger == "sentisneks") {
+            msg.append("*Hiss* :snake:\n")
+        }
+
         msg.append("```diff\n")
         compounds.forEachIndexed { i, it ->
             msg.append(it.toString(i))
