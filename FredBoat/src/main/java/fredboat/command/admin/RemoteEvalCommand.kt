@@ -41,7 +41,7 @@ class RemoteEvalCommand(
         var completed = false
         val timeStart = System.currentTimeMillis()
         val getElapsed = { System.currentTimeMillis() - timeStart }
-        val disposable = Flux.concat(monos)
+        val disposable = Flux.merge(monos)
                 .doFinally { completed = true }
                 .subscribe { pair ->
                     results.find { it.sentinel == pair.first }!!.apply {
