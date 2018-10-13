@@ -123,7 +123,7 @@ class RemoteEvalCommand(
             if (result.elapsedMs == null) {
                 msg.append("${result.sentinel.key}: <pending>")
             } else {
-                msg.append("${result.sentinel.key}: ${result.response} (${result.elapsedMs})\n")
+                msg.append("${result.sentinel.key}: ${result.response} (${result.elapsedMs}ms)\n")
             }
         }
 
