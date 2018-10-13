@@ -92,6 +92,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         adminModule.registerCommand(DiscordPermissionCommand("discordpermissions", "disperms"))
         adminModule.registerCommand(EnableCommandsCommand("enable"))
         adminModule.registerCommand(EvalCommand({ springContext.get() }, "eval"))
+        adminModule.registerCommand(RemoteEvalCommand("reval"))
         adminModule.registerCommand(ExitCommand("exit"))
         adminModule.registerCommand(GetNodeCommand("getnode"))
         adminModule.registerCommand(LeaveServerCommand("leaveserver"))

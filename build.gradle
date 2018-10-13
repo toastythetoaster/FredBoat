@@ -58,7 +58,7 @@ subprojects {
     ext {
         //@formatter:off
 
-        sentinelVersion             = 'a961a10942'
+        sentinelVersion             = '95f9e463c9'
         springBootVersion           = "${springBootVersion}"
         kotlinVersion               = "${kotlinVersion}"
 
