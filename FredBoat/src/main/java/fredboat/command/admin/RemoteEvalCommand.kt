@@ -121,7 +121,7 @@ class RemoteEvalCommand(
         msg.append("**Eval status:**\n")
         results.forEach { result ->
             if (result.elapsedMs == null) {
-                msg.append("${result.sentinel.key}: <pending>")
+                msg.append("${result.sentinel.key}: <pending>\n")
             } else {
                 msg.append("${result.sentinel.key}: ${result.response} (${result.elapsedMs}ms)\n")
             }
