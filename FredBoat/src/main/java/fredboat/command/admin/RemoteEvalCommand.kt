@@ -76,10 +76,11 @@ class RemoteEvalCommand(
         val sentinels = context.sentinel.tracker.sentinels.sortedBy { it.shardStart }
 
         var kill = false
+        var requestAll = false
         var lastTokenWasTimeout = false
         var timeout: Int? = null
         // Parse flags and sentinels
-        val selectedSentinels = firstLine.splitToSequence(" ")
+        var selectedSentinels = firstLine.splitToSequence(" ")
                 // Handle non-sentinel references, and filter them out
                 .filter {
                     if (lastTokenWasTimeout) {
@@ -88,11 +89,14 @@ class RemoteEvalCommand(
                     }
 
                     when (it) {
-                        "-k" -> {
+                        "-k", "--kill" -> {
                             kill = true;false
                         }
-                        "-t" -> {
+                        "-t", "--timeout" -> {
                             lastTokenWasTimeout = true; false
+                        }
+                        "-a", "--all" -> {
+                            requestAll = true; false
                         }
                         else -> true
                     }
@@ -104,6 +108,8 @@ class RemoteEvalCommand(
                     }
                     sentinels.find { hello -> hello.key == it }
                 }.toSet()
+
+        if (requestAll) selectedSentinels = sentinels.asSequence().sortedBy { it.shardStart }.toSet()
 
         return ParseResult(selectedSentinels, EvalRequest(
                 source, timeout, kill
@@ -133,11 +139,11 @@ class RemoteEvalCommand(
     )
 
     override fun help(context: Context): String {
-        return ("{0}{1} [-t seconds | -k] <sentinel-keys-or-numbers> \\n <kotlin-code>"
+        return ("{0}{1} [-t seconds | -k | -a] <sentinel-keys-or-numbers> \\n <kotlin-code>"
                 + " #Run the provided kotlin code on the selected sentinel."
                 + " By default no timeout is set for the task, set a timeout by passing `-t` as the first argument and"
                 + " the amount of seconds to wait for the task to finish as the second argument."
-                + " Run with `-k` or `kill` as first argument to stop the last submitted eval task if it's still ongoing.")
+                + " Run with `-k` or `--kill` as first argument to stop the last submitted eval task if it's still ongoing.")
     }
 
 }
