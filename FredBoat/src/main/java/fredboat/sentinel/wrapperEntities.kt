@@ -304,7 +304,7 @@ abstract class TextChannel(override val guild: Guild, raw: RawTextChannel) : Cha
     fun editMessage(messageId: Long, message: String) = sentinel.editMessage(this, messageId, message)
     fun deleteMessage(messageId: Long) = sentinel.deleteMessages(this, listOf(messageId))
     fun sendTyping() = sentinel.sendTyping(this)
-    fun canTalk() = checkOurPermissions(Permission.VOICE_CONNECT + Permission.VOICE_SPEAK)
+    fun canTalk() = checkOurPermissions(Permission.MESSAGE_READ + Permission.MESSAGE_WRITE)
 
 
     override fun equals(other: Any?) = other is TextChannel && id == other.id
