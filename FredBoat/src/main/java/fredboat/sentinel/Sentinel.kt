@@ -49,7 +49,7 @@ class Sentinel(private val template: AsyncRabbitTemplate,
             request: Any,
             mayBeEmpty: Boolean = false,
             deliveryMode: MessageDeliveryMode = MessageDeliveryMode.NON_PERSISTENT,
-            transform: (response: R) -> T) = Mono.create<T> {
+            transform: (response: R) -> T): Mono<T> = Mono.create<T> {
         val postProcessor = MessagePostProcessor { processor ->
             processor.messageProperties.deliveryMode = deliveryMode; processor
         }

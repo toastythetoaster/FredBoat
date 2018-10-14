@@ -64,11 +64,11 @@ class RemoteEvalCommand(
     }
 
     private fun parse(context: CommandContext): ParseResult? {
-        val errString = "ERROR_NO_NEWLINE"
-        val firstLine = context.msg.raw.content.substringBefore("\n", missingDelimiterValue = errString)
-        val source = context.msg.raw.content.substringAfter("\n")
+        val raw = context.msg.raw.content
+        val firstLine = raw.substringBefore("\n")
+        val source = raw.substringAfter("\n")
 
-        if (firstLine == errString) {
+        if (firstLine == raw && !raw.contains("-k") && !raw.contains("--kill") ) {
             HelpCommand.sendFormattedCommandHelp(context)
             return null
         }
