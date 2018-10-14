@@ -30,6 +30,7 @@ import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.commandmeta.abs.JCommand;
 import fredboat.main.BotController;
 import fredboat.messaging.internal.Context;
+import fredboat.util.TextUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -72,7 +73,7 @@ public class JokeCommand extends JCommand implements IFunCommand {
             
             joke = joke.replaceAll("&quot;", "\"");
 
-            context.reply(joke);
+            context.reply(TextUtils.escapeAndDefuse(joke));
         } catch (IOException | JSONException e) {
             log.error("Failed to fetch joke", e);
             context.reply(context.i18n("tryLater"));
