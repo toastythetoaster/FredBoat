@@ -30,7 +30,6 @@ import fredboat.agent.GuildCacheInvalidationAgent
 import fredboat.audio.player.PlayerRegistry
 import fredboat.config.property.AppConfig
 import fredboat.sentinel.Guild
-import fredboat.sentinel.GuildCache
 import fredboat.util.DiscordUtil
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -49,7 +48,6 @@ import java.util.stream.Stream
 class ShardLifecycleHandler(
         private val playerRegistry: PlayerRegistry,
         private val appConfig: AppConfig,
-        private val guildCache: GuildCache,
         private val guildCacheInvalidationAgent: GuildCacheInvalidationAgent
 ) : SentinelEventHandler() {
 
@@ -58,6 +56,7 @@ class ShardLifecycleHandler(
     }
 
     private val channelsToRejoin = ConcurrentHashMap<Int, MutableList<ChannelReference>>()
+    private val guildCache = guildCacheInvalidationAgent.guildCache
 
     override fun onShardLifecycle(event: ShardLifecycleEvent) {
         @Suppress("NON_EXHAUSTIVE_WHEN")

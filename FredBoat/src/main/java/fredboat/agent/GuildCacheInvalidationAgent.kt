@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit
 
 @Controller
 class GuildCacheInvalidationAgent(
-        private val guildCache: GuildCache,
+        val guildCache: GuildCache,
         private val playerRegistry: PlayerRegistry
 ) : FredBoatAgent("cache-invalidator", 10, TimeUnit.MINUTES) {
 
