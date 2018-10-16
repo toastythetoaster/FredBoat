@@ -39,8 +39,13 @@ class GuildCache(private val sentinel: Sentinel,
      * @param id the ID of the guild
      * @param textChannelInvoked optionally the ID of the text channel used,
      *        in case we need to warn the user of long loading times
+     * @param skipCache if we should skip the cache and potentially resubscribe
      */
-    fun get(id: Long, textChannelInvoked: Long? = null): Mono<Guild?> = Mono.create<Guild?> { sink ->
+    fun get(
+            id: Long,
+            textChannelInvoked: Long? = null,
+            skipCache: Boolean = false
+    ): Mono<Guild?> = Mono.create<Guild?> { sink ->
         val guild = cache[id]
         if (guild != null) {
             sink.success(guild)

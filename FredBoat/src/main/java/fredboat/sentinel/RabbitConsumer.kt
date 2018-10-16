@@ -24,7 +24,7 @@ class RabbitConsumer(
         audioHandler: AudioEventHandler,
         messageHandler: MessageEventHandler,
         musicPersistenceHandler: MusicPersistenceHandler,
-        shardReviveHandler: ShardReviveHandler
+        shardReviveHandler: ShardLifecycleHandler
 ) {
 
     companion object {
