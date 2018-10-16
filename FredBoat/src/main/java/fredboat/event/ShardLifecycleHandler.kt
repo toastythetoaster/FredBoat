@@ -30,6 +30,7 @@ import fredboat.agent.GuildCacheInvalidationAgent
 import fredboat.audio.player.PlayerRegistry
 import fredboat.config.property.AppConfig
 import fredboat.sentinel.Guild
+import fredboat.sentinel.GuildCache
 import fredboat.util.DiscordUtil
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -48,7 +49,7 @@ import java.util.stream.Stream
 class ShardLifecycleHandler(
         private val playerRegistry: PlayerRegistry,
         private val appConfig: AppConfig,
-        private val guildCacheInvalidationAgent: GuildCacheInvalidationAgent
+        private val guildCache: GuildCache
 ) : SentinelEventHandler() {
 
     companion object {
@@ -56,7 +57,6 @@ class ShardLifecycleHandler(
     }
 
     private val channelsToRejoin = ConcurrentHashMap<Int, MutableList<ChannelReference>>()
-    private val guildCache = guildCacheInvalidationAgent.guildCache
 
     override fun onShardLifecycle(event: ShardLifecycleEvent) {
         @Suppress("NON_EXHAUSTIVE_WHEN")
@@ -89,7 +89,7 @@ class ShardLifecycleHandler(
                     .onErrorResume { e ->
                         Mono.from {
                             log.error("Exception while re-syncing guild. We are forced to unsubscribe", e)
-                            guildCacheInvalidationAgent.invalidateGuild(guild)
+                            GuildCacheInvalidationAgent.INSTANCE.invalidateGuild(guild)
                         }
                     }
         }.toMutableList()
