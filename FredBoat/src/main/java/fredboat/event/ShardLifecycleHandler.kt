@@ -39,8 +39,8 @@ import reactor.core.publisher.Mono
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.stream.Collectors
 import java.util.stream.Stream
+import kotlin.streams.toList
 
 /**
  * Created by napster on 24.02.18.
@@ -107,7 +107,7 @@ class ShardLifecycleHandler(
                     .flatMap {
                         val channel = it.currentVoiceChannel ?: return@flatMap Stream.empty<ChannelReference>()
                         return@flatMap Stream.of(ChannelReference(channel.guild, channel.id))
-                    }.collect(Collectors.toList())
+                    }.toList().toMutableList()
         } catch (ex: Exception) {
             log.error("Caught exception while saving channels to revive shard {}", event.shard, ex)
         }
