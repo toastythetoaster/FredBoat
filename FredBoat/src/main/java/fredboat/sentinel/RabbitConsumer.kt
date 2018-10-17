@@ -15,7 +15,7 @@ import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
 @Service
-@RabbitListener(queues = [SentinelExchanges.EVENTS], errorHandler = "rabbitListenerErrorHandler", concurrency = "50")
+@RabbitListener(queues = ["#{eventQueue}"], errorHandler = "rabbitListenerErrorHandler", concurrency = "50")
 class RabbitConsumer(
         private val guildCache: GuildCache,
         private val sentinelTracker: SentinelTracker,
