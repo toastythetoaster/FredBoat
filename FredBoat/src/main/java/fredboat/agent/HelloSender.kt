@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit
 class HelloSender(
         private val rabbitTemplate: RabbitTemplate,
         private val appConfig: AppConfig
-) : FredBoatAgent("HelloSender", 5, TimeUnit.MINUTES) {
+) : FredBoatAgent("HelloSender", 30, TimeUnit.SECONDS) {
 
     override fun doRun() {
         // Send a hello when we start so we get SentinelHellos in return
