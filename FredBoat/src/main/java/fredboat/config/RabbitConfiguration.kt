@@ -53,7 +53,7 @@ class RabbitConfiguration {
             @Qualifier("eventExchange") eventExchange: DirectExchange,
             @Qualifier("eventQueue") eventQueue: Queue
     ): Binding {
-        return BindingBuilder.bind(eventQueue).to(eventExchange).withQueueName()
+        return BindingBuilder.bind(eventQueue).to(eventExchange).with("")
     }
 
     @Bean
