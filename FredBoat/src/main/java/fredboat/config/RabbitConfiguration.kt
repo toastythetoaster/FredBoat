@@ -49,7 +49,7 @@ class RabbitConfiguration {
     fun eventQueue() = Queue(SentinelExchanges.EVENTS, false)
 
     @Bean
-    fun requestBinding(
+    fun eventBinding(
             @Qualifier("eventExchange") eventExchange: DirectExchange,
             @Qualifier("eventQueue") eventQueue: Queue
     ): Binding {

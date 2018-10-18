@@ -93,7 +93,7 @@ object SentinelState {
 
 @Service
 @Suppress("MemberVisibilityCanBePrivate")
-@RabbitListener(queues = [SentinelExchanges.REQUESTS], errorHandler = "rabbitListenerErrorHandler")
+@RabbitListener(queues = ["#{requestQueue}"], errorHandler = "rabbitListenerErrorHandler")
 class MockSentinelRequestHandler(template: RabbitTemplate, cache: GuildCache) {
 
     companion object {
