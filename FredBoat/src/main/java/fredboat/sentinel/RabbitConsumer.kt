@@ -1,6 +1,5 @@
 package fredboat.sentinel
 
-import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.*
 import fredboat.config.SentryConfiguration
 import fredboat.event.*
