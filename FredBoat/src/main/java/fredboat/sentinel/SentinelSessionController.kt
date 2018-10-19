@@ -74,20 +74,6 @@ class SentinelSessionController(
         return null
     }
 
-    private fun startWorker() {
-        if (worker?.isAlive == true) throw IllegalStateException("Worker is already alive")
-        worker = thread(name = "session-worker") {
-            while (true) {
-                try {
-                    workerLoop()
-                } catch (e: Exception) {
-                    log.error("Caught exception in session worker loop", e)
-                    sleep(500)
-                }
-            }
-        }
-    }
-
     private fun workerLoop() {
         val next = getNextShard()
 
@@ -104,6 +90,21 @@ class SentinelSessionController(
         log.info("Started ${next.shardId} from ${next.routingKey}, took ${timeTaken}ms")
         sleep(IDENTIFY_DELAY)
         queued.remove(next.shardId)
+    }
+
+    private fun startWorker() {
+        if (worker?.isAlive == true) throw IllegalStateException("Worker is already alive")
+        worker = thread(name = "session-worker") {
+            log.info("Started session worker")
+            while (true) {
+                try {
+                    workerLoop()
+                } catch (e: Exception) {
+                    log.error("Caught exception in session worker loop", e)
+                    sleep(500)
+                }
+            }
+        }
     }
 
 }

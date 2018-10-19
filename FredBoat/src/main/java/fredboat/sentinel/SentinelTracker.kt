@@ -13,40 +13,51 @@ import org.slf4j.LoggerFactory
 import org.springframework.amqp.AmqpConnectException
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.stereotype.Service
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /** Class that tracks Sentinels and their routing keys */
 @Service
-class SentinelTracker(private val appConfig: AppConfig, rabbit: RabbitTemplate, helloSender: HelloSender) {
+class SentinelTracker(
+        private val appConfig: AppConfig,
+        private val rabbit: RabbitTemplate,
+        helloSender: HelloSender
+) {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(SentinelTracker::class.java)
     }
 
     init {
-        suspend fun hello(startup: Boolean) {
-            // This loop finishes only if we are connected
-            while (true) {
-                try {
-                    rabbit.convertAndSend(SentinelExchanges.FANOUT, "", FredBoatHello(startup, appConfig.status))
-                    break
-                } catch (e: AmqpConnectException) {
-                    delay(1000)
-                }
-            }
-        }
+        val time = SimpleDateFormat("dd-MM-yyyy-HH:mm:ss").format(Date.from(Instant.now()))
+        val id = "FredBoat@$time"
 
         val task = launch {
             log.info("Sending FredBoat hello")
-            hello(true)
+            hello(id)
             delay(5000)
             while (map.isEmpty()) {
                 log.info("Still haven't received hello from any sentinel. Resending hello...")
-                hello(false)
+                hello(id)
                 delay(5000)
             }
         }
         task.invokeOnCompletion {
+            helloSender.id = id
             FredBoatAgent.start(helloSender)
+        }
+    }
+
+    private suspend fun hello(id: String) {
+        // This loop finishes only if we are connected
+        while (true) {
+            try {
+                rabbit.convertAndSend(SentinelExchanges.FANOUT, "", FredBoatHello(id, appConfig.status))
+                break
+            } catch (e: AmqpConnectException) {
+                delay(1000)
+            }
         }
     }
 

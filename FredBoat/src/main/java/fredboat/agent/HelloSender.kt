@@ -13,10 +13,12 @@ class HelloSender(
         private val appConfig: AppConfig
 ) : FredBoatAgent("HelloSender", 30, TimeUnit.SECONDS) {
 
+    lateinit var id: String
+
     override fun doRun() {
         // Send a hello when we start so we get SentinelHellos in return
         rabbitTemplate.convertAndSend(SentinelExchanges.FANOUT, "", FredBoatHello(
-                false,
+                id,
                 appConfig.status
         ))
     }
