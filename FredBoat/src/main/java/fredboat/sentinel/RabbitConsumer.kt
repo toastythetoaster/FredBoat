@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap
 class RabbitConsumer(
         private val guildCache: GuildCache,
         private val sentinelTracker: SentinelTracker,
+        private val sentinelSessionController: SentinelSessionController,
         eventLogger: EventLogger,
         guildHandler: GuildEventHandler,
         audioHandler: AudioEventHandler,
@@ -165,6 +166,11 @@ class RabbitConsumer(
                 event.id
         ) }
     }
+
+    /* Session */
+
+    @RabbitHandler fun appendSession(event: AppendSessionEvent) = sentinelSessionController.appendSession(event)
+    @RabbitHandler fun removeSession(event: RemoveSessionEvent) = sentinelSessionController.removeSession(event)
 
     /* Updates */
 
