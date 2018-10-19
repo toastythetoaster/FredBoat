@@ -25,7 +25,7 @@ class SentinelSessionController(
         private val log: Logger = LoggerFactory.getLogger(SentinelSessionController::class.java)
         private const val MAX_HELLO_AGE_MS = 40000
         private const val HOME_GUILD_ID = 174820236481134592L // FredBoat Hangout is to be prioritized
-        private const val IDENTIFY_DELAY = 5100L
+        private const val IDENTIFY_DELAY = 5000L
     }
 
     @Suppress("LeakingThis")
@@ -40,11 +40,13 @@ class SentinelSessionController(
     fun appendSession(event: AppendSessionEvent) {
         event.totalShards.assertShardCount()
         queued[event.shardId] = event
+        log.info("Appended ${event.shardId}")
     }
 
     fun removeSession(event: RemoveSessionEvent) {
         event.totalShards.assertShardCount()
         queued.remove(event.shardId)
+        log.info("Removed ${event.shardId}")
     }
 
     private fun Int.assertShardCount() {
