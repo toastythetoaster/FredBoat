@@ -188,8 +188,7 @@ class SkipCommand(name: String, vararg aliases: String) : Command(name, *aliases
 
 
         if (userAtcIds.size > 0) {
-
-            val title = TextUtils.escapeAndDefuse(player.playingTrack!!.effectiveTitle)
+            
             player.skipTracks(userAtcIds)
 
             if (affectedUsers.size > 1) {
