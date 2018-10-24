@@ -65,6 +65,8 @@ class StatsCommand(
         private var botId = 0L
 
         suspend fun getStats(context: Context?): String {
+            context?.sendTyping()
+
             val totalSecs = (System.currentTimeMillis() - Launcher.START_TIME) / 1000
             val days = (totalSecs / (60 * 60 * 24)).toInt()
             val hours = (totalSecs / (60 * 60) % 24).toInt()
