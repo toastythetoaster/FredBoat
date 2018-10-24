@@ -197,8 +197,8 @@ class SkipCommand(name: String, vararg aliases: String) : Command(name, *aliases
             } else {
                 val user = affectedUsers[0]
                 val userName = "**${user.name.escapeAndDefuse()}#${user.discrim}**"
-                if (userAtcIds.size == 1) {
-                    context.reply(context.i18nFormat("skipUserSingle", "**$title**", userName))
+                if (listAtc.size == 1) {
+                    context.reply(context.i18nFormat("skipUserSingle", "**${listAtc[0].track.info?.title}**", userName))
                 } else {
                     context.reply(context.i18nFormat("skipUserMultiple", "`${userAtcIds.size}`", userName))
                 }
