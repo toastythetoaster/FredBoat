@@ -29,7 +29,9 @@ import com.fredboat.sentinel.entities.ShardStatus
 import com.fredboat.sentinel.entities.shardString
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
+import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IInfoCommand
+import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.sentinel.Sentinel
@@ -40,7 +42,9 @@ import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
-class ShardsCommand(name: String, vararg aliases: String) : Command(name, *aliases), IInfoCommand {
+class ShardsCommand(name: String, vararg aliases: String) : Command(name, *aliases), IInfoCommand, ICommandRestricted {
+
+    override val minimumPerms = PermissionLevel.ADMIN
 
     override suspend fun invoke(context: CommandContext) {
         context.sendTyping()
