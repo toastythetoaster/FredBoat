@@ -45,24 +45,24 @@ class GuildCache(private val sentinel: Sentinel,
             id: Long,
             textChannelInvoked: Long? = null,
             skipCache: Boolean = false
-    ): Mono<Guild?> = Mono.create<Guild?> { sink ->
+    ): Mono<Guild?> {
         val guild = cache[id]
-        if (guild != null) {
-            sink.success(guild)
-            return@create
+        if (!skipCache) {
+            if (guild != null) {
+                return Mono.just(guild)
+            }
         }
+
         val startTime = System.currentTimeMillis()
 
-        sentinel.genericMonoSendAndReceive<RawGuild?, Guild?>(
+        return sentinel.genericMonoSendAndReceive<RawGuild?, Guild?>(
                 SentinelExchanges.REQUESTS,
                 sentinel.tracker.getKey(calculateShardId(id)),
                 GuildSubscribeRequest(id, channelInvoked=textChannelInvoked),
                 mayBeEmpty = true,
                 transform = { transform(startTime, it) }
-        )
-                .doOnError { sink.error(it) }
-                .subscribe { sink.success(it) }
-    }.timeout(Duration.ofSeconds(30), Mono.error(TimeoutException("Timed out while subscribing to $id")))
+        ).timeout(Duration.ofSeconds(30), Mono.error(TimeoutException("Timed out while subscribing to $id")))
+    }
 
     private fun transform(startTime: Long, it: RawGuild?): InternalGuild? {
         if (it == null) return null
