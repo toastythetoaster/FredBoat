@@ -58,54 +58,56 @@ class GuildCache(private val sentinel: Sentinel,
                 sentinel.tracker.getKey(calculateShardId(id)),
                 GuildSubscribeRequest(id, channelInvoked=textChannelInvoked),
                 mayBeEmpty = true,
-                transform = {
-                    if (it == null) return@genericMonoSendAndReceive null
-
-                    val timeTakenReceive = System.currentTimeMillis() - startTime
-                    val g = InternalGuild(it)
-                    cache[g.id] = g
-                    val timeTakenParse = System.currentTimeMillis() - startTime - timeTakenReceive
-                    val timeTaken = timeTakenReceive + timeTakenParse
-
-                    log.info("Subscribing to {} took {}ms including {}ms parsing time.\nMembers: {}\nChannels: {}\nRoles: {}\n",
-                            g,
-                            timeTaken,
-                            timeTakenParse,
-                            g.members.size,
-                            g.textChannels.size + g.voiceChannels.size,
-                            g.roles.size
-                    )
-
-                    // Asynchronously handle existing VSU from an older FredBoat session, if it exists
-                    it.voiceServerUpdate?.let { vsu ->
-                        launch {
-                            val channelId = g.selfMember.voiceChannel?.idString
-
-                            val link = lavalink.getLink(g)
-                            if (channelId == null) {
-                                log.warn("Received voice server update during guild subscribe, but we are not in a channel." +
-                                        "This should not happen. Disconnecting...")
-                                link.queueAudioDisconnect()
-                                return@launch
-                            }
-
-                            link.setChannel(channelId)
-                            rabbitConsumer.receive(vsu)
-                            /*
-                            // This code is an excellent way to test expired voice server updates
-                            val json = JSONObject(vsu.raw)
-                            json.put("token", "asd")
-                            rabbitConsumer.receive(VoiceServerUpdate(vsu.sessionId, json.toString()))
-                            */
-                        }
-                    }
-
-                    g
-                }
+                transform = { transform(startTime, it) }
         )
                 .doOnError { sink.error(it) }
                 .subscribe { sink.success(it) }
     }.timeout(Duration.ofSeconds(30), Mono.error(TimeoutException("Timed out while subscribing to $id")))
+
+    private fun transform(startTime: Long, it: RawGuild?): InternalGuild? {
+        if (it == null) return null
+
+        val timeTakenReceive = System.currentTimeMillis() - startTime
+        val g = InternalGuild(it)
+        cache[g.id] = g
+        val timeTakenParse = System.currentTimeMillis() - startTime - timeTakenReceive
+        val timeTaken = timeTakenReceive + timeTakenParse
+
+        log.info("Subscribing to {} took {}ms including {}ms parsing time.\nMembers: {}\nChannels: {}\nRoles: {}\n",
+                g,
+                timeTaken,
+                timeTakenParse,
+                g.members.size,
+                g.textChannels.size + g.voiceChannels.size,
+                g.roles.size
+        )
+
+        // Asynchronously handle existing VSU from an older FredBoat session, if it exists
+        it.voiceServerUpdate?.let { vsu ->
+            launch {
+                val channelId = g.selfMember.voiceChannel?.idString
+
+                val link = lavalink.getLink(g)
+                if (channelId == null) {
+                    log.warn("Received voice server update during guild subscribe, but we are not in a channel." +
+                            "This should not happen. Disconnecting...")
+                    link.queueAudioDisconnect()
+                    return@launch
+                }
+
+                link.setChannel(channelId)
+                rabbitConsumer.receive(vsu)
+                /*
+                // This code is an excellent way to test expired voice server updates
+                val json = JSONObject(vsu.raw)
+                json.put("token", "asd")
+                rabbitConsumer.receive(VoiceServerUpdate(vsu.sessionId, json.toString()))
+                */
+            }
+        }
+
+        return g
+    }
 
     fun getIfCached(id: Long): Guild? = cache[id]
 
