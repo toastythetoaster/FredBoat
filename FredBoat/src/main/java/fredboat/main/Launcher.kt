@@ -197,13 +197,13 @@ class Launcher(
             log.info(versionInfo)
 
             val javaVersionMajor = Runtime.version().feature()
-            if (javaVersionMajor != 10) {
+            if (javaVersionMajor != 11) {
                 log.warn("\n\t\t __      ___   ___ _  _ ___ _  _  ___ \n" +
                         "\t\t \\ \\    / /_\\ | _ \\ \\| |_ _| \\| |/ __|\n" +
                         "\t\t  \\ \\/\\/ / _ \\|   / .` || || .` | (_ |\n" +
                         "\t\t   \\_/\\_/_/ \\_\\_|_\\_|\\_|___|_|\\_|\\___|\n" +
                         "\t\t                                      ")
-                log.warn("FredBoat only officially supports Java 10. You are running Java {}", Runtime.version())
+                log.warn("FredBoat only officially supports Java 11. You are running Java {}", Runtime.version())
             }
 
             System.setProperty("spring.config.name", "fredboat")
