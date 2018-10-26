@@ -18,6 +18,8 @@ class SentinelsCommand(name: String, vararg aliases: String) : Command(name, *al
     }
 
     override suspend fun invoke(context: CommandContext) {
+        context.sendTyping()
+
         val msg = MessageBuilder()
         val compounds = context.sentinel.tracker.sentinels
                 .asSequence()
