@@ -81,6 +81,7 @@ class ShardsCommand(name: String, vararg aliases: String) : Command(name, *alias
             }
 
             val shards = sentinelList.flatMap { it.response.shards!! }
+                    .sortedBy { it.shard.id }
 
             shards.forEach { shard ->
                 shardCounter.incrementAndGet()
