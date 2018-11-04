@@ -10,6 +10,7 @@ import fredboat.util.MessageBuilder
 import kotlinx.coroutines.experimental.reactive.awaitLast
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Duration
 
 class SentinelsCommand(name: String, vararg aliases: String) : Command(name, *aliases), IInfoCommand {
 
@@ -29,6 +30,7 @@ class SentinelsCommand(name: String, vararg aliases: String) : Command(name, *al
 
         try {
             context.sentinel.getAllSentinelInfo(includeShards = true)
+                    .timeout(Duration.ofSeconds(5))
                     .doOnNext { res ->
                         compounds.find { it.hello.key == res.routingKey }?.apply {
                             data = res
