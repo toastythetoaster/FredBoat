@@ -7,6 +7,7 @@ import fredboat.config.property.LavalinkConfig
 import fredboat.sentinel.Guild
 import fredboat.sentinel.Sentinel
 import lavalink.client.io.Lavalink
+import lavalink.client.io.metrics.LavalinkCollector
 import org.json.JSONObject
 import org.springframework.stereotype.Service
 
@@ -28,6 +29,8 @@ class SentinelLavalink(
         @Suppress("LeakingThis")
         INSTANCE = this
         lavalinkConfig.nodes.forEach { addNode(it.name, it.uri, it.password) }
+        @Suppress("LeakingThis")
+        LavalinkCollector(this).register<LavalinkCollector>()
     }
 
     override fun buildNewLink(guildId: String) = SentinelLink(this, guildId)
