@@ -65,9 +65,10 @@ class FredBoatCollector(
         mfs.add(dockerPulls)
 
         //global jda entity stats
-        val countsPair = sentinelCountingService.getAllCounts().block()!!
-        val counts = countsPair.t1
-        jdaEntities.addMetric(listOf("total", "User"), countsPair.t2.toDouble())
+        sentinelCountingService.getAllCounts().subscribe() // Make sure we cache new values, so we can get them later
+        val countsPair = sentinelCountingService.getAllCountsCached() // We can't block in webflux, so we just use cached values
+        val counts = countsPair.first
+        jdaEntities.addMetric(listOf("total", "User"), countsPair.second.toDouble())
         jdaEntities.addMetric(listOf("total", "Guild"), counts.guilds.toDouble())
         jdaEntities.addMetric(listOf("total", "TextChannel"), counts.textChannels.toDouble())
         jdaEntities.addMetric(listOf("total", "VoiceChannel"), counts.voiceChannels.toDouble())

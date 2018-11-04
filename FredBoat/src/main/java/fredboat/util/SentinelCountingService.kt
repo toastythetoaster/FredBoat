@@ -71,6 +71,8 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
 
     fun getAllCounts(): Mono<Tuple2<Counts, Int>> = Mono.zip(getCounts(), getUniqueUserCount())
 
+    fun getAllCountsCached() = cachedCounts to cachedUserCount
+
     data class Counts(
             val guilds: Long,
             val roles: Long,
