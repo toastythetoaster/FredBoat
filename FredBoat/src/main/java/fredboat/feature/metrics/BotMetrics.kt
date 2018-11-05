@@ -66,7 +66,7 @@ class BotMetrics(
             musicPlayerStats.count(playerRegistry)
         })
 
-        statsAgent.addAction(StatsAgent.ActionAdapter("sentinel info including shard status") {
+        statsAgent.addAction(StatsAgent.ActionAdapter("sentinel info including shard status", intervalMinutes = 1) {
             sentinel.getAllSentinelInfo(includeShards = true)
                     .collectList()
                     .subscribe { sentinelInfo = it }
