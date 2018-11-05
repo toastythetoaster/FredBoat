@@ -39,12 +39,12 @@ import java.util.*
 class ShardStatusCollector(private val botMetrics: BotMetrics, private val appConfig: AppConfig) : Collector() {
 
     override fun collect(): List<Collector.MetricFamilySamples> {
-
         val mfs = ArrayList<Collector.MetricFamilySamples>()
         val noLabels = emptyList<String>()
 
         val totalShards = GaugeMetricFamily("fredboat_shards_total",
                 "Total shards managed by this instance", noLabels)
+        totalShards.addMetric(noLabels, appConfig.shardCount.toDouble())
         mfs.add(totalShards)
 
         val shardStatus = GaugeMetricFamily(
