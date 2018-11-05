@@ -27,6 +27,7 @@ package fredboat.feature.metrics
 import fredboat.agent.StatsAgent
 import fredboat.audio.player.PlayerRegistry
 import fredboat.sentinel.RawUser
+import fredboat.sentinel.Sentinel
 import fredboat.util.DiscordUtil
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
@@ -42,33 +43,33 @@ class BotMetrics(
         private val statsAgent: StatsAgent,
         @param:Qualifier("selfUser")
         private val selfUser: RawUser,
-        private val playerRegistry: PlayerRegistry
+        private val playerRegistry: PlayerRegistry,
+        private val sentinel: Sentinel
 ) {
     val dockerStats = DockerStats()
     val musicPlayerStats = MusicPlayerStats()
-
+    final var sentinelInfo: List<Sentinel.NamedSentinelInfoResponse> = emptyList()
+        private set
 
     init {
-
         start()
     }
 
     private fun start() {
         if (DiscordUtil.isOfficialBot(selfUser.id)) {
-            try {
+            statsAgent.addAction(StatsAgent.ActionAdapter("docker stats for fredboat") {
                 dockerStats.fetch()
-            } catch (ignored: Exception) {
-            }
-
-            statsAgent.addAction(StatsAgent.ActionAdapter("docker stats for fredboat", Runnable { dockerStats.fetch() }))
+            })
         }
 
-        try {
+        statsAgent.addAction(StatsAgent.ActionAdapter("music player stats for fredboat") {
             musicPlayerStats.count(playerRegistry)
-        } catch (ignored: Exception) {
-        }
+        })
 
-        statsAgent.addAction(StatsAgent.ActionAdapter("music player stats for fredboat"
-        ) { musicPlayerStats.count(playerRegistry) })
+        statsAgent.addAction(StatsAgent.ActionAdapter("sentinel info including shard status") {
+            sentinel.getAllSentinelInfo(includeShards = true)
+                    .collectList()
+                    .subscribe { sentinelInfo = it }
+        })
     }
 }

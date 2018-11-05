@@ -53,6 +53,11 @@ public class StatsAgent extends FredBoatAgent {
 
     public void addAction(Action action) {
         countActions.add(action);
+        try {
+            action.act();
+        } catch (Exception e) {
+            log.error("Unexpected exception when counting {}", action.getName(), e);
+        }
     }
 
     @Override

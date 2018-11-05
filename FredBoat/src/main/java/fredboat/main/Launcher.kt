@@ -8,7 +8,6 @@ import fredboat.feature.I18n
 import fredboat.util.AppInfo
 import fredboat.util.GitRepoState
 import fredboat.util.TextUtils
-import okhttp3.Credentials
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import org.springframework.boot.ApplicationArguments
@@ -64,7 +63,7 @@ class Launcher(
             log.info("Starting VoiceChannelCleanupAgent.")
             FredBoatAgent.start(voiceChannelCleanupAgent)
         } else {
-            log.info("Skipped setting up the VoiceChannelCleanupAgent, " + "either running Patron distro or overridden by temp config")
+            log.info("Skipped setting up the VoiceChannelCleanupAgent")
         }
 
         //Check imgur creds
