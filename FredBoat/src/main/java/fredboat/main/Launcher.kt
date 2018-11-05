@@ -67,9 +67,6 @@ class Launcher(
             log.info("Skipped setting up the VoiceChannelCleanupAgent, " + "either running Patron distro or overridden by temp config")
         }
 
-        //Check MAL creds
-        executor.submit{ this.hasValidMALLogin() }
-
         //Check imgur creds
         executor.submit{ this.hasValidImgurCredentials() }
 
@@ -89,34 +86,6 @@ class Launcher(
     // ################################################################################
     // ##                     Login / credential tests
     // ################################################################################
-
-    private fun hasValidMALLogin(): Boolean {
-        val malUser = configProvider.credentials.malUser
-        val malPassWord = configProvider.credentials.malPassword
-        if (malUser.isEmpty() || malPassWord.isEmpty()) {
-            log.info("MAL credentials not found. MAL related commands will not be available.")
-            return false
-        }
-
-        val request = BotController.HTTP.get("https://myanimelist.net/api/account/verify_credentials.xml")
-                .auth(Credentials.basic(malUser, malPassWord))
-
-        try {
-            request.execute().use { response ->
-                if (response.isSuccessful) {
-                    log.info("MAL login successful")
-                    return true
-                } else {
-
-                    log.warn("MAL login failed with {}\n{}", response.toString(), response.body()!!.string())
-                }
-            }
-        } catch (e: IOException) {
-            log.warn("MAL login failed, it seems to be down.", e)
-        }
-
-        return false
-    }
 
     private fun hasValidImgurCredentials(): Boolean {
         val imgurClientId = configProvider.credentials.imgurClientId
