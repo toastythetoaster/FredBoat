@@ -4,6 +4,7 @@ import com.fredboat.sentinel.SentinelExchanges
 import com.fredboat.sentinel.entities.AppendSessionEvent
 import com.fredboat.sentinel.entities.RemoveSessionEvent
 import com.fredboat.sentinel.entities.RunSessionRequest
+import com.fredboat.sentinel.entities.SyncSessionQueueRequest
 import fredboat.config.property.AppConfigProperties
 import fredboat.util.DiscordUtil
 import org.slf4j.Logger
@@ -16,7 +17,7 @@ import kotlin.concurrent.thread
 
 @Service
 class SentinelSessionController(
-        val rabbitTemplate: RabbitTemplate,
+        val rabbit: RabbitTemplate,
         val appConfig: AppConfigProperties,
         val sentinelTracker: SentinelTracker
 ) {
@@ -26,12 +27,14 @@ class SentinelSessionController(
         private const val MAX_HELLO_AGE_MS = 40000
         private const val HOME_GUILD_ID = 174820236481134592L // FredBoat Hangout is to be prioritized
         private const val IDENTIFY_DELAY = 5000L
+        private const val QUEUE_SYNC_INTERVAL = 60000 // 1 minute
     }
 
     @Suppress("LeakingThis")
     val homeShardId = DiscordUtil.getShardId(HOME_GUILD_ID, appConfig)
     val queued = ConcurrentHashMap<Int, AppendSessionEvent>()
     var worker: Thread? = null
+    private var lastSyncRequest = 0L
 
     init {
         startWorker()
@@ -77,6 +80,13 @@ class SentinelSessionController(
     }
 
     private fun workerLoop() {
+        if (lastSyncRequest + QUEUE_SYNC_INTERVAL < System.currentTimeMillis()) {
+            // This is meant to deal with race conditions where our queues are out of sync
+            // Specifically, this tends to happen when restarting sentinel at the same time as FredBoat
+            rabbit.convertAndSend(SentinelExchanges.FANOUT, "", SyncSessionQueueRequest())
+            lastSyncRequest = System.currentTimeMillis()
+        }
+
         val next = getNextShard()
 
         if (next == null) {
@@ -87,7 +97,7 @@ class SentinelSessionController(
         val request = RunSessionRequest(next.shardId)
         log.info("Requesting ${next.routingKey} to start shard ${next.shardId}")
         val started = System.currentTimeMillis()
-        val response = rabbitTemplate.convertSendAndReceive(SentinelExchanges.REQUESTS, next.routingKey, request)
+        val response = rabbit.convertSendAndReceive(SentinelExchanges.REQUESTS, next.routingKey, request)
         log.debug("Sentinel responded with $response")
         val timeTaken = System.currentTimeMillis() - started
         log.info("Started ${next.shardId} from ${next.routingKey}, took ${timeTaken}ms")
