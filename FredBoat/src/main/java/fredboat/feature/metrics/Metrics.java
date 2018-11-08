@@ -29,6 +29,7 @@ import ch.qos.logback.classic.LoggerContext;
 import fredboat.agent.FredBoatAgent;
 import fredboat.command.info.HelpCommand;
 import fredboat.feature.metrics.collectors.FredBoatCollector;
+import fredboat.feature.metrics.collectors.ShardStatusCollector;
 import fredboat.feature.metrics.collectors.ThreadPoolCollector;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
@@ -54,7 +55,8 @@ public class Metrics {
     private static final Logger log = LoggerFactory.getLogger(Metrics.class);
 
     public Metrics(CacheMetricsCollector cacheMetrics, InstrumentedAppender prometheusAppender,
-                   FredBoatCollector fredBoatCollector, ThreadPoolCollector threadPoolCollector) {
+                   FredBoatCollector fredBoatCollector, ThreadPoolCollector threadPoolCollector,
+                   ShardStatusCollector shardStatusCollector) {
         log.info("Setting up metrics");
 
         //log metrics
@@ -71,6 +73,7 @@ public class Metrics {
         cacheMetrics.addCache("HELP_RECEIVED_RECENTLY", HelpCommand.HELP_RECEIVED_RECENTLY);
 
         try {
+            shardStatusCollector.register();
             fredBoatCollector.register();
             threadPoolCollector.register();
         } catch (IllegalArgumentException e) {
