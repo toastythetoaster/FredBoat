@@ -56,7 +56,7 @@ class ShardStatusCollector(private val botMetrics: BotMetrics, private val appCo
         val counts = mutableMapOf<ShardStatus, Int>()
         ShardStatus.values().forEach { counts[it] = 0 }
         botMetrics.sentinelInfo.flatMap { it.response.shards!! }
-                .forEach { counts[it.shard.status]?.plus(1)}
+                .forEach { counts[it.shard.status] = counts[it.shard.status]!! + 1 }
         counts.forEach { status, count ->
             shardStatus.addMetric(listOf(status.name), count.toDouble())
         }
