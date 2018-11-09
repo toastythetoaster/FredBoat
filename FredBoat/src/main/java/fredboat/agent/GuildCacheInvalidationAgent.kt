@@ -17,7 +17,7 @@ class GuildCacheInvalidationAgent(
 ) : FredBoatAgent("cache-invalidator", 5, TimeUnit.MINUTES) {
 
     companion object {
-        private const val TIMEOUT_MILLIS: Long = 10 * 60 * 1000 // 30 minutes
+        private const val TIMEOUT_MILLIS: Long = 10 * 60 * 1000 // 10 minutes
         private val log: Logger = LoggerFactory.getLogger(GuildCacheInvalidationAgent::class.java)
         lateinit var INSTANCE: GuildCacheInvalidationAgent
     }
