@@ -26,7 +26,6 @@
 package fredboat.feature.metrics.collectors
 
 import fredboat.feature.metrics.BotMetrics
-import fredboat.util.SentinelCountingService
 import io.prometheus.client.Collector
 import io.prometheus.client.CounterMetricFamily
 import io.prometheus.client.GaugeMetricFamily
@@ -40,12 +39,12 @@ import java.util.*
  */
 @Component
 class FredBoatCollector(
-        private val botMetrics: BotMetrics,
-        private val sentinelCountingService: SentinelCountingService
+        private val botMetrics: BotMetrics
 ) : Collector() {
 
-    override fun collect(): List<Collector.MetricFamilySamples> {
+    private var lastEntityCountHash = 0
 
+    override fun collect(): List<Collector.MetricFamilySamples> {
         val mfs = ArrayList<Collector.MetricFamilySamples>()
         //NOTE: shard specific metrics have been disabled, because we were not really using them, but they take up a ton
         // of samples (Example: 800 shards x 7 metrics = 5600 unused samples). the label has been kept to not break
@@ -65,16 +64,18 @@ class FredBoatCollector(
         mfs.add(dockerPulls)
 
         //global jda entity stats
-        sentinelCountingService.getAllCounts().subscribe() // Make sure we cache new values, so we can get them later
-        val countsPair = sentinelCountingService.getAllCountsCached() // We can't block in webflux, so we just use cached values
-        val counts = countsPair.first
-        jdaEntities.addMetric(listOf("total", "User"), countsPair.second.toDouble())
-        jdaEntities.addMetric(listOf("total", "Guild"), counts.guilds.toDouble())
-        jdaEntities.addMetric(listOf("total", "TextChannel"), counts.textChannels.toDouble())
-        jdaEntities.addMetric(listOf("total", "VoiceChannel"), counts.voiceChannels.toDouble())
-        jdaEntities.addMetric(listOf("total", "Category"), counts.categories.toDouble())
-        jdaEntities.addMetric(listOf("total", "Emote"), counts.emotes.toDouble())
-        jdaEntities.addMetric(listOf("total", "Role"), counts.roles.toDouble())
+        if (botMetrics.entityCounts != null && botMetrics.entityCounts?.hashCode() != lastEntityCountHash) {
+            val countsPair = botMetrics.entityCounts!!
+            val counts = countsPair.t1
+            jdaEntities.addMetric(listOf("total", "User"), countsPair.t2.toDouble())
+            jdaEntities.addMetric(listOf("total", "Guild"), counts.guilds.toDouble())
+            jdaEntities.addMetric(listOf("total", "TextChannel"), counts.textChannels.toDouble())
+            jdaEntities.addMetric(listOf("total", "VoiceChannel"), counts.voiceChannels.toDouble())
+            jdaEntities.addMetric(listOf("total", "Category"), counts.categories.toDouble())
+            jdaEntities.addMetric(listOf("total", "Emote"), counts.emotes.toDouble())
+            jdaEntities.addMetric(listOf("total", "Role"), counts.roles.toDouble())
+            lastEntityCountHash = countsPair.hashCode()
+        }
 
         //music player stats
         val musicPlayerStats = botMetrics.musicPlayerStats

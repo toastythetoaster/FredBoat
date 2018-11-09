@@ -29,8 +29,10 @@ import fredboat.audio.player.PlayerRegistry
 import fredboat.sentinel.RawUser
 import fredboat.sentinel.Sentinel
 import fredboat.util.DiscordUtil
+import fredboat.util.SentinelCountingService
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Service
+import reactor.util.function.Tuple2
 
 /**
  * Metrics for the whole FredBoat.
@@ -44,12 +46,14 @@ class BotMetrics(
         @param:Qualifier("selfUser")
         private val selfUser: RawUser,
         private val playerRegistry: PlayerRegistry,
-        private val sentinel: Sentinel
+        private val sentinel: Sentinel,
+        private val sentinelCountingService: SentinelCountingService
 ) {
     val dockerStats = DockerStats()
     val musicPlayerStats = MusicPlayerStats()
     final var sentinelInfo: List<Sentinel.NamedSentinelInfoResponse> = emptyList()
         private set
+    final var entityCounts: Tuple2<SentinelCountingService.Counts, Int>? = null
 
     init {
         start()
@@ -70,6 +74,11 @@ class BotMetrics(
             sentinel.getAllSentinelInfo(includeShards = true)
                     .collectList()
                     .subscribe { sentinelInfo = it }
+        })
+
+        statsAgent.addAction(StatsAgent.ActionAdapter("entity counts") {
+            sentinelCountingService.getAllCounts()
+                    .subscribe { entityCounts = it }
         })
     }
 }
