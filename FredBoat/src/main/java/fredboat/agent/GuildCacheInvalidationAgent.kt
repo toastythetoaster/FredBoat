@@ -14,10 +14,10 @@ import java.util.concurrent.TimeUnit
 class GuildCacheInvalidationAgent(
         val guildCache: GuildCache,
         private val playerRegistry: PlayerRegistry
-) : FredBoatAgent("cache-invalidator", 10, TimeUnit.MINUTES) {
+) : FredBoatAgent("cache-invalidator", 5, TimeUnit.MINUTES) {
 
     companion object {
-        private const val TIMEOUT_MILLIS: Long = 30 * 60 * 1000 // 30 minutes
+        private const val TIMEOUT_MILLIS: Long = 10 * 60 * 1000 // 30 minutes
         private val log: Logger = LoggerFactory.getLogger(GuildCacheInvalidationAgent::class.java)
         lateinit var INSTANCE: GuildCacheInvalidationAgent
     }
