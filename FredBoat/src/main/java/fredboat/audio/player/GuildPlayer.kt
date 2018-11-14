@@ -48,6 +48,7 @@ import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
+import org.bson.types.ObjectId
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.function.Consumer
@@ -296,7 +297,7 @@ class GuildPlayer(
     }
 
     /** Similar to [getTracksInRange], but only gets the trackIds */
-    fun getTrackIdsInRange(start: Int, end: Int): List<Long> = getTracksInRange(start, end).stream()
+    fun getTrackIdsInRange(start: Int, end: Int): List<ObjectId> = getTracksInRange(start, end).stream()
             .map { it.trackId }
             .toList()
 
@@ -320,7 +321,7 @@ class GuildPlayer(
     }
 
     //Success, fail message
-    private suspend fun canMemberSkipTracks(member: Member, trackIds: Collection<Long>): Pair<Boolean, String> {
+    private suspend fun canMemberSkipTracks(member: Member, trackIds: Collection<ObjectId>): Pair<Boolean, String> {
         if (PermsUtil.checkPerms(PermissionLevel.DJ, member)) {
             return ImmutablePair(true, null)
         } else {
@@ -346,7 +347,7 @@ class GuildPlayer(
         }
     }
 
-    suspend fun skipTracksForMemberPerms(context: CommandContext, trackIds: Collection<Long>, successMessage: String) {
+    suspend fun skipTracksForMemberPerms(context: CommandContext, trackIds: Collection<ObjectId>, successMessage: String) {
         val pair = canMemberSkipTracks(context.member, trackIds)
 
         if (pair.left) {
@@ -357,10 +358,10 @@ class GuildPlayer(
         }
     }
 
-    fun skipTracks(trackIds: Collection<Long>) {
+    fun skipTracks(trackIds: Collection<ObjectId>) {
         var skipCurrentTrack = false
 
-        val toRemove = ArrayList<Long>()
+        val toRemove = ArrayList<ObjectId>()
         val playing = if (player.playingTrack != null) context else null
         for (trackId in trackIds) {
             if (playing != null && trackId == playing.trackId) {

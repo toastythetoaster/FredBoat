@@ -26,6 +26,7 @@
 package fredboat.audio.queue
 
 import fredboat.definitions.RepeatMode
+import org.bson.types.ObjectId
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -128,7 +129,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         }
     }
 
-    override fun removeAllById(trackIds: Collection<Long>) {
+    override fun removeAllById(trackIds: Collection<ObjectId>) {
         queue.removeIf { audioTrackContext -> trackIds.contains(audioTrackContext.trackId) }
         shouldUpdateShuffledQueue = true
     }
@@ -223,7 +224,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         }
     }
 
-    override fun isUserTrackOwner(userId: Long, trackIds: Collection<Long>): Boolean {
+    override fun isUserTrackOwner(userId: Long, trackIds: Collection<ObjectId>): Boolean {
         for (atc in asListOrdered) {
             if (trackIds.contains(atc.trackId) && atc.userId != userId) {
                 return false

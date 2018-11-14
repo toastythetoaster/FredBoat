@@ -31,12 +31,13 @@ import fredboat.feature.I18n
 import fredboat.main.Launcher
 import fredboat.sentinel.Member
 import fredboat.sentinel.TextChannel
+import org.bson.types.ObjectId
 import java.util.concurrent.ThreadLocalRandom
 
 open class AudioTrackContext(val track: AudioTrack, val member: Member) : Comparable<AudioTrackContext> {
     val added: Long = System.currentTimeMillis()
     var rand: Int = 0
-    val trackId: Long //used to identify this track even when the track gets cloned and the rand reranded
+    val trackId: ObjectId //used to identify this track even when the track gets cloned and the rand reranded
 
     val userId: Long
         get() = member.id
@@ -62,7 +63,7 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member) : Compar
 
     init {
         this.rand = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE)
-        this.trackId = ThreadLocalRandom.current().nextLong(java.lang.Long.MAX_VALUE)
+        this.trackId = ObjectId()
     }//It's ok to set a non-existing channelId, since inside the AudioTrackContext, the channel needs to be looked up
     // every time. See the getTextChannel() below for doing that.
 

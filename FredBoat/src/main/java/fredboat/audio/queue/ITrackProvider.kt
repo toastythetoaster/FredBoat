@@ -25,6 +25,8 @@
 
 package fredboat.audio.queue
 
+import org.bson.types.ObjectId
+
 interface ITrackProvider {
 
     /**
@@ -98,7 +100,7 @@ interface ITrackProvider {
     /**
      * @param trackIds tracks to be removed from the queue
      */
-    fun removeAllById(trackIds: Collection<Long>)
+    fun removeAllById(trackIds: Collection<ObjectId>)
 
     /**
      * @param index the index of the requested track in playing order
@@ -126,6 +128,6 @@ interface ITrackProvider {
     /**
      * @return false if any of the provided tracks was added by user that is not the provided userId
      */
-    fun isUserTrackOwner(userId: Long, trackIds: Collection<Long>): Boolean
+    fun isUserTrackOwner(userId: Long, trackIds: Collection<ObjectId>): Boolean
 
 }

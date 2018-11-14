@@ -40,6 +40,7 @@ import fredboat.sentinel.Member
 import fredboat.util.TextUtils
 import fredboat.util.extension.escapeAndDefuse
 import org.apache.commons.lang3.StringUtils
+import org.bson.types.ObjectId
 import java.util.*
 import java.util.regex.Pattern
 
@@ -171,7 +172,7 @@ class SkipCommand(name: String, vararg aliases: String) : Command(name, *aliases
         }
 
         val listAtc = player.getTracksInRange(0, player.trackCount)
-        val userAtcIds = ArrayList<Long>()
+        val userAtcIds = ArrayList<ObjectId>()
         val affectedUsers = ArrayList<Member>()
 
         members.forEach {
