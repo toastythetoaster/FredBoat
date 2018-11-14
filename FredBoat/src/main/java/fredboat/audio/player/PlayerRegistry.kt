@@ -27,24 +27,38 @@ package fredboat.audio.player
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import fredboat.audio.lavalink.SentinelLavalink
+import fredboat.audio.queue.AudioTrackContext
+import fredboat.audio.queue.SplitAudioTrackContext
+import fredboat.config.property.AppConfig
 import fredboat.db.api.GuildConfigService
+import fredboat.db.mongo.PlayerRepository
+import fredboat.definitions.RepeatMode
 import fredboat.sentinel.Guild
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import lavalink.client.LavalinkUtil
 import lavalink.client.io.Link.State
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import reactor.core.publisher.Mono
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
 import kotlin.streams.toList
 
 @Component
-class PlayerRegistry(private val musicTextChannelProvider: MusicTextChannelProvider,
-                     private val guildConfigService: GuildConfigService, private val lavalink: SentinelLavalink,
-                     @param:Qualifier("loadAudioPlayerManager") val audioPlayerManager: AudioPlayerManager,
-                     private val ratelimiter: Ratelimiter, private val youtubeAPI: YoutubeAPI) {
+class PlayerRegistry(
+        private val musicTextChannelProvider: MusicTextChannelProvider,
+        private val guildConfigService: GuildConfigService,
+        private val sentinelLavalink: SentinelLavalink,
+        @param:Qualifier("loadAudioPlayerManager") val audioPlayerManager: AudioPlayerManager,
+        private val ratelimiter: Ratelimiter,
+        private val youtubeAPI: YoutubeAPI,
+        private val playerRepo: PlayerRepository,
+        private val appConfig: AppConfig
+) {
 
     companion object {
         const val DEFAULT_VOLUME = 1f
@@ -70,7 +84,7 @@ class PlayerRegistry(private val musicTextChannelProvider: MusicTextChannelProvi
     fun getOrCreate(guild: Guild): GuildPlayer {
         return registry.computeIfAbsent(
                 guild.id) {
-            val p = GuildPlayer(lavalink, guild, musicTextChannelProvider, audioPlayerManager, guildConfigService,
+            val p = GuildPlayer(sentinelLavalink, guild, musicTextChannelProvider, audioPlayerManager, guildConfigService,
                     ratelimiter, youtubeAPI)
             p.volume = DEFAULT_VOLUME
             p
@@ -117,4 +131,53 @@ class PlayerRegistry(private val musicTextChannelProvider: MusicTextChannelProvi
                     .count()
         }
     }
+
+    // TODO: Debounce
+    fun createPlayer(guild: Guild): Mono<GuildPlayer> {
+        val player = GuildPlayer(
+                sentinelLavalink,
+                guild,
+                musicTextChannelProvider,
+                audioPlayerManager,
+                guildConfigService,
+                ratelimiter,
+                youtubeAPI
+        )
+
+        return playerRepo.findById(guild.id)
+                .map {
+                    player.setPause(it.paused)
+                    player.isShuffle = it.shuffled
+                    player.repeatMode = RepeatMode.values()[it.repeat.toInt()]
+
+                    if (appConfig.distribution.volumeSupported()) {
+                        player.volume = it.volume
+                    }
+
+                    val queue = it.queue.mapNotNull { track ->
+                                try {
+                                    val at = LavalinkUtil.toAudioTrack(track.blob)
+                                    val member = guild.getMember(track.requester) ?: guild.selfMember
+                                    if (track.startTime != null && track.endTime != null) {
+                                        SplitAudioTrackContext(at, member, track.startTime, track.endTime, track.title)
+                                    } else {
+                                        AudioTrackContext(at, member)
+                                    }
+                                } catch (e: IOException) {
+                                    log.error("Exception loading track", e)
+                                    null
+                                }
+                            }
+
+                    // Optionally set current track position
+                    if (it.position != null && queue.isNotEmpty()) {
+                        queue[0].track.position = it.position
+                    }
+
+                    player.loadAll(queue)
+
+                    player
+                }.defaultIfEmpty(player)
+    }
+
 }
