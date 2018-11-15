@@ -66,8 +66,8 @@ class PlayerRegistry(
     }
 
     private val registry = ConcurrentHashMap<Long, GuildPlayer>()
-
     private val iteratorLock = Any() //iterators, which are also used by stream(), need to be synced, despite it being a concurrent map
+    private val monoCache = ConcurrentHashMap<Long, Mono<GuildPlayer>>()
 
     /**
      * @return a copied list of the the playing players of the registry. This may be an expensive operation depending on
@@ -132,8 +132,12 @@ class PlayerRegistry(
         }
     }
 
-    // TODO: Debounce
-    fun createPlayer(guild: Guild): Mono<GuildPlayer> {
+    /**
+     * @return a [Mono] with a fully loaded [GuildPlayer], po
+     * 
+     */
+    @Suppress("RedundantLambdaArrow")
+    private fun createPlayer(guild: Guild): Mono<GuildPlayer>  = monoCache.computeIfAbsent(guild.id) { _ ->
         val player = GuildPlayer(
                 sentinelLavalink,
                 guild,
@@ -144,7 +148,7 @@ class PlayerRegistry(
                 youtubeAPI
         )
 
-        return playerRepo.findById(guild.id)
+        playerRepo.findById(guild.id)
                 .map {
                     player.setPause(it.paused)
                     player.isShuffle = it.shuffled
@@ -178,6 +182,8 @@ class PlayerRegistry(
 
                     player
                 }.defaultIfEmpty(player)
+    }.doFinally {
+        monoCache.remove(guild.id)
     }
 
 }
