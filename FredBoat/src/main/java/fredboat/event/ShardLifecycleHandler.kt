@@ -121,9 +121,10 @@ class ShardLifecycleHandler(
 
         toRejoin.forEach { ref ->
             val channel = ref.guild.getVoiceChannel(ref.channelId) ?: return@forEach
-            val player = playerRegistry.getOrCreate(channel.guild)
-            channel.connect()
-            player.play()
+            playerRegistry.getOrCreate(channel.guild).subscribe { player ->
+                channel.connect()
+                player.play()
+            }
         }
     }
 

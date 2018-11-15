@@ -30,34 +30,26 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IMusicCommand
 import fredboat.definitions.PermissionLevel
-import fredboat.main.Launcher
+import fredboat.main.getBotController
 import fredboat.messaging.internal.Context
 
-class JoinCommand(name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
+class ShuffleCommand(name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
-        get() = PermissionLevel.USER
+        get() = PermissionLevel.DJ
 
     override suspend fun invoke(context: CommandContext) {
-        val player = Launcher.botController.playerRegistry.awaitPlayer(context.guild)
+        val player = getBotController().playerRegistry.awaitPlayer(context.guild)
+        player.isShuffle = !player.isShuffle
 
-        val vc = context.member.voiceChannel
-        try {
-            player.joinChannel(vc)
-            if (vc != null) {
-                context.reply(context.i18nFormat("joinJoining", vc.name))
-            }
-        } catch (ex: IllegalStateException) { // This was used for JDA. Remove this?
-            if (vc != null) {
-                context.reply(context.i18nFormat("joinErrorAlreadyJoining", vc.name))
-            } else {
-                throw ex
-            }
+        if (player.isShuffle) {
+            context.reply(context.i18n("shuffleOn"))
+        } else {
+            context.reply(context.i18n("shuffleOff"))
         }
-
     }
 
     override fun help(context: Context): String {
-        return "{0}{1}\n#" + context.i18n("helpJoinCommand")
+        return "{0}{1}\n#" + context.i18n("helpShuffleCommand")
     }
 }

@@ -233,7 +233,7 @@ class MusicPersistenceHandler(private val playerRegistry: PlayerRegistry, privat
                 val repeatMode = data.getEnum(RepeatMode::class.java, "repeatMode")
                 val shuffle = data.getBoolean("shuffle")
 
-                val player = playerRegistry.getOrCreate(guild)
+                val player = playerRegistry.awaitPlayer(guild)
 
                 if (tc != null) {
                     musicTextChannelProvider.setMusicChannel(tc)

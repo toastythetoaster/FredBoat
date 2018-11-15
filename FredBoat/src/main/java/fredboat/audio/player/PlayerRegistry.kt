@@ -36,6 +36,7 @@ import fredboat.definitions.RepeatMode
 import fredboat.sentinel.Guild
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import kotlinx.coroutines.experimental.reactive.awaitFirst
 import lavalink.client.LavalinkUtil
 import lavalink.client.io.Link.State
 import org.slf4j.Logger
@@ -61,7 +62,6 @@ class PlayerRegistry(
 ) {
 
     companion object {
-        const val DEFAULT_VOLUME = 1f
         private val log: Logger = LoggerFactory.getLogger(PlayerRegistry::class.java)
     }
 
@@ -81,15 +81,15 @@ class PlayerRegistry(
                     .toList()
         }
 
-    fun getOrCreate(guild: Guild): GuildPlayer {
-        return registry.computeIfAbsent(
-                guild.id) {
-            val p = GuildPlayer(sentinelLavalink, guild, musicTextChannelProvider, audioPlayerManager, guildConfigService,
-                    ratelimiter, youtubeAPI)
-            p.volume = DEFAULT_VOLUME
-            p
-        }
+    fun getOrCreate(guild: Guild): Mono<GuildPlayer> {
+        val player = registry[guild.id] ?: return createPlayer(guild)
+        return Mono.just(player)
     }
+
+    /**
+     * Get or create a guild in a suspending fashion
+     */
+    suspend fun awaitPlayer(guild: Guild) = getOrCreate(guild).awaitFirst()
 
     fun getExisting(guild: Guild): GuildPlayer? {
         return getExisting(guild.id)

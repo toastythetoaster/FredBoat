@@ -55,7 +55,7 @@ class PlaySplitCommand(private val playerLimiter: PlayerLimiter, name: String, v
         val ic = IdentifierContext(context.args[0], context.textChannel, context.member)
         ic.isSplit = true
 
-        val player = playerRegistry.getOrCreate(context.guild)
+        val player = playerRegistry.awaitPlayer(context.guild)
         player.queue(ic)
         player.setPause(false)
 

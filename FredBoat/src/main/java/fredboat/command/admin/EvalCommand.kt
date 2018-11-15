@@ -96,7 +96,7 @@ class EvalCommand(
             engine.put("sentinel", guild.sentinel)
             engine.put("channel", textChannel)
             engine.put("tc", textChannel)
-            val player = Launcher.botController.playerRegistry.getOrCreate(guild)
+            val player = Launcher.botController.playerRegistry.awaitPlayer(guild)
             engine.put("player", player)
             engine.put("players", Launcher.botController.playerRegistry)
             engine.put("link", (player.player as LavalinkPlayer?)?.link)

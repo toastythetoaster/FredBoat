@@ -62,7 +62,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
         if (!playerLimiter.checkLimitResponsive(context, Launcher.botController.playerRegistry)) return
 
         if (!context.msg.attachments.isEmpty()) {
-            val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
+            val player = Launcher.botController.playerRegistry.awaitPlayer(context.guild)
 
             for (atc in context.msg.attachments) {
                 player.queue(atc, context)
@@ -94,7 +94,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
             url = url.replaceFirst(FILE_PREFIX.toRegex(), "") //LocalAudioSourceManager does not manage this itself
         }
 
-        val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
+        val player = Launcher.botController.playerRegistry.awaitPlayer(context.guild)
         player.queue(url, context)
         player.setPause(false)
 
