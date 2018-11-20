@@ -25,20 +25,20 @@
 
 package fredboat.command.music.control;
 
-import fredboat.audio.player.GuildPlayer;
-import fredboat.audio.player.PlayerRegistry;
-import fredboat.audio.queue.RepeatMode;
-import fredboat.command.util.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.command.info.HelpCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
+import fredboat.definitions.PermissionLevel;
+import fredboat.definitions.RepeatMode;
 import fredboat.messaging.internal.Context;
-import fredboat.perms.PermissionLevel;
 
 import javax.annotation.Nonnull;
 
-public class RepeatCommand extends Command implements IMusicCommand, ICommandRestricted {
+import static fredboat.main.LauncherKt.getBotController;
+
+public class RepeatCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public RepeatCommand(String name, String... aliases) {
         super(name, aliases);
@@ -46,15 +46,13 @@ public class RepeatCommand extends Command implements IMusicCommand, ICommandRes
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = PlayerRegistry.getOrCreate(context.guild);
-
         if (!context.hasArguments()) {
             HelpCommand.sendFormattedCommandHelp(context);
             return;
         }
 
         RepeatMode desiredRepeatMode;
-        String userInput = context.args[0];
+        String userInput = context.getArgs()[0];
         switch (userInput) {
             case "off":
             case "out":
@@ -76,7 +74,7 @@ public class RepeatCommand extends Command implements IMusicCommand, ICommandRes
                 return;
         }
 
-        player.setRepeatMode(desiredRepeatMode);
+        getBotController().getPlayerRegistry().getOrCreate(context.getGuild()).setRepeatMode(desiredRepeatMode);
 
         switch (desiredRepeatMode) {
             case OFF:

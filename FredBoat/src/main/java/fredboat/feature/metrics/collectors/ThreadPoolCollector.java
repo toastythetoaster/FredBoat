@@ -28,6 +28,7 @@ package fredboat.feature.metrics.collectors;
 import io.prometheus.client.Collector;
 import io.prometheus.client.CounterMetricFamily;
 import io.prometheus.client.GaugeMetricFamily;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  * Created by napster on 19.10.17.
  */
+@Component
 public class ThreadPoolCollector extends Collector {
 
     protected final ConcurrentMap<String, ThreadPoolExecutor> pools = new ConcurrentHashMap<>();
@@ -87,6 +89,10 @@ public class ThreadPoolCollector extends Collector {
                 "Amount of active threads in a thread pool", labelNames);
         mfs.add(activeThreads);
 
+        GaugeMetricFamily queueSize = new GaugeMetricFamily("fredboat_threadpool_queue_size_current",
+                "Size of queue of a thread pool (including scheduled tasks)", labelNames);
+        mfs.add(queueSize);
+
         CounterMetricFamily completedTasks = new CounterMetricFamily("fredboat_threadpool_completed_tasks_total",
                 "Total completed tasks by a thread pool", labelNames);
         mfs.add(completedTasks);
@@ -97,6 +103,7 @@ public class ThreadPoolCollector extends Collector {
             List<String> labels = Collections.singletonList(poolName);
 
             activeThreads.addMetric(labels, pool.getActiveCount());
+            queueSize.addMetric(labels, pool.getQueue().size());
             completedTasks.addMetric(labels, pool.getCompletedTaskCount()); //guaranteed to always increase, ergo good fit for a counter
         }
 

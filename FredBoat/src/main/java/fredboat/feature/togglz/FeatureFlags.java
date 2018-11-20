@@ -26,7 +26,6 @@
 package fredboat.feature.togglz;
 
 import org.togglz.core.Feature;
-import org.togglz.core.annotation.EnabledByDefault;
 import org.togglz.core.annotation.Label;
 
 /**
@@ -36,28 +35,12 @@ import org.togglz.core.annotation.Label;
  */
 public enum FeatureFlags implements Feature {
 
-    //ratelimiter + auto blacklisting features
-    @Label("Rate Limiter")
-    @EnabledByDefault
-    RATE_LIMITER,
-
-    //using the chatbot class
-    @Label("Chatbot")
-    @EnabledByDefault
-    CHATBOT,
-
-    @Label("Permissions")
-    @EnabledByDefault
-    PERMISSIONS,
-
     @Label("Patron validation")
     PATRON_VALIDATION,
 
     @Label("Force soundcloud search instead of youtube")
     FORCE_SOUNDCLOUD_SEARCH,
 
-    @Label("Full instrumentation, including multidimensional per command stats")
-    FULL_METRICS,
     ;
 
     public boolean isActive() {

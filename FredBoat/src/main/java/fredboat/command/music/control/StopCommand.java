@@ -26,17 +26,18 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.audio.player.PlayerRegistry;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
+import fredboat.definitions.PermissionLevel;
 import fredboat.messaging.internal.Context;
-import fredboat.perms.PermissionLevel;
 
 import javax.annotation.Nonnull;
 
-public class StopCommand extends Command implements IMusicCommand, ICommandRestricted {
+import static fredboat.main.LauncherKt.getBotController;
+
+public class StopCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public StopCommand(String name, String... aliases) {
         super(name, aliases);
@@ -44,11 +45,15 @@ public class StopCommand extends Command implements IMusicCommand, ICommandRestr
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = PlayerRegistry.getOrCreate(context.guild);
-        int tracksCount = player.getTrackCount();
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
+        int tracksCount = 0;
+        if (player != null) {
+            tracksCount = player.getTrackCount();
+            player.pause();
+            player.stop();
+            player.leaveVoiceChannelRequest(context, true);
+        }
 
-        player.pause();
-        player.stop();
         switch (tracksCount) {
             case 0:
                 context.reply(context.i18n("stopAlreadyEmpty"));
@@ -60,7 +65,6 @@ public class StopCommand extends Command implements IMusicCommand, ICommandRestr
                 context.reply(context.i18nFormat("stopEmptySeveral", tracksCount));
                 break;
         }
-        player.leaveVoiceChannelRequest(context, true);
     }
 
     @Nonnull

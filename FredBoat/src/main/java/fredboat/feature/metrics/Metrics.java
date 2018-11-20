@@ -26,22 +26,23 @@
 package fredboat.feature.metrics;
 
 import ch.qos.logback.classic.LoggerContext;
-import com.zaxxer.hikari.metrics.prometheus.PrometheusMetricsTrackerFactory;
-import fredboat.FredBoat;
 import fredboat.agent.FredBoatAgent;
-import fredboat.audio.player.VideoSelection;
+import fredboat.command.info.HelpCommand;
 import fredboat.feature.metrics.collectors.FredBoatCollector;
+import fredboat.feature.metrics.collectors.ShardStatusCollector;
 import fredboat.feature.metrics.collectors.ThreadPoolCollector;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
+import io.prometheus.client.Summary;
 import io.prometheus.client.guava.cache.CacheMetricsCollector;
-import io.prometheus.client.hibernate.HibernateStatisticsCollector;
 import io.prometheus.client.hotspot.DefaultExports;
 import io.prometheus.client.logback.InstrumentedAppender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by napster on 08.09.17.
@@ -49,46 +50,18 @@ import java.util.concurrent.ThreadPoolExecutor;
  * This is a central place for all Counters and Gauges and whatever else we are using so that the available stats can be
  * seen at one glance.
  */
+@Component
 public class Metrics {
     private static final Logger log = LoggerFactory.getLogger(Metrics.class);
 
-    //call this once at the start of the bot to set up things
-    // further calls won't have any effect
-    public static void setup() {
-        log.info("Metrics set up {}", instance().toString());
-    }
+    public Metrics(CacheMetricsCollector cacheMetrics, InstrumentedAppender prometheusAppender,
+                   FredBoatCollector fredBoatCollector, ThreadPoolCollector threadPoolCollector,
+                   ShardStatusCollector shardStatusCollector) {
+        log.info("Setting up metrics");
 
-    //holder pattern
-    public static Metrics instance() {
-        return MetricHolder.INSTANCE;
-    }
-
-    private static class MetricHolder {
-        private static final Metrics INSTANCE = new Metrics();
-    }
-
-    //call register on the hibernate stats after all connections are set up
-    public final HibernateStatisticsCollector hibernateStats = new HibernateStatisticsCollector();
-    public final PrometheusMetricsTrackerFactory hikariStats = new PrometheusMetricsTrackerFactory();
-
-    //expose the metrics with spark
-    public final SparkMetricsServlet metricsServlet = new SparkMetricsServlet();
-    //guava cache metrics
-    public final CacheMetricsCollector cacheMetrics = new CacheMetricsCollector().register();
-    // collect jda events metrics
-    public final JdaEventsMetricsListener jdaEventsMetricsListener = new JdaEventsMetricsListener();
-
-    //our custom collectors / listeners etc:
-    // fredboat stuff
-    public final FredBoatCollector fredBoatCollector = new FredBoatCollector();
-    // threadpools
-    public final ThreadPoolCollector threadPoolCollector = new ThreadPoolCollector();
-
-    private Metrics() {
         //log metrics
         final LoggerContext factory = (LoggerContext) LoggerFactory.getILoggerFactory();
         final ch.qos.logback.classic.Logger root = factory.getLogger(Logger.ROOT_LOGGER_NAME);
-        final InstrumentedAppender prometheusAppender = new InstrumentedAppender();
         prometheusAppender.setContext(root.getLoggerContext());
         prometheusAppender.start();
         root.addAppender(prometheusAppender);
@@ -96,10 +69,11 @@ public class Metrics {
         //jvm (hotspot) metrics
         DefaultExports.initialize();
 
-        //add one of our guava caches that is only statically reachable
-        cacheMetrics.addCache("videoSelections", VideoSelection.SELECTIONS);
+        //add some of our guava caches that are currently only statically reachable
+        cacheMetrics.addCache("HELP_RECEIVED_RECENTLY", HelpCommand.HELP_RECEIVED_RECENTLY);
 
         try {
+            shardStatusCollector.register();
             fredBoatCollector.register();
             threadPoolCollector.register();
         } catch (IllegalArgumentException e) {
@@ -107,32 +81,10 @@ public class Metrics {
         }
 
         //register some of our "important" thread pools
-        threadPoolCollector.addPool("main-executor", (ThreadPoolExecutor) FredBoat.executor);
         threadPoolCollector.addPool("agents-scheduler", (ThreadPoolExecutor) FredBoatAgent.getScheduler());
+
+        log.info("Metrics set up");
     }
-
-
-    // ################################################################################
-    // ##                              JDA Stats
-    // ################################################################################
-
-    public static final Counter jdaEvents = Counter.build()
-            .name("fredboat_jda_events_received_total")
-            .help("All events that JDA provides us with by class")
-            .labelNames("class") //GuildJoinedEvent, MessageReceivedEvent, ReconnectEvent etc
-            .register();
-
-    public static final Counter successfulRestActions = Counter.build()
-            .name("fredboat_jda_restactions_successful_total")
-            .help("Total successful JDA restactions sent by FredBoat")
-            .labelNames("restaction") // sendMessage, deleteMessage, sendTyping etc
-            .register();
-
-    public static final Counter failedRestActions = Counter.build()
-            .name("fredboat_jda_restactions_failed_total")
-            .help("Total failed JDA restactions sent by FredBoat")
-            .labelNames("error_response_code") //Use the error response codes like: 50013, 10008 etc
-            .register();
 
 
     // ################################################################################
@@ -208,16 +160,50 @@ public class Metrics {
             .labelNames("class") // use the simple name of the command class: PlayCommand, DanceCommand, ShardsCommand etc
             .register();
 
-    public static final Histogram executionTime = Histogram.build()//commands execution time, excluding ratelimited ones
+    public static final Summary executionTime = Summary.build()//commands execution time, excluding ratelimited ones
             .name("fredboat_command_execution_duration_seconds")
             .help("Command execution time, excluding handling ratelimited commands.")
             .labelNames("class") // use the simple name of the command class: PlayCommand, DanceCommand, ShardsCommand etc
             .register();
 
-    public static final Counter commandExceptions = Counter.build()
-            .name("fredboat_commands_exceptions_total")
-            .help("Total uncaught exceptions thrown by command invocation")
-            .labelNames("class") //class of the exception
+    //total commands response time: delta between the message creation times of the triggering command and our answer message
+    //this can be slowed down by several factors:
+    // - we do slow things while processing the command
+    // - our net is bad when replying
+    // - or we are hitting rate limits
+    //there is an additional factor which is important for user experience, but which we can't measure:
+    // - the time between a user sending their message and discord receiving it
+    //and another additional factor which we can't influence:
+    // - discord being slow publishing our answer / the user's connection being slow receiving the published answer
+    //keep these in mind when analyzing this metric
+    public static final Summary totalResponseTime = Summary.build()
+            .name("fredboat_total_message_response_duration_seconds")
+            .help("Response duration between command message and answer message creation times.")
+            .labelNames("class") // use the simple name of the command class: PlayCommand, DanceCommand, ShardsCommand etc
+            .register(); // TODO investigate unused
+
+    public static final Counter handledExceptions = Counter.build()
+            .name("fredboat_handled_exceptions_total")
+            .help("Total uncaught exceptions bubbled up by command invocation or other moving parts")
+            .labelNames("class") //class of the exception, messaging exceptions should be summed up into one, as they have their own stat, see below
+            .register();
+
+    public static final Counter messagingExceptions = Counter.build()
+            .name("fredboat_messaging_exceptions_total")
+            .help("Total messaging exceptions bubbled by command invocation or other moving parts")
+            .labelNames("class") //subclass of the messaging exception
+            .register();
+
+    public static final Counter selectionChoiceChosen = Counter.build()
+            .name("fredboat_selection_choice_chosen_total")
+            .help("Which number the user picked after being presented with search results")
+            .labelNames("number") //1, 2, 3, 4, 5
+            .register();
+
+    public static final Counter multiSelections = Counter.build()
+            .name("fredboat_multiselections_total")
+            .help("Each time a user used multiselection")
+            .labelNames("total_amount") //how many choices were multiselected, e.g. 2, 3, 4, 5
             .register();
 
     // ################################################################################
@@ -246,6 +232,27 @@ public class Metrics {
     public static final Counter databaseExceptionsCreated = Counter.build()
             .name("fredboat_db_exceptions_created_total")
             .help("Total database exceptions created")
+            .register();
+
+    public static final Histogram guildLifespan = Histogram.build()
+            .name("fredboat_guild_lifespan_seconds")
+            .help("How long were we part of a guild when leaving it")
+            .buckets(
+                    TimeUnit.MINUTES.toSeconds(1),
+                    TimeUnit.MINUTES.toSeconds(10),
+                    TimeUnit.MINUTES.toSeconds(30),
+                    TimeUnit.HOURS.toSeconds(1),
+                    TimeUnit.HOURS.toSeconds(6),
+                    TimeUnit.HOURS.toSeconds(12),
+                    TimeUnit.DAYS.toSeconds(1),
+                    TimeUnit.DAYS.toSeconds(2),
+                    TimeUnit.DAYS.toSeconds(7),
+                    TimeUnit.DAYS.toSeconds(14),
+                    TimeUnit.DAYS.toSeconds(30),
+                    TimeUnit.DAYS.toSeconds(90),
+                    TimeUnit.DAYS.toSeconds(180),
+                    TimeUnit.DAYS.toSeconds(365)
+            )
             .register();
 
 }

@@ -25,16 +25,17 @@
 
 package fredboat.command.util;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.command.info.HelpCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.messaging.internal.Context;
-import fredboat.util.BrainfuckException;
+import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 
-public class BrainfuckCommand extends Command implements IUtilCommand {
+public class BrainfuckCommand extends JCommand implements IUtilCommand {
 
     public BrainfuckCommand(String name, String... aliases) {
         super(name, aliases);
@@ -44,7 +45,7 @@ public class BrainfuckCommand extends Command implements IUtilCommand {
     char[] code;
     public static final int MAX_CYCLE_COUNT = 10000;
 
-    public String process(String input, Context context) {
+    public String process(@Nonnull String input, @Nonnull Context context) throws BrainfuckException {
         int data = 0;
         char[] inChars = input.toCharArray();
         int inChar = 0;
@@ -62,7 +63,7 @@ public class BrainfuckCommand extends Command implements IUtilCommand {
                     break;
                 case '<':
                     --data;
-                    if(data < 0){
+                    if (data < 0) {
                         throw new BrainfuckException(context.i18nFormat("brainfuckDataPointerOutOfBounds", data));
                     }
                     break;
@@ -80,13 +81,16 @@ public class BrainfuckCommand extends Command implements IUtilCommand {
                         bytes.put(data, (byte) inChars[inChar++]);
                         break;
                     } catch (IndexOutOfBoundsException ex) {
-                        throw new BrainfuckException(context.i18nFormat("brainfuckInputOOB", inChar - 1), ex);
+                        throw new BrainfuckException(context.i18nFormat("brainfuckInputOOB", inChar - 1));
                     }
                 case '[':
                     if (bytes.get(data) == 0) {
                         int depth = 1;
                         do {
-                            command = code[++instruction];
+                            if (++instruction >= code.length) {
+                                throw new BrainfuckException("Instruction out of bounds at position " + (inChar + 1));
+                            }
+                            command = code[instruction];
                             if (command == '[') {
                                 ++depth;
                             } else if (command == ']') {
@@ -99,7 +103,10 @@ public class BrainfuckCommand extends Command implements IUtilCommand {
                     if (bytes.get(data) != 0) {
                         int depth = -1;
                         do {
-                            command = code[--instruction];
+                            if (--instruction < 0) {
+                                throw new BrainfuckException("Instruction out of bounds at position " + (inChar + 1));
+                            }
+                            command = code[instruction];
                             if (command == '[') {
                                 ++depth;
                             } else if (command == ']') {
@@ -121,29 +128,53 @@ public class BrainfuckCommand extends Command implements IUtilCommand {
             return;
         }
 
-        code = context.rawArgs.toCharArray();
+        code = context.getRawArgs().toCharArray();
         bytes = ByteBuffer.allocateDirect(1024 * 1024 * 8);
         String inputArg = "";
 
         try {
-            inputArg = context.args[1];
+            inputArg = context.getArgs()[1];
         } catch (Exception ignored) {
         }
 
         inputArg = inputArg.replaceAll("ZERO", String.valueOf((char) 0));
 
-        String out = process(inputArg, context);
-        //TextUtils.replyWithMention(channel, invoker, " " + out);
-        String out2 = "";
+        String out;
+        try {
+            out = process(inputArg, context);
+        } catch (BrainfuckException e) {
+            context.reply(e.getMessage());
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
         for (char c : out.toCharArray()) {
             int sh = (short) c;
-            out2 = out2 + "," + sh;
+            sb.append(",").append(sh);
         }
-        try {
-            context.replyWithName(" " + out + "\n-------\n" + out2.substring(1));
-        } catch (IndexOutOfBoundsException ex) {
+        String out2 = sb.toString();
+        if (out2.isEmpty()) {
             context.replyWithName(context.i18n("brainfuckNoOutput"));
+            return;
         }
+
+        String output = " " + out + "\n-------\n" + out2.substring(1);
+        output = TextUtils.escapeAndDefuse(output);
+        if (output.length() < 2000) {
+            context.reply(output);
+            return;
+        }
+
+        String message = "The output of your brainfuck code is too long to be displayed on Discord";//todo i18n
+        TextUtils.postToPasteService(output)
+                .thenApply(pasteUrl -> {
+                    return pasteUrl.map(url -> message + " and has been uploaded to " + url).orElse(message);//todo i18n
+                })
+                .thenAccept(context::reply)
+                .whenComplete((ignored, t) -> {
+                    if (t != null) {
+                        TextUtils.handleException("Failed to upload brainfuck output to any paste service", t, context);
+                    }
+                });
     }
 
     @Nonnull
@@ -152,5 +183,14 @@ public class BrainfuckCommand extends Command implements IUtilCommand {
         String usage = "{0}{1} <code> [input]\n#";
         String example = " {0}{1} ,.+.+. a";
         return usage + context.i18n("helpBrainfuckCommand") + example;
+    }
+
+    //communicate various brainfuck related issues to the user running this command
+    private static class BrainfuckException extends Exception {
+        private static final long serialVersionUID = -3341995397075703335L;
+
+        public BrainfuckException(String string) {
+            super(string);
+        }
     }
 }

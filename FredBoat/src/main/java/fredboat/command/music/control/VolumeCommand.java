@@ -25,22 +25,23 @@
 
 package fredboat.command.music.control;
 
-import fredboat.Config;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.player.PlayerRegistry;
 import fredboat.commandmeta.MessagingException;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
-import fredboat.messaging.CentralMessaging;
+import fredboat.commandmeta.abs.JCommand;
+import fredboat.definitions.PermissionLevel;
 import fredboat.messaging.internal.Context;
-import fredboat.perms.PermissionLevel;
+import fredboat.shared.constant.BotConstants;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.TimeUnit;
+import java.time.Duration;
 
-public class VolumeCommand extends Command implements IMusicCommand, ICommandRestricted {
+import static fredboat.main.LauncherKt.getBotController;
+
+public class VolumeCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public VolumeCommand(String name, String... aliases) {
         super(name, aliases);
@@ -49,11 +50,11 @@ public class VolumeCommand extends Command implements IMusicCommand, ICommandRes
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
 
-        if(Config.CONFIG.getDistribution().volumeSupported()) {
+        if (getBotController().getAppConfig().getDistribution().volumeSupported()) {
 
-            GuildPlayer player = PlayerRegistry.getOrCreate(context.guild);
+            GuildPlayer player = getBotController().getPlayerRegistry().getOrCreate(context.getGuild());
             try {
-                float volume = Float.parseFloat(context.args[0]) / 100;
+                float volume = Float.parseFloat(context.getArgs()[0]) / 100;
                 volume = Math.max(0, Math.min(1.5f, volume));
 
                 context.reply(context.i18nFormat("volumeSuccess",
@@ -65,9 +66,13 @@ public class VolumeCommand extends Command implements IMusicCommand, ICommandRes
                         100 * PlayerRegistry.DEFAULT_VOLUME, Math.floor(player.getVolume() * 100)));
             }
         } else {
-            context.reply(context.i18n("volumeApology"), msg -> CentralMessaging.restService.schedule(
-                    () -> CentralMessaging.deleteMessage(msg), 2, TimeUnit.MINUTES));
-
+            String out = context.i18n("volumeApology") + "\n<" + BotConstants.DOCS_DONATE_URL + ">";
+            context.replyImageMono("https://fred.moe/1vD.png", out)
+                    .subscribe(
+                            (msg) -> context.getTextChannel().deleteMessage(msg.getMessageId())
+                                            .delaySubscription(Duration.ofMinutes(2))
+                                            .subscribe()
+                    );
         }
     }
 

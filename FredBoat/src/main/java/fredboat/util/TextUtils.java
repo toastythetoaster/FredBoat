@@ -25,30 +25,56 @@
 
 package fredboat.util;
 
-import fredboat.Config;
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Streams;
 import fredboat.commandmeta.MessagingException;
-import fredboat.messaging.CentralMessaging;
+import fredboat.feature.metrics.Metrics;
+import fredboat.main.BotController;
 import fredboat.messaging.internal.Context;
-import fredboat.util.rest.Http;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import org.json.JSONException;
+import fredboat.sentinel.Member;
+import fredboat.sentinel.User;
+import fredboat.shared.constant.BotConstants;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.text.CharacterPredicates;
+import org.apache.commons.text.RandomStringGenerator;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TextUtils {
 
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("^(\\d?\\d)(?::([0-5]?\\d))?(?::([0-5]?\\d))?$");
+
+    private static final Collection<Character> BACKTICK = Collections.singleton('`');
+    private static final List<Character> MARKDOWN_CHARS = Arrays.asList('*', '`', '~', '_');
+
+    public static final CharMatcher SPLIT_SELECT_SEPARATOR =
+            CharMatcher.whitespace().or(CharMatcher.is(','))
+                    .precomputed();
+
+    public static final CharMatcher SPLIT_SELECT_ALLOWED =
+            SPLIT_SELECT_SEPARATOR.or(CharMatcher.inRange('0', '9'))
+                    .precomputed();
+
+    public static final Splitter COMMA_OR_WHITESPACE = Splitter.on(SPLIT_SELECT_SEPARATOR)
+            .omitEmptyStrings() // 1,,2 doesn't sound right
+            .trimResults();// have it nice and trim
+
     public static final DateTimeFormatter TIME_IN_CENTRAL_EUROPE = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss z")
             .withZone(ZoneId.of("Europe/Copenhagen"));
 
@@ -59,93 +85,106 @@ public class TextUtils {
     private TextUtils() {
     }
 
-    public static Message prefaceWithName(Member member, String msg) {
-        msg = ensureSpace(msg);
-        return CentralMessaging.getClearThreadLocalMessageBuilder()
-                .append(member.getEffectiveName())
-                .append(": ")
-                .append(msg)
-                .build();
+    public static String prefaceWithName(Member member, String msg) {
+        return escapeAndDefuse(member.getEffectiveName())
+                + ": "
+                + ensureSpace(msg);
     }
 
-    public static Message prefaceWithMention(Member member, String msg) {
-        msg = ensureSpace(msg);
-        return CentralMessaging.getClearThreadLocalMessageBuilder()
-                .append(member.getAsMention())
-                .append(": ")
-                .append(msg)
-                .build();
+    public static String prefaceWithMention(Member member, String msg) {
+        return member.getAsMention()
+                + ": "
+                + ensureSpace(msg);
     }
 
     private static String ensureSpace(String msg){
         return msg.charAt(0) == ' ' ? msg : " " + msg;
     }
 
-    public static void handleException(Throwable e, Context context) {
+    private static final String SORRY = "An error occurred " + Emojis.ANGER + "\nPlease try again later. If the issue"
+            + " persists please join our support chat and explain what steps you took to receive this response."; //todo i18n?
+
+    /**
+     * This method takes care of all exceptions when a {@link Context} is present. If it is an expected exception, like
+     * {@link MessagingException} or any subclass of it, the message of the exception with be shown to the user.
+     * If it is an unexpected exception, a generic message is shown to the user, and the exception is logged with the
+     * passed log message.
+     *
+     * @param logMessage a log message with possible futher clues as to what could have gone wrong
+     * @param e          the exception that happened
+     * @param context    current context, used to send a message to the user
+     */
+    public static void handleException(String logMessage, Throwable e, Context context) {
+        String label;
+        if (e instanceof MessagingException) {
+            Metrics.messagingExceptions.labels(e.getClass().getSimpleName()).inc();
+            label = MessagingException.class.getSimpleName();
+        } else {
+            label = e.getClass().getSimpleName();
+        }
+        Metrics.handledExceptions.labels(label).inc();
+
+
         if (e instanceof MessagingException) {
             context.replyWithName(e.getMessage());
             return;
         }
 
-        log.error("Caught exception while executing a command", e);
+        log.error(logMessage, e);
 
-        MessageBuilder builder = CentralMessaging.getClearThreadLocalMessageBuilder();
+        // TODO handle InsufficientPermissionException
+        /*
+        if (e instanceof InsufficientPermissionException) { //log these to find the real source (see line above, but handle them more user friendly)
+            CentralMessaging.handleInsufficientPermissionsException(context.getTextChannel(), (InsufficientPermissionException) e);
+            return;
+        }*/
 
-        if (context.getMember() != null) {
-            builder.append(context.getMember());
-        }
-
-        String filtered = context.i18nFormat("utilErrorOccurred", e.toString());
-        for (String str : Config.CONFIG.getGoogleKeys()) {
-            filtered = filtered.replace(str, "GOOGLE_SERVER_KEY");
-        }
-        builder.append(filtered);
-
-        for (StackTraceElement ste : e.getStackTrace()) {
-            builder.append("\t").append(ste.toString()).append("\n");
-            if ("prefixCalled".equals(ste.getMethodName())) {
-                break;
-            }
-        }
-        builder.append("\t...```"); //opening ``` is part of the utilErrorOccurred language string
-
-        try {
-            context.reply(builder.build());
-        } catch (UnsupportedOperationException | IllegalStateException tooLongEx) {
-            try {
-                context.reply(context.i18nFormat("errorOccurredTooLong",
-                        postToPasteService(builder.getStringBuilder().toString())));
-            } catch (IOException | JSONException e1) {
-                log.error("Failed to upload to any pasteservice.");
-                context.reply(context.i18n("errorOccurredTooLongAndUnirestException"));
-            }
-        }
+        context.replyWithMention(SORRY + "\n" + BotConstants.hangoutInvite);
     }
 
-    private static String postToHastebin(String body) throws IOException {
-        return Http.post("https://hastebin.com/documents", body, "text/plain")
+    private static CompletionStage<String> postToHasteBasedService(String baseUrl, String body) {
+        return BotController.Companion.getHTTP().post(baseUrl, body, "text/plain")
+                .enqueue()
                 .asJson()
-                .getString("key");
+                .thenApply(json -> json.getString("key"));
     }
 
-    private static String postToWastebin(String body) throws IOException {
-        return Http.post("https://wastebin.party/documents", body, "text/plain")
-                .asJson()
-                .getString("key");
+    private static CompletionStage<String> postToHastebin(String body) {
+        return postToHasteBasedService("https://hastebin.com/documents", body);
+    }
+
+    private static CompletionStage<String> postToWastebin(String body) {
+        return postToHasteBasedService("https://wastebin.party/documents", body);
     }
 
     /**
+     * This method will call all available paste services to attempt to upload the body, and take care of logging any
+     * issues with those underlying paste services, callers only have to handle success or failure (the latter
+     * represented by an empty Optional)
+     *
      * @param body the content that should be uploaded to a paste service
-     * @return the url of the uploaded paste
-     * @throws IOException if none of the paste services allowed a successful upload
+     * @return the url of the uploaded paste, or null if there was an exception doing so. This is represented by the
+     * Optional return type
      */
-    public static String postToPasteService(String body) throws IOException, JSONException {
-        try {
-            return "https://hastebin.com/" + postToHastebin(body);
-        } catch (IOException | JSONException e) {
-            log.warn("Could not post to hastebin, trying backup", e);
-            return "https://wastebin.party/" + postToWastebin(body);
-        }
+    public static CompletionStage<Optional<String>> postToPasteService(String body) {
+        return postToHastebin(body)
+                .thenApply(key -> Optional.of("https://hastebin.com/" + key))
+                .exceptionally(t -> {
+                    log.info("Could not post to hastebin", t);
+                    return Optional.empty();
+                })
+                .thenCompose(url -> {
+                    if (!url.isPresent()) {
+                        return postToWastebin(body)
+                                .thenApply(key -> Optional.of("https://wastebin.party/" + key))
+                                .exceptionally(t -> {
+                                    log.error("Could not post to wastebin either", t);
+                                    return Optional.empty();
+                                });
+                    } else {
+                        return CompletableFuture.completedFuture(url);
+                    }
+                });
     }
 
     public static String formatTime(long millis) {
@@ -190,7 +229,7 @@ public class TextUtils {
         Pattern pattern = Pattern.compile("^([\\w\\W]{" + len + "}\\S+?)\\s");
         Matcher matcher = pattern.matcher(str);
 
-        if(matcher.find()){
+        if (matcher.find()){
             return matcher.group(1);
         } else {
             //Oh well
@@ -238,19 +277,40 @@ public class TextUtils {
     }
 
     //optional provide a style, for example diff or md
+    @Nonnull
     public static String asCodeBlock(String str, String... style) {
         String sty = style != null && style.length > 0 ? style[0] : "";
         return "```" + sty + "\n" + str + "\n```";
     }
 
+    public static String escape(@Nonnull String input, @Nonnull Collection<Character> toEscape) {
+        StringBuilder revisedString = new StringBuilder(input.length());
+        for (Character n : input.toCharArray()) {
+            if (toEscape.contains(n)) {
+                revisedString.append("\\");
+            }
+            revisedString.append(n);
+        }
+        return revisedString.toString();
+    }
+
+    public static String escapeMarkdown(@Nonnull String input) {
+        return escape(input, MARKDOWN_CHARS);
+    }
+
+    public static String escapeBackticks(@Nonnull String input) {
+        return escape(input, BACKTICK);
+    }
+
+
     public static String forceNDigits(int i, int n) {
-        String str = Integer.toString(i);
+        StringBuilder str = new StringBuilder(Integer.toString(i));
 
         while (str.length() < n) {
-            str = "0" + str;
+            str.insert(0, "0");
         }
 
-        return str;
+        return str.toString();
     }
 
     public static String padWithSpaces(@Nullable String str, int totalLength, boolean front) {
@@ -266,17 +326,48 @@ public class TextUtils {
     }
 
     /**
-     * Helper method to check for string that matches ONLY contain digit(s), comma(s) or space(s).
+     * Helper method to check for string that matches ONLY a comma-separated string of numeric values.
      *
-     * @param arg String of the argument.
-     * @return True if it matches, false if empty string or not match.
+     * @param arg the string to test.
+     * @return whether the string matches
      */
     public static boolean isSplitSelect(@Nonnull String arg) {
-        String temp = arg.replaceAll(" +", " ");
-
-        return arg.length() > 0 && temp.matches("(\\d*,*\\s*)*");
+        String cleaned = SPLIT_SELECT_ALLOWED.negate().collapseFrom(arg, ' ');
+        int numberOfCollapsed = arg.length() - cleaned.length();
+        if (numberOfCollapsed  >= 2) {
+            // rationale: prefix will be collapsed to 1 char, won't matter that much
+            //            small typos (1q 2 3 4) will be collapsed in place, won't matter that much
+            //            longer strings will be collapsed, words reduced to 1 char
+            //            when enough changes happen, it's not a split select
+            return false;
+        }
+        AtomicBoolean empty = new AtomicBoolean(true);
+        boolean allDigits = splitSelectStream(arg)
+                .peek(__ -> empty.set(false))
+                .allMatch(NumberUtils::isDigits);
+        return !empty.get() && allDigits;
     }
-    
+
+    /**
+     * Helper method that decodes a split select string, as identified by {@link #isSplitSelect(String)}.
+     * <p>
+     * NOTE: an empty string produces an empty Collection.
+     *
+     * @param arg the string to decode
+     * @return the split select
+     */
+    public static Collection<Integer> getSplitSelect(@Nonnull String arg) {
+        return splitSelectStream(arg)
+                .map(Integer::valueOf)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private static Stream<String> splitSelectStream(@Nonnull String arg) {
+        return Streams.stream(COMMA_OR_WHITESPACE.split(arg))
+                .map(SPLIT_SELECT_ALLOWED::retainFrom)
+                .filter(StringUtils::isNotEmpty);
+    }
+
     public static String getTimeInCentralEurope() {
         return asTimeInCentralEurope(System.currentTimeMillis());
     }
@@ -293,5 +384,84 @@ public class TextUtils {
             log.error("Could not parse epoch millis as long, returning 0", e);
         }
         return TIME_IN_CENTRAL_EUROPE.format(Instant.ofEpochMilli(millis));
+    }
+
+    //returns the input shortened to the requested size, replacing the last 3 characters with dots
+    public static String shorten(@Nonnull String input, int size) {
+        if (input.length() <= size) {
+            return input;
+        }
+        StringBuilder shortened = new StringBuilder(input.substring(0, Math.max(0, size - 3)));
+        while (shortened.length() < size) {
+            shortened.append(".");
+        }
+        return shortened.toString();
+    }
+
+    /**
+     * @return the input, with escaped markdown and defused mentions and URLs
+     * It is a good idea to use this on any user generated values that we reply in plain text.
+     */
+    @Nonnull
+    public static String escapeAndDefuse(@Nonnull String input) {
+        return defuse(escapeMarkdown(input));
+    }
+
+    /**
+     * Defuses some content that Discord couldn't know wasn't our intention.
+     *
+     * <p>When the nickname contains a link, or a mention, the bot uses that as-is in the text.
+     * Since Discord can't know the bot didn't mean to do that, we escape it so it will not be interpreted.</p>
+     *
+     * @param input the string to escape, e.g. track titles, nicknames, supplied values
+     * @return defused content
+     */
+    @Nonnull
+    public static String defuse(@Nonnull String input) {
+        return defuseUrls(defuseMentions(input));
+    }
+
+    @Nonnull
+    private static String defuseMentions(@Nonnull String input) {
+        return input.replaceAll("@here", "@" + ZERO_WIDTH_CHAR + "here")
+                .replaceAll("@everyone", "@" + ZERO_WIDTH_CHAR + "everyone");
+    }
+
+    @Nonnull
+    private static String defuseUrls(@Nonnull String input) {
+        return input.replaceAll("://", ":" + ZERO_WIDTH_CHAR + "//");
+    }
+
+    @Nonnull
+    private static RandomStringGenerator randomStringGenerator = new RandomStringGenerator.Builder()
+            .withinRange('0', 'z')
+            .filteredBy(CharacterPredicates.LETTERS, CharacterPredicates.DIGITS)
+            .build();
+
+    public static String randomAlphaNumericString(int length) {
+        if (length < 1) {
+            throw new IllegalArgumentException();
+        }
+        return randomStringGenerator.generate(length);
+    }
+
+    /**
+     * @return a string representation of a member like this: {0}#{1} [{2}] EffectiveName#Discrim [id]
+     */
+    public static String asString(@Nonnull fredboat.sentinel.Member member) {
+        return String.format("%s#%s [%d]",
+                member.getEffectiveName(),
+                member.getDiscrim(),
+                member.getId());
+    }
+
+    /**
+     * @return a string representation of a user like this: {0}#{1} [{2}] Name#Discrim [id]
+     */
+    public static String asString(@Nonnull User user) {
+        return String.format("%s#%s [%d]",
+                user.getName(),
+                user.getDiscrim(),
+                user.getId());
     }
 }

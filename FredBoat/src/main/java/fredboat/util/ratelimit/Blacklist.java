@@ -24,13 +24,10 @@
 
 package fredboat.util.ratelimit;
 
-import fredboat.db.EntityReader;
-import fredboat.db.EntityWriter;
-import fredboat.db.entity.BlacklistEntry;
+import fredboat.db.api.BlacklistService;
+import fredboat.db.transfer.BlacklistEntry;
 import fredboat.feature.metrics.Metrics;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -50,31 +47,25 @@ public class Blacklist {
     private static final List<Long> blacklistLevels;
 
     static {
-        List<Long> levels = new ArrayList<>();
-        levels.add(1000L * 60);                     //one minute
-        levels.add(1000L * 600);                    //ten minutes
-        levels.add(1000L * 3600);                   //one hour
-        levels.add(1000L * 3600 * 24);              //24 hours
-        levels.add(1000L * 3600 * 24 * 7);          //a week
-
-        blacklistLevels = Collections.unmodifiableList(levels);
+        blacklistLevels = List.of(
+                1000L * 60,                     //one minute
+                1000L * 600,                    //ten minutes
+                1000L * 3600,                   //one hour
+                1000L * 3600 * 24,              //24 hours
+                1000L * 3600 * 24 * 7           //a week
+        );
     }
 
     private final long rateLimitHitsBeforeBlacklist;
 
-    private final Long2ObjectOpenHashMap<BlacklistEntry> blacklist;
-
     //users that can never be blacklisted
     private final Set<Long> userWhiteList;
 
+    private final BlacklistService blacklistService; //implementation as a RestRepo includes a cache
 
-    public Blacklist(Set<Long> userWhiteList, long rateLimitHitsBeforeBlacklist) {
-        this.blacklist = new Long2ObjectOpenHashMap<>();
-        //load blacklist from database
-        for (BlacklistEntry ble : EntityReader.loadBlacklist()) {
-            blacklist.put(ble.id, ble);
-        }
 
+    public Blacklist(BlacklistService blacklistService, Set<Long> userWhiteList, long rateLimitHitsBeforeBlacklist) {
+        this.blacklistService = blacklistService;
         this.rateLimitHitsBeforeBlacklist = rateLimitHitsBeforeBlacklist;
         this.userWhiteList = Collections.unmodifiableSet(userWhiteList);
     }
@@ -91,13 +82,15 @@ public class Blacklist {
         //first of all, ppl that can never get blacklisted no matter what
         if (userWhiteList.contains(id)) return false;
 
-        BlacklistEntry blEntry = blacklist.get(id);
-        if (blEntry == null) return false;     //blacklist entry doesn't even exist
-        if (blEntry.level < 0) return false;   //blacklist entry exists, but id hasn't actually been blacklisted yet
+        BlacklistEntry blEntry = blacklistService.fetchBlacklistEntry(id);
+        if (blEntry.getLevel() < 0) return false; //blacklist entry exists, but id hasn't actually been blacklisted yet
+
 
         //id was a blacklisted, but it has run out
-        if (System.currentTimeMillis() > blEntry.blacklistedTimestamp + (getBlacklistTimeLength(blEntry.level)))
+        //noinspection RedundantIfStatement
+        if (System.currentTimeMillis() > blEntry.getBlacklistedTimestamp() + (getBlacklistTimeLength(blEntry.getLevel()))) {
             return false;
+        }
 
         //looks like this id is blacklisted ¯\_(ツ)_/¯
         return true;
@@ -109,59 +102,43 @@ public class Blacklist {
     public long hitRateLimit(long id) {
         //update blacklist entry of this id
         long blacklistingLength = 0;
-        BlacklistEntry blEntry = blacklist.get(id);
-        if (blEntry == null)
-            blEntry = getOrCreateBlacklistEntry(id);
+        BlacklistEntry blEntry = blacklistService.fetchBlacklistEntry(id);
 
         //synchronize on the individual blacklist entries since we are about to change and save them
+        // we can use these to synchronize because they are backed by a cache, subsequent calls to fetch them
+        // will return the same object
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
         synchronized (blEntry) {
             long now = System.currentTimeMillis();
 
             //is the last ratelimit hit a long time away (1 hour)? then reset the ratelimit hits
-            if (now - blEntry.rateLimitReachedTimestamp > 60 * 60 * 1000) {
-                blEntry.rateLimitReached = 0;
+            if (now - blEntry.getRateLimitReachedTimestamp() > 60 * 60 * 1000) {
+                blEntry.setRateLimitReached(0);
             }
-            blEntry.rateLimitReached++;
-            blEntry.rateLimitReachedTimestamp = now;
-            if (blEntry.rateLimitReached >= rateLimitHitsBeforeBlacklist) {
+            blEntry.incRateLimitReached();
+            blEntry.setRateLimitReachedTimestamp(now);
+            if (blEntry.getRateLimitReached() >= rateLimitHitsBeforeBlacklist) {
                 //issue blacklist incident
-                blEntry.level++;
-                Metrics.autoBlacklistsIssued.labels(Integer.toString(blEntry.level)).inc();
-                if (blEntry.level < 0) blEntry.level = 0;
-                blEntry.blacklistedTimestamp = now;
-                blEntry.rateLimitReached = 0; //reset these for the next time
+                blEntry.incLevel();
+                if (blEntry.getLevel() < 0) blEntry.setLevel(0);
+                Metrics.autoBlacklistsIssued.labels(Integer.toString(blEntry.getLevel())).inc();
+                blEntry.setBlacklistedTimestamp(now);
+                blEntry.setRateLimitReached(0); //reset these for the next time
 
-                blacklistingLength = getBlacklistTimeLength(blEntry.level);
+                blacklistingLength = getBlacklistTimeLength(blEntry.getLevel());
             }
             //persist it
             //if this turns up to be a performance bottleneck, have an agent run that persists the blacklist occasionally
-            EntityWriter.mergeBlacklistEntry(blEntry);
+            blacklistService.mergeBlacklistEntry(blEntry);
             return blacklistingLength;
         }
-    }
-
-
-    /**
-     * synchronize the creation of new blacklist entries
-     */
-    private synchronized BlacklistEntry getOrCreateBlacklistEntry(long id) {
-        //was one created in the meantime? use that
-        BlacklistEntry result = blacklist.get(id);
-        if (result != null) return result;
-
-        //create and return it
-        result = new BlacklistEntry(id);
-        blacklist.put(id, result);
-        return result;
     }
 
     /**
      * completely resets a blacklist for an id
      */
-    public synchronized void liftBlacklist(long id) {
-        blacklist.remove(id);
-        EntityWriter.deleteBlacklistEntry(id);
+    public void liftBlacklist(long id) {
+        blacklistService.deleteBlacklistEntry(id);
     }
 
     /**

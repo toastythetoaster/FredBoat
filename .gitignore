@@ -109,6 +109,10 @@ local.properties
 .scala_dependencies
 .worksheet
 
+### Config files ###
+/config/*.sh
+/config/*.yml
+
 ### Custom ###
 lib/
 dist/*
@@ -128,6 +132,9 @@ target/
 /ffprobe.exe
 /youtube-dl
 /logs/
+/fredboat_logs/
+/lavalink_logs/
+/quarterdeck_logs/
 *.jar
 !gradle/wrapper/gradle-wrapper.jar
 /music_persistence/
@@ -140,3 +147,11 @@ gc-*.log
 /feature_flags.properties
 .gradle/*
 */out/*
+VERSION.txt
+application.yaml
+application.yml
+backend.yaml
+quarterdeck.yaml
+lavalink.yaml
+*.log
+*.gz

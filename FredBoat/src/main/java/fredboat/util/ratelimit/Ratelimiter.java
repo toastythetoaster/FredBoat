@@ -24,23 +24,28 @@
 
 package fredboat.util.ratelimit;
 
-import fredboat.Config;
-import fredboat.FredBoat;
 import fredboat.audio.queue.PlaylistInfo;
-import fredboat.command.maintenance.ShardsCommand;
+import fredboat.command.info.ShardsCommand;
 import fredboat.command.music.control.SkipCommand;
+import fredboat.command.music.info.ExportCommand;
 import fredboat.command.util.WeatherCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.CommandInitializer;
+import fredboat.commandmeta.abs.JCommand;
+import fredboat.config.property.AppConfig;
+import fredboat.db.api.BlacklistService;
 import fredboat.feature.metrics.Metrics;
 import fredboat.messaging.internal.Context;
-import fredboat.util.DiscordUtil;
-import fredboat.util.Tuple2;
-import net.dv8tion.jda.core.JDA;
-import org.eclipse.jetty.util.ConcurrentHashSet;
+import fredboat.util.TextUtils;
+import io.prometheus.client.guava.cache.CacheMetricsCollector;
+import org.springframework.stereotype.Component;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.function.Function;
 
 /**
  * Created by napster on 17.04.17.
@@ -49,67 +54,65 @@ import java.util.Set;
  * <p>
  * http://i.imgur.com/ha0R3XZ.gif
  */
+@Component
 public class Ratelimiter {
 
     private static final int RATE_LIMIT_HITS_BEFORE_BLACKLIST = 10;
 
-    //one ratelimiter for all running shards
-    private static volatile Ratelimiter ratelimiterSingleton;
-
-    public static Ratelimiter getRatelimiter() {
-        Ratelimiter singleton = ratelimiterSingleton;
-        if (singleton == null) {
-            //we can't use the holder class pattern.
-            //we have to use double-checked locking,
-            //since we need to be able to retry the creation.
-            synchronized (Ratelimiter.class) {
-                singleton = ratelimiterSingleton;
-                if (singleton == null) {
-                    ratelimiterSingleton = singleton = new Ratelimiter();
-                }
-            }
-        }
-        return singleton;
-    }
-
     private final List<Ratelimit> ratelimits;
-    private Blacklist autoBlacklist = null;
+    @Nullable
+    private final Blacklist autoBlacklist;
 
-    private Ratelimiter() {
-        Set<Long> whitelist = new ConcurrentHashSet<>();
+    public Ratelimiter(AppConfig appConfig, ExecutorService executor, BlacklistService blacklistService,
+                       CacheMetricsCollector cacheMetrics) {
+        Set<Long> whitelist = ConcurrentHashMap.newKeySet();
 
-        //it is ok to use the jda of any shard as long as we aren't using it for guild specific stuff
-        JDA jda = FredBoat.getShard(0).getJda();
-        whitelist.add(DiscordUtil.getOwnerId(jda));
-        whitelist.add(jda.getSelfUser().getIdLong());
         //only works for those admins who are added with their userId and not through a roleId
-        for (String admin : Config.CONFIG.getAdminIds())
-            whitelist.add(Long.valueOf(admin));
-
+        whitelist.addAll(appConfig.getAdminIds());
 
         //Create all the rate limiters we want
         ratelimits = new ArrayList<>();
 
-        if (Config.CONFIG.useAutoBlacklist())
-            autoBlacklist = new Blacklist(whitelist, RATE_LIMIT_HITS_BEFORE_BLACKLIST);
+        if (appConfig.useAutoBlacklist()) {
+            autoBlacklist = new Blacklist(blacklistService, whitelist, RATE_LIMIT_HITS_BEFORE_BLACKLIST);
+        } else {
+            autoBlacklist = null;
+        }
+
+        Function<Context, String> defaultUserMessage = context -> context.i18n("ratelimitedCommandsUser");
+        Function<Context, String> defaultGuildMessage = context -> context.i18n("ratelimitedCommandsGuild");
+        Function<Context, String> skipMessage = context -> context.i18n("ratelimitedCommandsUser") + "\n"
+                + context.i18nFormat("ratelimitedSkipCommand",
+                "`" + TextUtils.escapeMarkdown(context.getPrefix()) + CommandInitializer.SKIP_COMM_NAME + " n-m`");
+        Function<Context, String> playlistMessage = context -> context.i18n("ratelimitedGuildSlowLoadingPlaylist");
 
         //sort these by harsher limits coming first
-        ratelimits.add(new Ratelimit(whitelist, Ratelimit.Scope.USER, 2, 30000, ShardsCommand.class));
-        ratelimits.add(new Ratelimit(whitelist, Ratelimit.Scope.USER, 5, 20000, SkipCommand.class));
-        ratelimits.add(new Ratelimit(whitelist, Ratelimit.Scope.USER, 5, 10000, Command.class));
+        ratelimits.add(new Ratelimit("userShardsComm", cacheMetrics, executor, whitelist, Ratelimit.Scope.USER,
+                2, 30000, ShardsCommand.class, defaultUserMessage));
+        ratelimits.add(new Ratelimit("userSkipComm", cacheMetrics, executor, whitelist, Ratelimit.Scope.USER,
+                5, 20000, SkipCommand.class, skipMessage));
+        ratelimits.add(new Ratelimit("userExportComm", cacheMetrics, executor, whitelist, Ratelimit.Scope.USER,
+                2, 60000, ExportCommand.class, defaultUserMessage));
+        ratelimits.add(new Ratelimit("userAllComms", cacheMetrics, executor, whitelist, Ratelimit.Scope.USER,
+                5, 10000, JCommand.class, defaultUserMessage));
 
-        ratelimits.add(new Ratelimit(whitelist, Ratelimit.Scope.GUILD, 30, 180000, WeatherCommand.class));
-        ratelimits.add(new Ratelimit(whitelist, Ratelimit.Scope.GUILD, 1000, 120000, PlaylistInfo.class));
-        ratelimits.add(new Ratelimit(whitelist, Ratelimit.Scope.GUILD, 10, 10000, Command.class));
+        ratelimits.add(new Ratelimit("guildWeatherComm", cacheMetrics, executor, whitelist, Ratelimit.Scope.GUILD,
+                30, 180000, WeatherCommand.class, defaultGuildMessage));
+        ratelimits.add(new Ratelimit("guildSongsAdded", cacheMetrics, executor, whitelist, Ratelimit.Scope.GUILD,
+                1000, 120000, PlaylistInfo.class, playlistMessage));
+        ratelimits.add(new Ratelimit("guildAllComms", cacheMetrics, executor, whitelist, Ratelimit.Scope.GUILD,
+                10, 10000, JCommand.class, defaultGuildMessage));
     }
 
     /**
      * @param context           the context of the request
      * @param command           the command or other kind of object to be used
      * @param weight            how heavy the request is, default should be 1
-     * @return a result object containing further information
+     *
+     * @return Whether this user is allowed to proceed. (true if they are ratelimited, false if everythign is fine).
+     * If they happen to be ratelimited, they will be messaged, so the caller of this can just return.
      */
-    public Tuple2<Boolean, Class> isAllowed(Context context, Object command, int weight) {
+    public boolean isRatelimited(Context context, Object command, int weight) {
         for (Ratelimit ratelimit : ratelimits) {
             if (ratelimit.getClazz().isInstance(command)) {
                 boolean allowed;
@@ -121,11 +124,16 @@ public class Ratelimiter {
                 }
                 if (!allowed) {
                     Metrics.commandsRatelimited.labels(command.getClass().getSimpleName()).inc();
-                    return new Tuple2<>(false, ratelimit.getClazz());
+                    context.replyWithMention(ratelimit.getMessage().apply(context));
+                    return true;
                 }
             }
         }
-        return new Tuple2<>(true, null);
+        return false;
+    }
+
+    public boolean isRatelimited(Context context, Object command) {
+        return isRatelimited(context, command, 1);
     }
 
     /**

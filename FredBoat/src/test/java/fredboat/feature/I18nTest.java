@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2017 Frederik Ar. Mikkelsen
+ * Copyright (c) 2017-2018 Frederik Ar. Mikkelsen
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,28 +20,17 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
- *
  */
 
 package fredboat.feature;
 
-import fredboat.ProvideJDASingleton;
-import org.junit.jupiter.api.AfterAll;
+import fredboat.testutil.BaseTest;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ResourceBundle;
 
-public class I18nTest extends ProvideJDASingleton {
-
-    private static final Logger log = LoggerFactory.getLogger(I18nTest.class);
-
-    @AfterAll
-    public static void postStats() {
-        saveClassStats(I18nTest.class.getSimpleName());
-    }
+public class I18nTest extends BaseTest {
 
     @Test
     public void testTranslatedStrings() {
@@ -51,6 +40,5 @@ public class I18nTest extends ProvideJDASingleton {
         for(String key :  I18n.DEFAULT.getProps().keySet()){
             Assertions.assertNotNull(id_ID.getString(key), () -> key + " prop missing in language files");
         }
-        bumpPassedTests();
     }
 }

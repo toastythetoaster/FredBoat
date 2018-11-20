@@ -26,23 +26,24 @@
 package fredboat.command.music.info;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.audio.player.PlayerRegistry;
 import fredboat.audio.queue.AudioTrackContext;
-import fredboat.audio.queue.RepeatMode;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
-import fredboat.messaging.CentralMessaging;
+import fredboat.commandmeta.abs.JCommand;
+import fredboat.definitions.RepeatMode;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Member;
+import fredboat.util.MessageBuilder;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.MessageBuilder;
-import net.dv8tion.jda.core.entities.Member;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class ListCommand extends Command implements IMusicCommand {
+import static fredboat.main.LauncherKt.getBotController;
+import static fredboat.util.MessageBuilderKt.localMessageBuilder;
+
+public class ListCommand extends JCommand implements IMusicCommand {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(ListCommand.class);
 
@@ -54,22 +55,20 @@ public class ListCommand extends Command implements IMusicCommand {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = PlayerRegistry.getOrCreate(context.guild);
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
 
-        if(player.isQueueEmpty()) {
+        if (player == null || player.isQueueEmpty()) {
             context.reply(context.i18n("npNotPlaying"));
             return;
         }
 
-        MessageBuilder mb = CentralMessaging.getClearThreadLocalMessageBuilder();
+        MessageBuilder mb = localMessageBuilder();
 
         int page = 1;
         if (context.hasArguments()) {
             try {
-                page = Integer.valueOf(context.args[0]);
-            } catch (NumberFormatException e) {
-                page = 1;
-            }
+                page = Integer.valueOf(context.getArgs()[0]);
+            } catch (NumberFormatException ignored) {}
         }
 
         int tracksCount = player.getTrackCount();
@@ -109,13 +108,14 @@ public class ListCommand extends Command implements IMusicCommand {
             if (i == 0) {
                 status = player.isPlaying() ? " \\▶" : " \\\u23F8"; //Escaped play and pause emojis
             }
-            Member member = context.guild.getMemberById(atc.getUserId());
-            String username = member != null ? member.getEffectiveName() : context.guild.getSelfMember().getEffectiveName();
-            mb.append("[" +
+            Member member = atc.getMember();
+            String username = member.getEffectiveName();
+            mb.code("[" +
                     TextUtils.forceNDigits(i + 1, numberLength)
-                    + "]", MessageBuilder.Formatting.BLOCK)
+                    + "]")
                     .append(status)
-                    .append(context.i18nFormat("listAddedBy", atc.getEffectiveTitle(), username, TextUtils.formatTime(atc.getEffectiveDuration())))
+                    .append(context.i18nFormat("listAddedBy", TextUtils.escapeAndDefuse(atc.getEffectiveTitle()),
+                            TextUtils.escapeAndDefuse(username), TextUtils.formatTime(atc.getEffectiveDuration())))
                     .append("\n");
 
             if (i == listEnd) {
@@ -156,6 +156,6 @@ public class ListCommand extends Command implements IMusicCommand {
     @Nonnull
     @Override
     public String help(@Nonnull Context context) {
-        return "{0}{1}\n#" + context.i18n("helpListCommand");
+        return "{0}{1} (page)\n#" + context.i18n("helpListCommand");
     }
 }

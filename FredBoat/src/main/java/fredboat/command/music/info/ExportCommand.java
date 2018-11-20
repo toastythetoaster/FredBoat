@@ -26,24 +26,19 @@
 package fredboat.command.music.info;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.audio.player.PlayerRegistry;
 import fredboat.commandmeta.MessagingException;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.messaging.internal.Context;
 import fredboat.util.TextUtils;
-import org.json.JSONException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.stream.Collectors;
 
-public class ExportCommand extends Command implements IMusicCommand {
+import static fredboat.main.LauncherKt.getBotController;
 
-    private static final Logger log = LoggerFactory.getLogger(ExportCommand.class);
+public class ExportCommand extends JCommand implements IMusicCommand {
 
     public ExportCommand(String name, String... aliases) {
         super(name, aliases);
@@ -51,9 +46,9 @@ public class ExportCommand extends Command implements IMusicCommand {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = PlayerRegistry.getOrCreate(context.guild);
-        
-        if (player.isQueueEmpty()) {
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
+
+        if (player == null || player.isQueueEmpty()) {
             throw new MessagingException(context.i18n("exportEmpty"));
         }
 
@@ -61,15 +56,21 @@ public class ExportCommand extends Command implements IMusicCommand {
                 .map(atc -> atc.getTrack().getInfo().uri)
                 .collect(Collectors.joining("\n"));
 
-        try {
-            String url = TextUtils.postToPasteService(out) + ".fredboat";
-            context.reply(context.i18nFormat("exportPlaylistResulted", url));
-        } catch (IOException | JSONException e) {
-            log.error("Failed to upload to any pasteservice.", e);
-            throw new MessagingException(context.i18n("exportPlaylistFail"));
-        }
-        
-        
+        TextUtils.postToPasteService(out)
+                .thenApply(pasteUrl -> {
+                    if (pasteUrl.isPresent()) {
+                        String url = pasteUrl.get() + ".fredboat";
+                        return context.i18nFormat("exportPlaylistResulted", url);
+                    } else {
+                        return context.i18n("exportPlaylistFail") + "\n" + context.i18n("tryLater");
+                    }
+                })
+                .thenAccept(context::reply)
+                .whenComplete((ignored, t) -> {
+                    if (t != null) {
+                        TextUtils.handleException("Failed to export to any paste service", t, context);
+                    }
+                });
     }
 
     @Nonnull
