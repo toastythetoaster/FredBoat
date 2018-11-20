@@ -36,6 +36,10 @@ bootJar {
     }
 }
 
+configurations {
+    compile.exclude module: 'opus-java'
+}
+
 dependencies {
     compile project(':Shared')
     compile group: 'com.github.FredBoat.sentinel', name: 'sentinel-shared', version: sentinelVersion
