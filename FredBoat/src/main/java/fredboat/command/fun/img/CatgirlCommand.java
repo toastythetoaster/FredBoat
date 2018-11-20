@@ -25,17 +25,18 @@
 
 package fredboat.command.fun.img;
 
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.main.BotController;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
-public class CatgirlCommand extends Command implements IFunCommand {
+import static fredboat.main.LauncherKt.getBotController;
+
+public class CatgirlCommand extends JCommand implements IFunCommand {
 
     private static final String BASE_URL = "https://nekos.life/api/neko";
 
@@ -46,14 +47,16 @@ public class CatgirlCommand extends Command implements IFunCommand {
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
         context.sendTyping();
-        Launcher.getBotController().getExecutor().submit(() -> postCatgirl(context));
+        getBotController().getExecutor().submit(() -> postCatgirl(context));
+
+        // TODO: Post lewd catgirls from the API in NSFW chat
     }
 
     private void postCatgirl(CommandContext context) {
 
         try {
             String nekoUrl = BotController.Companion.getHTTP().get(BASE_URL).asJson().getString("neko");
-            context.replyImage(nekoUrl);
+            context.replyImage(nekoUrl, "");
         } catch (IOException e) {
             context.reply(context.i18nFormat("catgirlFail", BASE_URL));
         }

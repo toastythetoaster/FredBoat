@@ -31,12 +31,13 @@ import fredboat.commandmeta.CommandRegistry;
 import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class EnableCommandsCommand extends Command implements ICommandRestricted {
+public class EnableCommandsCommand extends JCommand implements ICommandRestricted {
 
     public EnableCommandsCommand(String name, String... aliases) {
         super(name, aliases);
@@ -46,15 +47,15 @@ public class EnableCommandsCommand extends Command implements ICommandRestricted
     public void onInvoke(@Nonnull CommandContext context) {
 
         if (context.hasArguments()) {
-            Command command = CommandRegistry.findCommand(context.args[0]);
+            Command command = CommandRegistry.findCommand(context.getArgs()[0]);
             if (command == null) {
                 context.reply("This command doesn't exist!");
                 return;
             }
 
-            if (CommandManager.disabledCommands.contains(command)) {
-                CommandManager.disabledCommands.remove(command);
-                context.reply(":ok_hand: Command `" + command.name + "` enabled!");
+            if (CommandManager.Companion.getDisabledCommands().contains(command)) {
+                CommandManager.Companion.getDisabledCommands().remove(command);
+                context.reply(":ok_hand: Command `" + command.getName() + "` enabled!");
                 return;
             }
             context.reply("This command is not disabled!");

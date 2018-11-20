@@ -25,19 +25,17 @@
 
 package fredboat.command.info;
 
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
-import fredboat.main.Launcher;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Member;
 import fredboat.shared.constant.BotConstants;
-import fredboat.util.DiscordUtil;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.entities.User;
 
 import javax.annotation.Nonnull;
 
-public class InviteCommand extends Command implements IInfoCommand {
+public class InviteCommand extends JCommand implements IInfoCommand {
 
     public InviteCommand(String name, String... aliases) {
         super(name, aliases);
@@ -46,16 +44,16 @@ public class InviteCommand extends Command implements IInfoCommand {
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
 
-        long botId = DiscordUtil.getBotId(Launcher.getBotController().getCredentials());
+        long botId = context.getGuild().getSelfMember().getId();
         String invite;
         if (botId == BotConstants.MUSIC_BOT_ID) {
             invite = BotConstants.botInvite;
         } else if (botId == BotConstants.PATRON_BOT_ID) {
             invite = BotConstants.DOCS_DONATE_URL;
         } else {
-            invite = context.guild.getJDA().asBot().getInviteUrl();
+            invite = "https://discordapp.com/oauth2/authorize?client_id=" + botId + "&scope=bot";
         }
-        User self = context.guild.getJDA().getSelfUser();
+        Member self = context.getSelfMember();
         String header = context.i18nFormat("invite", TextUtils.escapeAndDefuse(self.getName()));
         context.reply(header + "\n" + invite);
     }

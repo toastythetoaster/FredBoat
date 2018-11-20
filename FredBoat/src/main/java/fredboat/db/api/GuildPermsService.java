@@ -26,7 +26,7 @@
 package fredboat.db.api;
 
 import fredboat.db.transfer.GuildPermissions;
-import net.dv8tion.jda.core.entities.Guild;
+import fredboat.sentinel.Guild;
 
 import java.util.function.Function;
 

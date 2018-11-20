@@ -25,19 +25,20 @@
 
 package fredboat.command.music.control;
 
-import fredboat.definitions.RepeatMode;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
+import fredboat.definitions.RepeatMode;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class RepeatCommand extends Command implements IMusicCommand, ICommandRestricted {
+import static fredboat.main.LauncherKt.getBotController;
+
+public class RepeatCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public RepeatCommand(String name, String... aliases) {
         super(name, aliases);
@@ -51,7 +52,7 @@ public class RepeatCommand extends Command implements IMusicCommand, ICommandRes
         }
 
         RepeatMode desiredRepeatMode;
-        String userInput = context.args[0];
+        String userInput = context.getArgs()[0];
         switch (userInput) {
             case "off":
             case "out":
@@ -73,7 +74,7 @@ public class RepeatCommand extends Command implements IMusicCommand, ICommandRes
                 return;
         }
 
-        Launcher.getBotController().getPlayerRegistry().getOrCreate(context.guild).setRepeatMode(desiredRepeatMode);
+        getBotController().getPlayerRegistry().getOrCreate(context.getGuild()).setRepeatMode(desiredRepeatMode);
 
         switch (desiredRepeatMode) {
             case OFF:

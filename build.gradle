@@ -20,7 +20,7 @@ subprojects {
             shadowVersion           = '2.0.3'
             springBootVersion       = '2.0.1.RELEASE'
             propDepsVersion         = '0.0.9.RELEASE'
-            kotlinVersion           = '1.2.71'
+            kotlinVersion           = '1.2.40'
 
             //@formatter:on
         }
@@ -59,12 +59,12 @@ subprojects {
         springBootVersion           = "${springBootVersion}"
         kotlinVersion               = "${kotlinVersion}"
         //discord deps
-        jdaVersion                  = '3.8.0_427'
+        jdaVersion                  = '3.6.0_354'
 
         //audio deps
-        lavaplayerVersion           = '1.3.8'
+        lavaplayerVersion           = '1.2.62'
         jdaNasVersion               = '1.0.6'
-        lavalinkVersion             = 'edd76a0ae8ba22a246ae0e25c7ad886bd32ae036'
+        lavalinkVersion             = '56719cf59e106daec3ba6ec3e012a8e955d0f24f'
 
         //utility deps
         jsonOrgVersion              = '20180130'
@@ -106,7 +106,7 @@ ext {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.10.2'
+    gradleVersion = '4.6'
     //noinspection UnnecessaryQualifiedReference
     distributionType = Wrapper.DistributionType.ALL
 }

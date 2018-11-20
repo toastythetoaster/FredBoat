@@ -4,6 +4,7 @@ apply plugin: 'application'
 apply plugin: 'propdeps'
 apply plugin: 'propdeps-idea'
 apply plugin: 'org.springframework.boot'
+apply plugin: "kotlin-spring"
 
 description = 'FredBoat Discord Music Bot'
 mainClassName = "fredboat.main.Launcher"
@@ -13,7 +14,7 @@ ext {
 }
 
 bootRun {
-    //compiling tests during bootRun increases the likelyhood of catching broken tests locally instead of on the CI
+    //compiling tests during bootRun increases the likelihood of catching broken tests locally instead of on the CI
     dependsOn compileTestJava
 
     //pass in custom jvm args
@@ -41,9 +42,8 @@ configurations {
 
 dependencies {
     compile project(':Shared')
-    compile group: 'net.dv8tion', name: 'JDA', version: jdaVersion
+    compile group: 'com.github.FredBoat.sentinel', name: 'sentinel-shared', version: sentinelVersion
     compile group: 'com.sedmelluq', name: 'lavaplayer', version: lavaplayerVersion
-    compile group: 'com.sedmelluq', name: 'jda-nas', version: jdaNasVersion
 
     if (System.getenv('dev') == 'true') {
         compile(group: 'lavalink', name: 'Lavalink-Client', version: '-SNAPSHOT')
@@ -56,8 +56,13 @@ dependencies {
     compile group: 'it.unimi.dsi', name: 'fastutil', version: fastUtilVersion
     compile group: 'com.google.code.gson', name: 'gson', version: gsonVersion
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlinVersion
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-reactor', version: '0.22.5'
+    compile group: 'org.springframework.amqp', name: 'spring-rabbit', version: amqpVersion
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonKotlinVersion
 
     compile group: 'org.togglz', name: 'togglz-core', version: togglzVersion
+    compile group: 'org.togglz', name: 'togglz-slf4j', version: togglzVersion
+    compile group: 'org.togglz', name: 'togglz-spring-boot-starter', version: togglzVersion
     compile group: 'com.github.vladimir-bukhtoyarov', name: 'bucket4j-core', version: bucket4jVersion
 
     //tests
@@ -65,7 +70,12 @@ dependencies {
     testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junitVersion
     // To avoid compiler warnings about @API annotations in JUnit code.
     testCompileOnly group: 'org.apiguardian', name: 'apiguardian-api', version: apiGuardianVersion
+    //required for the docker compose rule https://github.com/palantir/docker-compose-rule/issues/224
+    testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-migrationsupport', version: junitVersion
+    //allows us to fire up docker containers to test with, for example our postgres database
+    testCompile group: 'com.palantir.docker.compose', name: 'docker-compose-rule-junit4', version: dockerComposeRuleVersion
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion
+    testCompile group: 'org.postgresql', name: 'postgresql', version: postgresJdbcVersion
     optional group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: springBootVersion
 }
 
@@ -96,3 +106,5 @@ compileTestKotlin {
         jvmTarget = "1.8"
     }
 }
+
+kotlin { experimental { coroutines "enable" } }

@@ -31,13 +31,10 @@ import com.google.common.collect.Streams;
 import fredboat.commandmeta.MessagingException;
 import fredboat.feature.metrics.Metrics;
 import fredboat.main.BotController;
-import fredboat.messaging.CentralMessaging;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Member;
+import fredboat.sentinel.User;
 import fredboat.shared.constant.BotConstants;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.text.CharacterPredicates;
@@ -88,22 +85,16 @@ public class TextUtils {
     private TextUtils() {
     }
 
-    public static Message prefaceWithName(Member member, String msg) {
-        msg = ensureSpace(msg);
-        return CentralMessaging.getClearThreadLocalMessageBuilder()
-                .append(escapeAndDefuse(member.getEffectiveName()))
-                .append(": ")
-                .append(msg)
-                .build();
+    public static String prefaceWithName(Member member, String msg) {
+        return escapeAndDefuse(member.getEffectiveName())
+                + ": "
+                + ensureSpace(msg);
     }
 
-    public static Message prefaceWithMention(Member member, String msg) {
-        msg = ensureSpace(msg);
-        return CentralMessaging.getClearThreadLocalMessageBuilder()
-                .append(member.getAsMention())
-                .append(": ")
-                .append(msg)
-                .build();
+    public static String prefaceWithMention(Member member, String msg) {
+        return member.getAsMention()
+                + ": "
+                + ensureSpace(msg);
     }
 
     private static String ensureSpace(String msg){
@@ -141,10 +132,12 @@ public class TextUtils {
 
         log.error(logMessage, e);
 
+        // TODO handle InsufficientPermissionException
+        /*
         if (e instanceof InsufficientPermissionException) { //log these to find the real source (see line above, but handle them more user friendly)
             CentralMessaging.handleInsufficientPermissionsException(context.getTextChannel(), (InsufficientPermissionException) e);
             return;
-        }
+        }*/
 
         context.replyWithMention(SORRY + "\n" + BotConstants.hangoutInvite);
     }
@@ -284,6 +277,7 @@ public class TextUtils {
     }
 
     //optional provide a style, for example diff or md
+    @Nonnull
     public static String asCodeBlock(String str, String... style) {
         String sty = style != null && style.length > 0 ? style[0] : "";
         return "```" + sty + "\n" + str + "\n```";
@@ -310,13 +304,13 @@ public class TextUtils {
 
 
     public static String forceNDigits(int i, int n) {
-        String str = Integer.toString(i);
+        StringBuilder str = new StringBuilder(Integer.toString(i));
 
         while (str.length() < n) {
-            str = "0" + str;
+            str.insert(0, "0");
         }
 
-        return str;
+        return str.toString();
     }
 
     public static String padWithSpaces(@Nullable String str, int totalLength, boolean front) {
@@ -454,11 +448,11 @@ public class TextUtils {
     /**
      * @return a string representation of a member like this: {0}#{1} [{2}] EffectiveName#Discrim [id]
      */
-    public static String asString(@Nonnull Member member) {
+    public static String asString(@Nonnull fredboat.sentinel.Member member) {
         return String.format("%s#%s [%d]",
                 member.getEffectiveName(),
-                member.getUser().getDiscriminator(),
-                member.getUser().getIdLong());
+                member.getDiscrim(),
+                member.getId());
     }
 
     /**
@@ -467,7 +461,7 @@ public class TextUtils {
     public static String asString(@Nonnull User user) {
         return String.format("%s#%s [%d]",
                 user.getName(),
-                user.getDiscriminator(),
-                user.getIdLong());
+                user.getDiscrim(),
+                user.getId());
     }
 }

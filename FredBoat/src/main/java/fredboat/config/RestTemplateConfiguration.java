@@ -50,6 +50,11 @@ public class RestTemplateConfiguration {
     private static final Logger log = LoggerFactory.getLogger(RestTemplateConfiguration.class);
 
     @Bean
+    public GsonHttpMessageConverter gsonHttpMessageConverter() {
+        return new GsonHttpMessageConverter();
+    }
+
+    @Bean
     public RestTemplate quarterdeckRestTemplate(BackendConfig backendConfig, GsonHttpMessageConverter gson) {
         return new RestTemplateBuilder()
                 .basicAuthorization(backendConfig.getQuarterdeck().getUser(), backendConfig.getQuarterdeck().getPass())

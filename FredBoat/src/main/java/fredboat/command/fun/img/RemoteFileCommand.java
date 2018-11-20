@@ -25,14 +25,14 @@
 
 package fredboat.command.fun.img;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class RemoteFileCommand extends Command implements IFunCommand {
+public class RemoteFileCommand extends JCommand implements IFunCommand {
 
     public String url;
 
@@ -43,7 +43,7 @@ public class RemoteFileCommand extends Command implements IFunCommand {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        context.replyImage(url, null);
+        context.replyImage(url, "");
     }
 
     @Nonnull

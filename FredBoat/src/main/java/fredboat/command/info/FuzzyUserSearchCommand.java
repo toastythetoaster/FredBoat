@@ -25,18 +25,18 @@
 
 package fredboat.command.info;
 
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Member;
 import fredboat.util.ArgumentUtil;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.entities.Member;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public class FuzzyUserSearchCommand extends Command implements IInfoCommand {
+public class FuzzyUserSearchCommand extends JCommand implements IInfoCommand {
 
     public FuzzyUserSearchCommand(String name, String... aliases) {
         super(name, aliases);
@@ -47,8 +47,8 @@ public class FuzzyUserSearchCommand extends Command implements IInfoCommand {
         if (!context.hasArguments()) {
             HelpCommand.sendFormattedCommandHelp(context);
         } else {
-            String query = context.rawArgs;
-            List<Member> list = ArgumentUtil.fuzzyMemberSearch(context.guild, query, true);
+            String query = context.getRawArgs();
+            List<Member> list = ArgumentUtil.INSTANCE.fuzzyMemberSearch(context.getGuild(), query, true);
 
             if(list.isEmpty()){
                 context.replyWithName(context.i18n("fuzzyNoResults"));
@@ -56,7 +56,7 @@ public class FuzzyUserSearchCommand extends Command implements IInfoCommand {
             }
 
             String escapedQuery = TextUtils.escapeAndDefuse(query);
-            String formatted = ArgumentUtil.formatFuzzyMemberResult(list, Integer.MAX_VALUE, 1900 - escapedQuery.length());
+            String formatted = ArgumentUtil.INSTANCE.formatFuzzyMemberResult(list, Integer.MAX_VALUE, 1900 - escapedQuery.length());
             context.replyWithName("Results for `" + escapedQuery + "`:\n" + formatted);
         }
     }

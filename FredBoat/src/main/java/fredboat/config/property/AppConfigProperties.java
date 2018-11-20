@@ -51,6 +51,7 @@ public class AppConfigProperties implements AppConfig {
     private boolean autoBlacklist = true;
     private String game = "";
     private boolean continuePlayback = false;
+    private int shardCount = 1;
 
     //undocumented
     private int playerLimit = -1;
@@ -100,6 +101,11 @@ public class AppConfigProperties implements AppConfig {
         return playerLimit;
     }
 
+    @Override
+    public int getShardCount() {
+        return shardCount;
+    }
+
     public void setDevelopment(boolean development) {
         this.development = development;
     }
@@ -135,5 +141,9 @@ public class AppConfigProperties implements AppConfig {
 
     public void setPlayerLimit(int playerLimit) {
         this.playerLimit = playerLimit;
+    }
+
+    public void setShardCount(int shardCount) {
+        this.shardCount = shardCount;
     }
 }

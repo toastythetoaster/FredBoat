@@ -40,8 +40,8 @@ public class DockerStats {
     private static final String DB_IMAGE_STATS_URL = "https://hub.docker.com/v2/repositories/fredboat/postgres/";
 
     private boolean fetched = false;
-    protected int dockerPullsBot;
-    protected int dockerPullsDb;
+    private int dockerPullsBot;
+    private int dockerPullsDb;
 
     void fetch() {
         try {
