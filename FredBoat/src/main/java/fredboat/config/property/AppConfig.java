@@ -54,6 +54,13 @@ public interface AppConfig {
         return DEFAULT_PREFIX;
     }
 
+    /**
+     * @return the total shard count, required at launch by Lavalink
+     */
+    default int getShardCount() {
+        return 1;
+    }
+
     List<Long> getAdminIds();
 
     boolean useAutoBlacklist();

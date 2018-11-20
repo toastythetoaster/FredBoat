@@ -26,7 +26,7 @@
 package fredboat.command.util;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IUtilCommand;
 import fredboat.messaging.internal.Context;
@@ -35,7 +35,7 @@ import fredboat.util.TextUtils;
 import javax.annotation.Nonnull;
 import java.nio.ByteBuffer;
 
-public class BrainfuckCommand extends Command implements IUtilCommand {
+public class BrainfuckCommand extends JCommand implements IUtilCommand {
 
     public BrainfuckCommand(String name, String... aliases) {
         super(name, aliases);
@@ -128,12 +128,12 @@ public class BrainfuckCommand extends Command implements IUtilCommand {
             return;
         }
 
-        code = context.rawArgs.toCharArray();
+        code = context.getRawArgs().toCharArray();
         bytes = ByteBuffer.allocateDirect(1024 * 1024 * 8);
         String inputArg = "";
 
         try {
-            inputArg = context.args[1];
+            inputArg = context.getArgs()[1];
         } catch (Exception ignored) {
         }
 

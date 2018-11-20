@@ -26,7 +26,7 @@
 package fredboat.command.admin;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.config.SentryConfiguration;
@@ -40,7 +40,7 @@ import javax.annotation.Nonnull;
  * <p>
  * Override the DSN for sentry. Pass stop or clear to turn it off.
  */
-public class SentryDsnCommand extends Command implements ICommandRestricted {
+public class SentryDsnCommand extends JCommand implements ICommandRestricted {
 
     private final SentryConfiguration sentryConfiguration;
 
@@ -55,7 +55,7 @@ public class SentryDsnCommand extends Command implements ICommandRestricted {
             HelpCommand.sendFormattedCommandHelp(context);
             return;
         }
-        String dsn = context.rawArgs;
+        String dsn = context.getRawArgs();
 
         if (dsn.equalsIgnoreCase("stop") || dsn.equalsIgnoreCase("clear")) {
             sentryConfiguration.turnOff();

@@ -27,20 +27,21 @@ package fredboat.command.info;
 
 import fredboat.command.config.PrefixCommand;
 import fredboat.commandmeta.CommandInitializer;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
-import fredboat.main.Launcher;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.messaging.internal.Context;
+import fredboat.sentinel.Guild;
 import fredboat.shared.constant.BotConstants;
-import net.dv8tion.jda.core.entities.Guild;
 
 import javax.annotation.Nonnull;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 /**
  * Created by napster on 23.01.18.
  */
-public class HelloCommand extends Command implements IInfoCommand {
+public class HelloCommand extends JCommand implements IInfoCommand {
 
     public HelloCommand(@Nonnull String name, String... aliases) {
         super(name, aliases);
@@ -48,7 +49,7 @@ public class HelloCommand extends Command implements IInfoCommand {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        context.reply(getHello(context.guild));
+        context.reply(getHello(context.getGuild()));
     }
 
     @Nonnull
@@ -75,9 +76,9 @@ public class HelloCommand extends Command implements IInfoCommand {
 
     @Nonnull
     public static String getHello(@Nonnull Guild guild) {
-        String prefix = Launcher.getBotController().getAppConfig().getPrefix();
+        String prefix = getBotController().getAppConfig().getPrefix();
         try {
-            prefix = PrefixCommand.giefPrefix(guild);
+            prefix = PrefixCommand.Companion.giefPrefix(guild);
         } catch (Exception ignored) {
         }
 

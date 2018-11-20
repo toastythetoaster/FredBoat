@@ -25,22 +25,23 @@
 package fredboat.command.music.control;
 
 import fredboat.audio.player.GuildPlayer;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 /**
  * Created by napster on 17.03.17.
  * <p>
  * This command allows its user to request a reshuffle of the shuffled playlist
  */
-public class ReshuffleCommand extends Command implements IMusicCommand, ICommandRestricted {
+public class ReshuffleCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public ReshuffleCommand(String name, String... aliases) {
         super(name, aliases);
@@ -48,7 +49,7 @@ public class ReshuffleCommand extends Command implements IMusicCommand, ICommand
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.guild);
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
         if (player == null || !player.isShuffle()) {
             context.replyWithName(context.i18n("reshufflePlayerNotShuffling"));
             return;

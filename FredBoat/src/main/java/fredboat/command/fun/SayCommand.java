@@ -25,20 +25,19 @@
 package fredboat.command.fun;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
-import fredboat.event.EventListenerBoat;
+import fredboat.commandmeta.abs.JCommand;
+import fredboat.event.MessageEventHandler;
 import fredboat.messaging.internal.Context;
 import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
 /**
- *
  * @author frederik
  */
-public class SayCommand extends Command implements IFunCommand {
+public class SayCommand extends JCommand implements IFunCommand {
 
     public SayCommand(String name, String... aliases) {
         super(name, aliases);
@@ -51,10 +50,11 @@ public class SayCommand extends Command implements IFunCommand {
             return;
         }
 
-        String out = TextUtils.escapeAndDefuse(context.rawArgs);
+        String out = TextUtils.escapeAndDefuse(context.getRawArgs());
 
-        context.reply(TextUtils.ZERO_WIDTH_CHAR + out,
-                message -> EventListenerBoat.messagesToDeleteIfIdDeleted.put(context.msg.getIdLong(), message.getIdLong())
+        context.replyMono(TextUtils.ZERO_WIDTH_CHAR + out).subscribe(
+                message -> MessageEventHandler.Companion.getMessagesToDeleteIfIdDeleted()
+                        .put(context.getMsg().getId(), message.getMessageId())
         );
 
     }

@@ -25,22 +25,23 @@
 package fredboat.command.admin;
 
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
-import net.dv8tion.jda.core.entities.User;
+import fredboat.sentinel.Member;
 
 import javax.annotation.Nonnull;
+
+import static fredboat.main.LauncherKt.getBotController;
 
 /**
  * Created by napster on 17.04.17.
  * <p>
  * Lift ratelimit and remove a user from the blacklist
  */
-public class UnblacklistCommand extends Command implements ICommandRestricted {
+public class UnblacklistCommand extends JCommand implements ICommandRestricted {
 
     public UnblacklistCommand(String name, String... aliases) {
         super(name, aliases);
@@ -48,21 +49,15 @@ public class UnblacklistCommand extends Command implements ICommandRestricted {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        if (context.getMentionedUsers().isEmpty()) {
+        if (context.getMentionedMembers().isEmpty()) {
             HelpCommand.sendFormattedCommandHelp(context);
             return;
         }
 
-        User user = context.getMentionedUsers().get(0);
-        String userId = user.getId();
+        Member member = context.getMentionedMembers().get(0);
 
-        if (userId == null || "".equals(userId)) {
-            HelpCommand.sendFormattedCommandHelp(context);
-            return;
-        }
-
-        Launcher.getBotController().getRatelimiter().liftLimitAndBlacklist(user.getIdLong());
-        context.replyWithName(context.i18nFormat("unblacklisted", user.getAsMention()));
+        getBotController().getRatelimiter().liftLimitAndBlacklist(member.getId());
+        context.replyWithName(context.i18nFormat("unblacklisted", member.getAsMention()));
     }
 
     @Nonnull

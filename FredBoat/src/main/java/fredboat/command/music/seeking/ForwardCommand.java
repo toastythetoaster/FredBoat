@@ -29,18 +29,19 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import fredboat.audio.player.GuildPlayer;
 import fredboat.audio.queue.AudioTrackContext;
 import fredboat.command.info.HelpCommand;
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.ICommandRestricted;
 import fredboat.commandmeta.abs.IMusicCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.definitions.PermissionLevel;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
-public class ForwardCommand extends Command implements IMusicCommand, ICommandRestricted {
+import static fredboat.main.LauncherKt.getBotController;
+
+public class ForwardCommand extends JCommand implements IMusicCommand, ICommandRestricted {
 
     public ForwardCommand(String name, String... aliases) {
         super(name, aliases);
@@ -48,7 +49,7 @@ public class ForwardCommand extends Command implements IMusicCommand, ICommandRe
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        GuildPlayer player = Launcher.getBotController().getPlayerRegistry().getExisting(context.guild);
+        GuildPlayer player = getBotController().getPlayerRegistry().getExisting(context.getGuild());
 
         if(player == null || player.isQueueEmpty()) {
             context.replyWithName(context.i18n("unpauseQueueEmpty"));
@@ -62,7 +63,7 @@ public class ForwardCommand extends Command implements IMusicCommand, ICommandRe
 
         long t;
         try {
-            t = TextUtils.parseTimeString(context.args[0]);
+            t = TextUtils.parseTimeString(context.getArgs()[0]);
         } catch (IllegalStateException e){
             HelpCommand.sendFormattedCommandHelp(context);
             return;

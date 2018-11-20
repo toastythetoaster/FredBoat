@@ -125,13 +125,13 @@ public class Ratelimit {
     public boolean isAllowed(Context context, int weight, @Nullable Blacklist blacklist) {
         //This gets called real often, right before every command execution. Keep it light, don't do any blocking stuff,
         //ensure whatever you do in here is threadsafe, but minimize usage of synchronized as it adds overhead
-        long id = context.getUser().getIdLong();
+        long id = context.getUser().getId();
         //first of all, ppl that can never get limited or blacklisted, no matter what
         if (userWhiteList.contains(id)) return true;
 
         //user or guild scope?
         if (scope == Scope.GUILD) {
-            id = context.getGuild().getIdLong();
+            id = context.getGuild().getId();
         }
 
         Rate rate = CacheUtil.getUncheckedUnwrapped(rates, id);
@@ -178,7 +178,7 @@ public class Ratelimit {
      * Best run async as the blacklist might be hitting a database
      */
     private void bannerinoUserino(Context context, Blacklist blacklist) {
-        long length = blacklist.hitRateLimit(context.getUser().getIdLong());
+        long length = blacklist.hitRateLimit(context.getUser().getId());
         if (length <= 0) {
             return; //nothing to do here
         }

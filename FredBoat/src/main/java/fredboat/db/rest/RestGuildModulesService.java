@@ -27,15 +27,14 @@ package fredboat.db.rest;
 import fredboat.config.property.BackendConfig;
 import fredboat.db.api.GuildModulesService;
 import fredboat.db.transfer.GuildModules;
+import fredboat.sentinel.Guild;
 import io.prometheus.client.guava.cache.CacheMetricsCollector;
-import net.dv8tion.jda.core.entities.Guild;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.function.Function;
 
 import static fredboat.db.FriendlyEntityService.fetchUserFriendly;
-
 
 /**
  * Created by napster on 17.02.18.
@@ -53,7 +52,7 @@ public class RestGuildModulesService extends CachedRestService<Long, GuildModule
 
     @Override
     public GuildModules fetchGuildModules(Guild guild) {
-        return fetchUserFriendly(() -> fetch(guild.getIdLong()));
+        return fetchUserFriendly(() -> fetch(guild.getId()));
     }
 
     @Override

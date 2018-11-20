@@ -25,14 +25,14 @@
 
 package fredboat.command.info;
 
-import fredboat.commandmeta.abs.Command;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IInfoCommand;
 import fredboat.messaging.internal.Context;
 
 import javax.annotation.Nonnull;
 
-public class GetIdCommand extends Command implements IInfoCommand {
+public class GetIdCommand extends JCommand implements IInfoCommand {
 
     public GetIdCommand(String name, String... aliases) {
         super(name, aliases);
@@ -40,7 +40,7 @@ public class GetIdCommand extends Command implements IInfoCommand {
 
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
-        context.reply(context.i18nFormat("getidSuccess", context.guild.getId(), context.channel.getId()));
+        context.reply(context.i18nFormat("getidSuccess", context.getGuild().getId(), context.getTextChannel().getId()));
     }
 
     @Nonnull

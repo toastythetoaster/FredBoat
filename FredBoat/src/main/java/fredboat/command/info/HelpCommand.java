@@ -31,29 +31,23 @@ import fredboat.command.config.PrefixCommand;
 import fredboat.command.music.control.SelectCommand;
 import fredboat.commandmeta.CommandInitializer;
 import fredboat.commandmeta.CommandRegistry;
-import fredboat.commandmeta.abs.Command;
-import fredboat.commandmeta.abs.CommandContext;
-import fredboat.commandmeta.abs.ICommandRestricted;
-import fredboat.commandmeta.abs.IInfoCommand;
+import fredboat.commandmeta.abs.*;
 import fredboat.definitions.PermissionLevel;
-import fredboat.messaging.CentralMessaging;
+import fredboat.feature.I18n;
 import fredboat.messaging.internal.Context;
+import fredboat.perms.Permission;
+import fredboat.sentinel.User;
 import fredboat.shared.constant.BotConstants;
 import fredboat.util.Emojis;
 import fredboat.util.TextUtils;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.priv.PrivateMessageReceivedEvent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.MessageFormat;
+import java.util.ResourceBundle;
 import java.util.concurrent.TimeUnit;
 
-public class HelpCommand extends Command implements IInfoCommand {
+public class HelpCommand extends JCommand implements IInfoCommand {
 
     public static final String LINK_DISCORD_DOCS_IDS = "https://support.discordapp.com/hc/en-us/articles/206346498";
 
@@ -71,7 +65,7 @@ public class HelpCommand extends Command implements IInfoCommand {
     public void onInvoke(@Nonnull CommandContext context) {
 
         if (context.hasArguments()) {
-            sendFormattedCommandHelp(context, context.args[0], null);
+            sendFormattedCommandHelp(context, context.getArgs()[0], null);
         } else {
             sendGeneralHelp(context);
         }
@@ -85,13 +79,17 @@ public class HelpCommand extends Command implements IInfoCommand {
 
     //for answering the help command from a guild
     public static void sendGeneralHelp(@Nonnull CommandContext context) {
-        long userId = context.invoker.getUser().getIdLong();
+        long userId = context.getMember().getUser().getId();
         if (HELP_RECEIVED_RECENTLY.getIfPresent(userId) != null) {
             return;
         }
 
-        context.replyPrivate(getHelpDmMsg(context),
-                success -> {
+        context.replyPrivateMono(getHelpDmMsg(context.getI18n()))
+                .doOnError(throwable -> {
+                    if (context.hasPermissions(Permission.MESSAGE_WRITE)) {
+                        context.replyWithName(Emojis.EXCLAMATION + context.i18n("helpDmFailed"));
+                    }
+                }).subscribe(__ -> {
                     HELP_RECEIVED_RECENTLY.put(userId, true);
                     String out = context.i18n("helpSent");
                     out += "\n" + context.i18nFormat("helpCommandsPromotion",
@@ -99,45 +97,17 @@ public class HelpCommand extends Command implements IInfoCommand {
                                     + CommandInitializer.COMMANDS_COMM_NAME + "`");
                     if (context.hasPermissions(Permission.MESSAGE_WRITE)) {
                         context.replyWithName(out);
-                        PrefixCommand.showPrefix(context, context.getPrefix());
+                        PrefixCommand.Companion.showPrefix(context, context.getPrefix());
                     }
-                },
-                failure -> {
-                    if (context.hasPermissions(Permission.MESSAGE_WRITE)) {
-                        context.replyWithName(Emojis.EXCLAMATION + context.i18n("helpDmFailed"));
-                    }
-                }
-        );
+                });
     }
 
     //for answering private messages with the help
-    public static void sendGeneralHelp(@Nonnull PrivateMessageReceivedEvent event) {
-        if (HELP_RECEIVED_RECENTLY.getIfPresent(event.getAuthor().getIdLong()) != null) {
-            return;
-        }
+    public static void sendGeneralHelp(User author, String content) {
+        if (HELP_RECEIVED_RECENTLY.getIfPresent(author.getId()) != null) return;
 
-        HELP_RECEIVED_RECENTLY.put(event.getAuthor().getIdLong(), true);
-        CentralMessaging.message(event.getChannel(), getHelpDmMsg(new Context() { //yeah this is ugly ¯\_(ツ)_/¯
-            @Override
-            public TextChannel getTextChannel() {
-                return null;
-            }
-
-            @Override
-            public Guild getGuild() {
-                return null;
-            }
-
-            @Override
-            public Member getMember() {
-                return null;
-            }
-
-            @Override
-            public User getUser() {
-                return event.getAuthor();
-            }
-        })).send(null);
+        HELP_RECEIVED_RECENTLY.put(author.getId(), true);
+        author.sendPrivate(getHelpDmMsg(I18n.DEFAULT.getProps())).subscribe();
     }
 
     public static String getFormattedCommandHelp(Context context, Command command, String commandOrAlias) {
@@ -152,12 +122,13 @@ public class HelpCommand extends Command implements IInfoCommand {
                 commandOrAlias, thirdParam);
     }
 
+
     public static void sendFormattedCommandHelp(@Nonnull CommandContext context) {
-        sendFormattedCommandHelp(context, context.trigger, null);
+        sendFormattedCommandHelp(context, context.getTrigger(), null);
     }
 
     public static void sendFormattedCommandHelp(@Nonnull CommandContext context, String specificHelpMessage) {
-        sendFormattedCommandHelp(context, context.trigger, specificHelpMessage);
+        sendFormattedCommandHelp(context, context.getTrigger(), specificHelpMessage);
     }
 
     /**
@@ -195,11 +166,11 @@ public class HelpCommand extends Command implements IInfoCommand {
     }
 
     @Nonnull
-    public static String getHelpDmMsg(@Nonnull Context context) {
-        String docsLocation = context.i18n("helpDocsLocation") + "\n" + BotConstants.DOCS_URL;
-        String botInvite = context.i18n("helpBotInvite") + "\n<" + BotConstants.botInvite + ">";
-        String hangoutInvite = context.i18n("helpHangoutInvite") + "\n" + BotConstants.hangoutInvite;
-        String footer = context.i18n("helpNoDmCommands") + "\n" + context.i18n("helpCredits");
+    public static String getHelpDmMsg(@Nonnull ResourceBundle locale) {
+        String docsLocation = locale.getString("helpDocsLocation") + "\n" + BotConstants.DOCS_URL;
+        String botInvite = locale.getString("helpBotInvite") + "\n<" + BotConstants.botInvite + ">";
+        String hangoutInvite = locale.getString("helpHangoutInvite") + "\n" + BotConstants.hangoutInvite;
+        String footer = locale.getString("helpNoDmCommands") + "\n" + locale.getString("helpCredits");
         return docsLocation + "\n\n" + botInvite + "\n\n" + hangoutInvite + "\n\n" + footer;
     }
 }

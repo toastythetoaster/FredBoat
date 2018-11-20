@@ -1,10 +1,11 @@
-FROM openjdk:9-jdk-slim
+FROM openjdk:11-jdk-slim
 
 ENV ENV docker
 
 WORKDIR /opt/FredBoat
 
-COPY fredboat.example.yaml /opt/FredBoat/fredboat.yaml
+COPY fredboat.yml /opt/FredBoat/fredboat.yml
+COPY common.yml /opt/FredBoat/common.yml
 COPY FredBoat.jar /opt/FredBoat/FredBoat.jar
 
 EXPOSE 1356

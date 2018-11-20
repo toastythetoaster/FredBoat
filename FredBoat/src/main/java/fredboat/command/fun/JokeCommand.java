@@ -25,12 +25,12 @@
 
 package fredboat.command.fun;
 
-import fredboat.commandmeta.abs.Command;
 import fredboat.commandmeta.abs.CommandContext;
 import fredboat.commandmeta.abs.IFunCommand;
+import fredboat.commandmeta.abs.JCommand;
 import fredboat.main.BotController;
-import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
+import fredboat.util.TextUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -39,7 +39,9 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
-public class JokeCommand extends Command implements IFunCommand {
+import static fredboat.main.LauncherKt.getBotController;
+
+public class JokeCommand extends JCommand implements IFunCommand {
 
     private static final Logger log = LoggerFactory.getLogger(JokeCommand.class);
 
@@ -50,7 +52,7 @@ public class JokeCommand extends Command implements IFunCommand {
     @Override
     public void onInvoke(@Nonnull CommandContext context) {
         //slow execution due to http requests
-        Launcher.getBotController().getExecutor().execute(() -> invoke(context));
+        getBotController().getExecutor().execute(() -> invoke(context));
     }
 
     public void invoke(@Nonnull CommandContext context) {
@@ -63,15 +65,15 @@ public class JokeCommand extends Command implements IFunCommand {
             
             String joke = object.getJSONObject("value").getString("joke");
 
-            if (!context.getMentionedUsers().isEmpty()) {
-                joke = joke.replaceAll("Chuck Norris", context.getMentionedUsers().get(0).getAsMention());
+            if (!context.getMentionedMembers().isEmpty()) {
+                joke = joke.replaceAll("Chuck Norris", context.getMentionedMembers().get(0).getAsMention());
             } else if (context.hasArguments()) {
-                joke = joke.replaceAll("Chuck Norris", context.rawArgs);
+                joke = joke.replaceAll("Chuck Norris", context.getRawArgs());
             }
             
             joke = joke.replaceAll("&quot;", "\"");
 
-            context.reply(joke);
+            context.reply(TextUtils.escapeAndDefuse(joke));
         } catch (IOException | JSONException e) {
             log.error("Failed to fetch joke", e);
             context.reply(context.i18n("tryLater"));
