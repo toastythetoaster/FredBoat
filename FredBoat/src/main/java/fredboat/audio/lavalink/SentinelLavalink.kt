@@ -11,6 +11,7 @@ import lavalink.client.io.metrics.LavalinkCollector
 import org.json.JSONObject
 import org.springframework.stereotype.Service
 
+@Suppress("ImplicitThis", "LeakingThis")
 @Service
 class SentinelLavalink(
         val sentinel: Sentinel,
@@ -23,13 +24,15 @@ class SentinelLavalink(
 
     companion object {
         lateinit var INSTANCE: SentinelLavalink
+        private const val DEFAULT_RESUME_TIMEOUT = 300 // 5 mins
     }
 
     init {
-        @Suppress("LeakingThis")
         INSTANCE = this
-        lavalinkConfig.nodes.forEach { addNode(it.name, it.uri, it.password) }
-        @Suppress("LeakingThis")
+        lavalinkConfig.nodes.forEach {
+            addNode(it.name, it.uri, it.password)
+                    .setResuming("fredboat-${sentinel.selfUser.idString}", DEFAULT_RESUME_TIMEOUT)
+        }
         LavalinkCollector(this).register<LavalinkCollector>()
     }
 
