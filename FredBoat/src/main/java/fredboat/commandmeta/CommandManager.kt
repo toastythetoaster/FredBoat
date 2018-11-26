@@ -41,6 +41,7 @@ import fredboat.shared.constant.BotConstants
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
 import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.experimental.delay
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.*
@@ -87,6 +88,7 @@ class CommandManager(private val patronageChecker: PatronageChecker, private val
                 val response = context.replyWithNameMono(
                         "Please read <#219483023257763842> for server rules and only use commands in <#174821093633294338>!"
                 ).awaitSingle()
+                delay(5000L)
                 channel.deleteMessage(response.messageId).subscribe()
                 return
             }
