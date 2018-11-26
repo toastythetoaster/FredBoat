@@ -166,8 +166,11 @@ public class TextUtils {
         return postToWastebin(body)
                 .thenApply(key -> Optional.of("https://wastebin.party/" + key))
                 .exceptionally(t -> {
-                    log.error("Could not post to wastebin either", t);
+                    log.error("Could not post to wastebin", t);
                     return Optional.empty();
+                })
+                .thenCompose(url -> {
+                    return CompletableFuture.completedFuture(url);
                 });
     }
 
