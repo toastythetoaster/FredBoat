@@ -89,7 +89,7 @@ class PlayerRegistry(
     /**
      * Get or create a guild in a suspending fashion
      */
-    suspend fun awaitPlayer(guild: Guild) = getOrCreate(guild).awaitFirst()
+    suspend fun awaitPlayer(guild: Guild): GuildPlayer = getOrCreate(guild).awaitFirst()
 
     fun getExisting(guild: Guild): GuildPlayer? {
         return getExisting(guild.id)
@@ -182,6 +182,8 @@ class PlayerRegistry(
 
                     player
                 }.defaultIfEmpty(player)
+    }.doOnSuccess {
+        registry[it.guildId] = it
     }.doFinally {
         monoCache.remove(guild.id)
     }
