@@ -33,9 +33,9 @@ import java.util.regex.Pattern;
 public class PasteServiceConstants {
 
     static final Pattern SERVICE_NAME_PATTERN = Pattern.compile("(?:([a-z0-9]+(?:-[a-z0-9]+)*)\\.)+[a-z]{2,}");
-    
+
     static final Pattern HASTEBIN_PATTERN = Pattern
-        .compile("^(?:(?:https?://)?(?:www\\.)?)?hastebin\\.com/(?:raw/)?(\\w+)(?:\\..+)?$");
+            .compile("^(?:(?:https?://)?(?:www\\.)?)?hastebin\\.com/(?:raw/)?(\\w+)(?:\\..+)?$");
 
     static final Pattern WASTEBIN_PATTERN = Pattern
             .compile("^(?:(?:https?://)?(?:www\\.)?)?wastebin\\.party/(?:raw/)?(\\w+)(?:\\..+)?$");

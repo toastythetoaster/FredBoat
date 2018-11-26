@@ -128,9 +128,9 @@ public class PlaylistImportSourceManager implements AudioSourceManager, Playlist
 
         switch (serviceName) {
             case "hastebin":
-            m = PasteServiceConstants.HASTEBIN_PATTERN.matcher(identifier);
-            pasteId = m.find() ? m.group(1) : null;
-            break;
+                m = PasteServiceConstants.HASTEBIN_PATTERN.matcher(identifier);
+                pasteId = m.find() ? m.group(1) : null;
+                break;
             
             case "wastebin":
                 m = PasteServiceConstants.WASTEBIN_PATTERN.matcher(identifier);
