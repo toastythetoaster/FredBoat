@@ -1,14 +1,18 @@
 package fredboat.audio.lavalink
 
 import com.fredboat.sentinel.entities.VoiceServerUpdate
+import fredboat.audio.player.PlayerRegistry
 import fredboat.config.idString
 import fredboat.config.property.AppConfig
 import fredboat.config.property.LavalinkConfig
 import fredboat.sentinel.Guild
 import fredboat.sentinel.Sentinel
+import fredboat.sentinel.getGuildMono
 import lavalink.client.io.Lavalink
 import lavalink.client.io.metrics.LavalinkCollector
 import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 @Suppress("ImplicitThis", "LeakingThis")
@@ -16,6 +20,7 @@ import org.springframework.stereotype.Service
 class SentinelLavalink(
         val sentinel: Sentinel,
         val appConfig: AppConfig,
+        private val playerRegistry: PlayerRegistry,
         lavalinkConfig: LavalinkConfig
 ) : Lavalink<SentinelLink>(
         sentinel.selfUser.idString,
@@ -25,6 +30,7 @@ class SentinelLavalink(
     companion object {
         lateinit var INSTANCE: SentinelLavalink
         private const val DEFAULT_RESUME_TIMEOUT = 300 // 5 mins
+        private val log: Logger = LoggerFactory.getLogger(SentinelLavalink::class.java)
     }
 
     init {
@@ -36,7 +42,17 @@ class SentinelLavalink(
         LavalinkCollector(this).register<LavalinkCollector>()
     }
 
-    override fun buildNewLink(guildId: String) = SentinelLink(this, guildId)
+    override fun buildNewLink(guildId: String): SentinelLink {
+        getGuildMono(guildId.toLong()).flatMap { guild ->
+            if (guild == null) {
+                log.warn("Built link for non-existing guild. This should not happen.")
+                return@flatMap null
+            }
+            playerRegistry.getOrCreate(guild)
+        }.subscribe()
+
+        return SentinelLink(this, guildId)
+    }
 
     fun getLink(guild: Guild) = getLink(guild.id.toString())
     fun getExistingLink(guild: Guild) = getExistingLink(guild.idString)
