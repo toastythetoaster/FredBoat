@@ -6,6 +6,7 @@ import fredboat.config.idString
 import fredboat.config.property.AppConfig
 import fredboat.config.property.LavalinkConfig
 import fredboat.sentinel.Guild
+import fredboat.sentinel.InternalGuild
 import fredboat.sentinel.Sentinel
 import fredboat.sentinel.getGuildMono
 import lavalink.client.io.Lavalink
@@ -43,13 +44,19 @@ class SentinelLavalink(
     }
 
     override fun buildNewLink(guildId: String): SentinelLink {
-        getGuildMono(guildId.toLong()).flatMap { guild ->
+        getGuildMono(guildId.toLong()).subscribe { guild ->
             if (guild == null) {
                 log.warn("Built link for non-existing guild. This should not happen.")
-                return@flatMap null
+                return@subscribe
             }
-            playerRegistry.getOrCreate(guild)
-        }.subscribe()
+            playerRegistry.getOrCreate(guild).subscribe { player ->
+                // If FredBoat just restarted, we will want to reconnect the link
+                @Suppress("LABEL_NAME_CLASH")
+                val vsu = (guild as InternalGuild).cachedVsu ?: return@subscribe
+                guild.cachedVsu = null
+                player.player.link.onVoiceServerUpdate(JSONObject(vsu), vsu.sessionId)
+            }
+        }
 
         return SentinelLink(this, guildId)
     }

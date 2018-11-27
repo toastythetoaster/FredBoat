@@ -21,8 +21,8 @@ class MongoPlayer(
         val volume: Float,
         /** Time of the playing track at the time of saving in milliseconds */
         val position: Long?,
-        /** Name of Lavalink node. Used for resuming */
-        val node: String?,
+        /** Voice channel we were playing in if interrupted */
+        val voiceChannel: Long?,
         val queue: List<MongoTrack>
 )
 

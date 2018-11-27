@@ -17,7 +17,7 @@ interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long> {
                 repeatMode.ordinal.toByte(),
                 volume,
                 playingTrack?.track?.position,
-                this.player.link?.getNode(false)?.name,
+                currentVoiceChannel?.id,
                 remainingTracks.map {
                     if (it is SplitAudioTrackContext) {
                         MongoTrack(it.trackId, LavalinkUtil.toBinary(it.track), it.member.id, it.startPosition, it.endPosition, it.effectiveTitle)

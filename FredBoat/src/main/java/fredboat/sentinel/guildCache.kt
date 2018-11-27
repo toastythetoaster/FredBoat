@@ -5,7 +5,6 @@ import com.fredboat.sentinel.entities.GuildSubscribeRequest
 import com.google.common.cache.CacheBuilder
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.config.property.AppConfig
-import kotlinx.coroutines.experimental.launch
 import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -95,30 +94,6 @@ class GuildCache(private val sentinel: Sentinel,
                 g.textChannels.size + g.voiceChannels.size,
                 g.roles.size
         )
-
-        // Asynchronously handle existing VSU from an older FredBoat session, if it exists
-        it.voiceServerUpdate?.let { vsu ->
-            launch {
-                val channelId = g.selfMember.voiceChannel?.idString
-
-                val link = lavalink.getLink(g)
-                if (channelId == null) {
-                    log.warn("Received voice server update during guild subscribe, but we are not in a channel." +
-                            "This should not happen. Disconnecting...")
-                    link.queueAudioDisconnect()
-                    return@launch
-                }
-
-                link.setChannel(channelId)
-                rabbitConsumer.receive(vsu)
-                /*
-                // This code is an excellent way to test expired voice server updates
-                val json = JSONObject(vsu.raw)
-                json.put("token", "asd")
-                rabbitConsumer.receive(VoiceServerUpdate(vsu.sessionId, json.toString()))
-                */
-            }
-        }
 
         return g
     }
