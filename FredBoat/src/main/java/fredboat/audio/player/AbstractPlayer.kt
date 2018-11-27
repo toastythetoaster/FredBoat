@@ -119,6 +119,7 @@ abstract class AbstractPlayer internal constructor(
         get() = player.trackPosition
 
     init {
+        @Suppress("LeakingThis")
         player.addListener(this)
     }
 

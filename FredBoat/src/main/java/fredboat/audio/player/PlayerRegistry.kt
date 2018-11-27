@@ -45,8 +45,10 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import java.io.IOException
+import java.time.Duration
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
+import kotlin.concurrent.thread
 import kotlin.streams.toList
 
 @Component
@@ -80,6 +82,10 @@ class PlayerRegistry(
                     .filter { it.isPlaying }
                     .toList()
         }
+
+    init {
+        Runtime.getRuntime().addShutdownHook(thread(start = false) { beforeShutdown() })
+    }
 
     fun getOrCreate(guild: Guild): Mono<GuildPlayer> {
         val player = registry[guild.id] ?: return createPlayer(guild)
@@ -134,7 +140,7 @@ class PlayerRegistry(
 
     /**
      * @return a [Mono] with a fully loaded [GuildPlayer], po
-     * 
+     *
      */
     @Suppress("RedundantLambdaArrow")
     private fun createPlayer(guild: Guild): Mono<GuildPlayer>  = monoCache.computeIfAbsent(guild.id) { _ ->
@@ -186,6 +192,14 @@ class PlayerRegistry(
         registry[it.guildId] = it
     }.doFinally {
         monoCache.remove(guild.id)
+    }
+
+    private fun beforeShutdown() {
+        log.info("Running shutdown hook to save player state")
+        val count = playerRepo.saveAll(registry.values.toList())
+                .count()
+                .block(Duration.ofMinutes(2))
+        log.info("Saved $count player states")
     }
 
 }
