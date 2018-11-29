@@ -84,7 +84,9 @@ class PlayerRegistry(
         }
 
     init {
-        Runtime.getRuntime().addShutdownHook(thread(start = false) { beforeShutdown() })
+        Runtime.getRuntime().addShutdownHook(
+                thread(start = false, name = "player-registry-shutdown") { beforeShutdown() }
+        )
     }
 
     fun getOrCreate(guild: Guild): Mono<GuildPlayer> {
