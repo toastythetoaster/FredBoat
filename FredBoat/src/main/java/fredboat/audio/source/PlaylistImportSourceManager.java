@@ -127,12 +127,11 @@ public class PlaylistImportSourceManager implements AudioSourceManager, Playlist
         String serviceName = serviceNameMatcher.group(1).trim().toLowerCase();
 
         switch (serviceName) {
-
             case "hastebin":
                 m = PasteServiceConstants.HASTEBIN_PATTERN.matcher(identifier);
                 pasteId = m.find() ? m.group(1) : null;
                 break;
-
+            
             case "wastebin":
                 m = PasteServiceConstants.WASTEBIN_PATTERN.matcher(identifier);
                 pasteId = m.find() ? m.group(1) : null;
