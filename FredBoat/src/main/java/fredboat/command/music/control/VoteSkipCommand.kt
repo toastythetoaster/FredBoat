@@ -43,7 +43,7 @@ class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *ali
         }
 
         if (!context.hasArguments()) {
-            val response = addVoteWithResponse(context)
+            val response = processVoteWithResponse(context)
             val actualMinSkip = if (player.humanUsersInCurrentVC.size < 3) 1.0f else MIN_SKIP_PERCENTAGE
 
             val skipPercentage = getSkipPercentage(context.guild, player)
@@ -76,26 +76,43 @@ class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *ali
         return currentTIme - guildIdToLastSkip.getOrDefault(guild.id, 0L) <= SKIP_COOLDOWN
     }
 
-    private fun addVoteWithResponse(context: CommandContext): String {
+    private fun processVoteWithResponse(context: CommandContext): String {
 
         val user = context.user
         var voters: MutableSet<Long>? = guildSkipVotes[context.guild.id]?.toMutableSet()
 
-        if (voters == null) {
-            voters = HashSet()
-            voters.add(user.id)
-            guildSkipVotes[context.guild.id] = voters
-            return context.i18n("voteSkipAdded")
-        }
+        if (context.trigger == "unvoteskip" || context.trigger == "unv") {
+            if (voters == null) {
+                voters = HashSet()
+            }
 
-        return if (voters.contains(user.id)) {
-            context.i18n("voteSkipAlreadyVoted")
+            return if (voters.contains(user.id)) {
+                voters.remove(user.id)
+                guildSkipVotes[context.guild.id] = voters
+                context.i18n("voteSkipRemoved")
+            } else {
+                context.i18n("voteSkipNotVoted")
+            }
+
         } else {
-            voters.add(user.id)
-            guildSkipVotes[context.guild.id] = voters
-            context.i18n("voteSkipAdded")
+
+            if (voters == null) {
+                voters = HashSet()
+                voters.add(user.id)
+                guildSkipVotes[context.guild.id] = voters
+                return context.i18n("voteSkipAdded")
+            }
+
+            return if (voters.contains(user.id)) {
+                context.i18n("voteSkipAlreadyVoted")
+            } else {
+                voters.add(user.id)
+                guildSkipVotes[context.guild.id] = voters
+                context.i18n("voteSkipAdded")
+            }
         }
     }
+
 
     private fun getSkipPercentage(guild: Guild, player: GuildPlayer): Float {
         val vcMembers = player.humanUsersInCurrentVC
@@ -149,7 +166,8 @@ class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *ali
     }
 
     override fun help(context: Context): String {
-        return "{0}{1} OR {0}{1} list\n#" + context.i18n("helpVoteSkip")
+        return ("{0}voteskip OR {0}voteskip list OR {0}unvoteskip \n"
+        + "#" + context.i18n("helpVoteSkip"))
     }
 
     companion object {
