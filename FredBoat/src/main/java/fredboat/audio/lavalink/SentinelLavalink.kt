@@ -21,12 +21,13 @@ import org.springframework.stereotype.Service
 class SentinelLavalink(
         val sentinel: Sentinel,
         val appConfig: AppConfig,
-        private val playerRegistry: PlayerRegistry,
         lavalinkConfig: LavalinkConfig
 ) : Lavalink<SentinelLink>(
         sentinel.selfUser.idString,
         appConfig.shardCount
 ) {
+
+    lateinit var playerRegistry: PlayerRegistry
 
     companion object {
         lateinit var INSTANCE: SentinelLavalink

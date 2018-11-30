@@ -31,6 +31,7 @@ import fredboat.audio.queue.AudioTrackContext
 import fredboat.audio.queue.SplitAudioTrackContext
 import fredboat.config.property.AppConfig
 import fredboat.db.api.GuildConfigService
+import fredboat.db.mongo.MongoPlayer
 import fredboat.db.mongo.PlayerRepository
 import fredboat.definitions.RepeatMode
 import fredboat.sentinel.Guild
@@ -44,8 +45,10 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
+import reactor.core.publisher.toMono
 import java.io.IOException
 import java.time.Duration
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
 import kotlin.concurrent.thread
@@ -87,6 +90,8 @@ class PlayerRegistry(
         Runtime.getRuntime().addShutdownHook(
                 thread(start = false, name = "player-registry-shutdown") { beforeShutdown() }
         )
+        @Suppress("LeakingThis")
+        sentinelLavalink.playerRegistry = this
     }
 
     fun getOrCreate(guild: Guild): Mono<GuildPlayer> {
@@ -145,51 +150,65 @@ class PlayerRegistry(
      *
      */
     @Suppress("RedundantLambdaArrow")
-    private fun createPlayer(guild: Guild): Mono<GuildPlayer>  = monoCache.computeIfAbsent(guild.id) { _ ->
-        val player = GuildPlayer(
-                sentinelLavalink,
-                guild,
-                musicTextChannelProvider,
-                audioPlayerManager,
-                guildConfigService,
-                ratelimiter,
-                youtubeAPI
-        )
-
-        playerRepo.findById(guild.id)
+    private fun createPlayer(guild: Guild): Mono<GuildPlayer> = monoCache.computeIfAbsent(guild.id) { _ ->
+        // GuildPlayer's contructor will indirectly call #createPlayer().
+        // We can defer the construction to a different thread, to prevent an IllegalStateException, which
+        // would be caused by accessing monoCache recursively
+        Mono.defer {
+            GuildPlayer(
+                    sentinelLavalink,
+                    guild,
+                    musicTextChannelProvider,
+                    audioPlayerManager,
+                    guildConfigService,
+                    ratelimiter,
+                    youtubeAPI
+            ).toMono()
+        }.zipWith(playerRepo.findById(guild.id)
                 .map {
-                    player.setPause(it.paused)
-                    player.isShuffle = it.shuffled
-                    player.repeatMode = RepeatMode.values()[it.repeat.toInt()]
+                    // player repo may complete as empty.
+                    // The zip operator will cancel the other mono, if we return empty-handed.
+                    // We can deal with this by using Optional
+                    Optional.of(it)
+                }
+                .switchIfEmpty(Optional.empty<MongoPlayer>().toMono())
+        ).map { pair ->
+            val player = pair.t1
+            if (pair.t2.isEmpty) return@map player
+            val mongo = pair.t2.get()
 
-                    if (appConfig.distribution.volumeSupported()) {
-                        player.volume = it.volume
+            player.setPause(mongo.paused)
+            player.isShuffle = mongo.shuffled
+            player.repeatMode = RepeatMode.values()[mongo.repeat.toInt()]
+
+            if (appConfig.distribution.volumeSupported()) {
+                player.volume = mongo.volume
+            }
+
+            val queue = mongo.queue.mapNotNull { track ->
+                try {
+                    val at = LavalinkUtil.toAudioTrack(track.blob)
+                    val member = guild.getMember(track.requester) ?: guild.selfMember
+                    if (track.startTime != null && track.endTime != null) {
+                        SplitAudioTrackContext(at, member, track.startTime, track.endTime, track.title)
+                    } else {
+                        AudioTrackContext(at, member)
                     }
+                } catch (e: IOException) {
+                    log.error("Exception loading track", e)
+                    null
+                }
+            }
 
-                    val queue = it.queue.mapNotNull { track ->
-                                try {
-                                    val at = LavalinkUtil.toAudioTrack(track.blob)
-                                    val member = guild.getMember(track.requester) ?: guild.selfMember
-                                    if (track.startTime != null && track.endTime != null) {
-                                        SplitAudioTrackContext(at, member, track.startTime, track.endTime, track.title)
-                                    } else {
-                                        AudioTrackContext(at, member)
-                                    }
-                                } catch (e: IOException) {
-                                    log.error("Exception loading track", e)
-                                    null
-                                }
-                            }
+            // Optionally set current track position
+            if (mongo.position != null && queue.isNotEmpty()) {
+                queue[0].track.position = mongo.position
+            }
 
-                    // Optionally set current track position
-                    if (it.position != null && queue.isNotEmpty()) {
-                        queue[0].track.position = it.position
-                    }
+            player.loadAll(queue)
 
-                    player.loadAll(queue)
-
-                    player
-                }.defaultIfEmpty(player)
+            player
+        }
     }.doOnSuccess {
         registry[it.guildId] = it
     }.doFinally {
