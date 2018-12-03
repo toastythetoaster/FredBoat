@@ -73,6 +73,10 @@ dependencies {
     testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion
     testCompile group: 'org.postgresql', name: 'postgresql', version: postgresJdbcVersion
     optional group: 'org.springframework.boot', name: 'spring-boot-configuration-processor', version: springBootVersion
+
+    /* Explicitly set these, instead of getting outdated transitive ones */
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlinVersion
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlinVersion
 }
 
 //required by spring boot configuration processor
