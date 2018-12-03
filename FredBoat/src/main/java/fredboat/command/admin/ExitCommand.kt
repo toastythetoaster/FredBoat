@@ -33,7 +33,7 @@ import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.shared.constant.ExitCodes
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirst
 import java.time.Duration
 
 /**

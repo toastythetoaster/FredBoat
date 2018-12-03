@@ -43,7 +43,8 @@ import fredboat.feature.I18n
 import fredboat.sentinel.getGuild
 import fredboat.shared.constant.DistributionEnum
 import fredboat.shared.constant.ExitCodes
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
 import org.apache.commons.codec.binary.Base64
 import org.apache.commons.io.FileUtils
 import org.json.JSONObject
@@ -188,7 +189,7 @@ class MusicPersistenceHandler(private val playerRegistry: PlayerRegistry, privat
 
         //the current implementation of music persistence is not a good idea on big bots
         if (appConfig.shardCount <= 10 && appConfig.distribution != DistributionEnum.MUSIC) {
-            async {
+            GlobalScope.async {
                 try {
                     reloadPlaylists(event.shard)
                 } catch (e: Exception) {

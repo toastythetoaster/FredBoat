@@ -5,7 +5,7 @@ import com.fredboat.sentinel.entities.SendMessageResponse
 import com.fredboat.sentinel.entities.footer
 import fredboat.sentinel.Member
 import fredboat.sentinel.TextChannel
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 
 fun SendMessageResponse.edit(textChannel: TextChannel, content: String) =
         textChannel.sentinel.editMessage(textChannel, messageId, content)

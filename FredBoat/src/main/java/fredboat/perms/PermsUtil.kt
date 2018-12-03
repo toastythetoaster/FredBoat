@@ -29,7 +29,7 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
 import fredboat.sentinel.Member
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import javax.annotation.CheckReturnValue
 
 /**

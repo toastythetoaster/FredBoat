@@ -8,7 +8,7 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.sentinel.RawGuild
 import fredboat.sentinel.RawMember
 import fredboat.sentinel.RawTextChannel
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert
 import org.junit.Assert.assertEquals
 import org.springframework.amqp.rabbit.core.RabbitTemplate

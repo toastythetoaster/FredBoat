@@ -34,7 +34,7 @@ import fredboat.messaging.internal.Context
 import fredboat.perms.IPermissionSet
 import fredboat.sentinel.Role
 import fredboat.util.ArgumentUtil
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import java.awt.Color
 
 /**

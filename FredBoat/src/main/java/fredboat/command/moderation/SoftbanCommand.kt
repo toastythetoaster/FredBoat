@@ -34,8 +34,8 @@ import fredboat.perms.Permission
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
 import fredboat.util.extension.escapeAndDefuse
-import kotlinx.coroutines.experimental.reactive.awaitFirst
-import kotlinx.coroutines.experimental.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitLast
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.core.MessageDeliveryMode

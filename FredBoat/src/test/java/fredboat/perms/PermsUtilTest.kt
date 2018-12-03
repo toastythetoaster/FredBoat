@@ -8,7 +8,7 @@ import fredboat.testutil.IntegrationTest
 import fredboat.testutil.sentinel.Raws
 import fredboat.testutil.sentinel.SentinelState
 import fredboat.testutil.util.MockGuildPermsService
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test

@@ -5,8 +5,9 @@ import com.fredboat.sentinel.entities.GuildSubscribeRequest
 import com.google.common.cache.CacheBuilder
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.config.property.AppConfig
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -98,7 +99,7 @@ class GuildCache(private val sentinel: Sentinel,
 
         // Asynchronously handle existing VSU from an older FredBoat session, if it exists
         it.voiceServerUpdate?.let { vsu ->
-            launch {
+            GlobalScope.launch {
                 val channelId = g.selfMember.voiceChannel?.idString
 
                 val link = lavalink.getLink(g)

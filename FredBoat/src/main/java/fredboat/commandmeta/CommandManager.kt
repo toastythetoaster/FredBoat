@@ -40,8 +40,8 @@ import fredboat.sentinel.RawUser
 import fredboat.shared.constant.BotConstants
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitSingle
-import kotlinx.coroutines.experimental.delay
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.delay
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.*

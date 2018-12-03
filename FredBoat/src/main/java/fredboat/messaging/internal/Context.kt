@@ -37,7 +37,7 @@ import fredboat.perms.PermissionSet
 import fredboat.sentinel.*
 import fredboat.shared.constant.BotConstants
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono

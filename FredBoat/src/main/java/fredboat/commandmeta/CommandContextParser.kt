@@ -33,7 +33,7 @@ import fredboat.feature.metrics.Metrics
 import fredboat.sentinel.Message
 import fredboat.sentinel.RawUser
 import fredboat.sentinel.getGuildMono
-import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component

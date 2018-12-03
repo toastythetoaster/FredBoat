@@ -34,7 +34,7 @@ import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.util.DiscordUtil
-import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirst
 
 /**
  * @author frederik

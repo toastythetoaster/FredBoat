@@ -52,7 +52,7 @@ dependencies {
     compile group: 'it.unimi.dsi', name: 'fastutil', version: fastUtilVersion
     compile group: 'com.google.code.gson', name: 'gson', version: gsonVersion
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlinVersion
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-reactor', version: '0.22.5'
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-reactor', version: '1.0.1'
     compile group: 'org.springframework.amqp', name: 'spring-rabbit', version: amqpVersion
     compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: jacksonKotlinVersion
 
