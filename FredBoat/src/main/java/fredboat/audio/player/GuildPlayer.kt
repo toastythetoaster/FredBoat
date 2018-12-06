@@ -165,6 +165,12 @@ class GuildPlayer(
         if (vsu != null) {
             player.link.onVoiceServerUpdate(JSONObject(vsu.raw), vsu.sessionId)
             log.info("Using cached VOICE_SERVER_UPDATE for $guild")
+
+            val vc = guild.selfMember.voiceChannel
+            if (vc == null)
+                log.warn("Using cached VOICE_SERVER_UPDATE, but it doesn't appear like we are in a voice channel!")
+            else
+                player.link.setChannel(vc.idString)
         }
     }
 
