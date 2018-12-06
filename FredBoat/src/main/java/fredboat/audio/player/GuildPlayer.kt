@@ -39,16 +39,14 @@ import fredboat.definitions.RepeatMode
 import fredboat.feature.I18n
 import fredboat.perms.Permission
 import fredboat.perms.PermsUtil
-import fredboat.sentinel.Guild
-import fredboat.sentinel.Member
-import fredboat.sentinel.TextChannel
-import fredboat.sentinel.VoiceChannel
+import fredboat.sentinel.*
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import org.bson.types.ObjectId
+import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.function.Consumer
@@ -56,8 +54,6 @@ import kotlin.streams.toList
 
 class GuildPlayer(
         val lavalink: SentinelLavalink,
-        // TODO: GuildPlayers should be discarded when expiring the cached guild
-        // and new ones should be able to re-initiate the same settings
         var guild: Guild,
         private val musicTextChannelProvider: MusicTextChannelProvider,
         audioPlayerManager: AudioPlayerManager,
@@ -71,7 +67,6 @@ class GuildPlayer(
 
     companion object {
         private val log = LoggerFactory.getLogger(GuildPlayer::class.java)
-
     }
 
     val trackCount: Int
@@ -162,6 +157,15 @@ class GuildPlayer(
 
         audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager,
                 this, youtubeAPI)
+
+        // If FredBoat just restarted, we will want to reconnect the link
+        val iGuild = guild as InternalGuild
+        val vsu = iGuild.cachedVsu
+        iGuild.cachedVsu = null
+        if (vsu != null) {
+            player.link.onVoiceServerUpdate(JSONObject(vsu.raw), vsu.sessionId)
+            log.info("Using cached VOICE_SERVER_UPDATE for $guild")
+        }
     }
 
     private fun announceTrack(atc: AudioTrackContext) {

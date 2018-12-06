@@ -128,6 +128,7 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
         // Any old GuildPlayer needs to be aware of the new guild object
         val player: GuildPlayer? = getBotController().playerRegistry.getExisting(this)
         if (player != null) player.guild = this
+        if (raw.voiceServerUpdate != null) log.info("Received cached VSU for $this")
     }
 
     fun update(raw: RawGuild) {
