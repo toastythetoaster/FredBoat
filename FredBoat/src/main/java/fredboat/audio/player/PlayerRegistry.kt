@@ -151,7 +151,7 @@ class PlayerRegistry(
      */
     @Suppress("RedundantLambdaArrow")
     private fun createPlayer(guild: Guild): Mono<GuildPlayer> = monoCache.computeIfAbsent(guild.id) { _ ->
-        // GuildPlayer's contructor will indirectly call #createPlayer().
+        // GuildPlayer's constructor will indirectly call #createPlayer().
         // We can defer the construction to a different thread, to prevent an IllegalStateException, which
         // would be caused by accessing monoCache recursively
         Mono.defer {
