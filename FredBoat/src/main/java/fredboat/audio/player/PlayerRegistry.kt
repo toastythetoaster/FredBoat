@@ -147,8 +147,7 @@ class PlayerRegistry(
     }
 
     /**
-     * @return a [Mono] with a fully loaded [GuildPlayer], po
-     *
+     * @return a [Mono] with a fully loaded [GuildPlayer]
      */
     @Suppress("RedundantLambdaArrow")
     private fun createPlayer(guild: Guild): Mono<GuildPlayer> = monoCache.computeIfAbsent(guild.id) { _ ->
@@ -174,46 +173,50 @@ class PlayerRegistry(
                 }
                 .switchIfEmpty(Optional.empty<MongoPlayer>().toMono())
         ).map { pair ->
-            val player = pair.t1
-            if (pair.t2.isEmpty) return@map player
-            val mongo = pair.t2.get()
-
-            player.setPause(mongo.paused)
-            player.isShuffle = mongo.shuffled
-            player.repeatMode = RepeatMode.values()[mongo.repeat.toInt()]
-
-            if (appConfig.distribution.volumeSupported()) {
-                player.volume = mongo.volume
-            }
-
-            val queue = mongo.queue.mapNotNull { track ->
-                try {
-                    val at = LavalinkUtil.toAudioTrack(track.blob)
-                    val member = guild.getMember(track.requester) ?: guild.selfMember
-                    if (track.startTime != null && track.endTime != null) {
-                        SplitAudioTrackContext(at, member, track.startTime, track.endTime, track.title)
-                    } else {
-                        AudioTrackContext(at, member)
-                    }
-                } catch (e: IOException) {
-                    log.error("Exception loading track", e)
-                    null
-                }
-            }
-
-            // Optionally set current track position
-            if (mongo.position != null && queue.isNotEmpty()) {
-                queue[0].track.position = mongo.position
-            }
-
-            player.loadAll(queue)
-
-            player
+            if (pair.t2.isEmpty) return@map pair.t1
+            loadMongoData(pair.t1, pair.t2.get())
+            pair.t1
         }
     }.doOnSuccess {
         registry[it.guildId] = it
     }.doFinally {
         monoCache.remove(guild.id)
+    }
+
+    /**
+     * Load mongo data for a newly constructed [GuildPlayer]
+     */
+    private fun loadMongoData(player: GuildPlayer, mongo: MongoPlayer) {
+        val guild = player.guild
+        player.setPause(mongo.paused)
+        player.isShuffle = mongo.shuffled
+        player.repeatMode = RepeatMode.values()[mongo.repeat.toInt()]
+
+        if (appConfig.distribution.volumeSupported()) {
+            player.volume = mongo.volume
+        }
+
+        val queue = mongo.queue.mapNotNull { track ->
+            try {
+                val at = LavalinkUtil.toAudioTrack(track.blob)
+                val member = guild.getMember(track.requester) ?: guild.selfMember
+                if (track.startTime != null && track.endTime != null) {
+                    SplitAudioTrackContext(at, member, track.startTime, track.endTime, track.title)
+                } else {
+                    AudioTrackContext(at, member)
+                }
+            } catch (e: IOException) {
+                log.error("Exception loading track", e)
+                null
+            }
+        }
+
+        // Optionally set current track position
+        if (mongo.position != null && queue.isNotEmpty()) {
+            queue[0].track.position = mongo.position
+        }
+
+        player.loadAll(queue)
     }
 
     private fun beforeShutdown() {
