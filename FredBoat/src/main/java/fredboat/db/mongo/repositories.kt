@@ -31,9 +31,9 @@ fun PlayerRepository.convertAndSaveAll(players: List<GuildPlayer>): Flux<MongoPl
 
 private fun GuildPlayer.toMongo() = MongoPlayer(
         guildId,
+        isPlaying,
         isPaused,
         isShuffle,
-        isPlaying,
         repeatMode.ordinal.toByte(),
         volume,
         playingTrack?.track?.position,
