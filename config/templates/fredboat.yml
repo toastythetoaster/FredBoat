@@ -101,9 +101,9 @@ credentials:
   # Used by the ;;split and ;;np commands. Must be hooked up to the Youtube Data API.
   # You can add additional keys in case you are running a big bot
   # How to get the key: https://developers.google.com/youtube/registering_an_application
-  # Add your google API key between the quotation marks
-  googleApiKeys:
-    - "PutYourGoogleAPIKeyHere"
+  # Add your google API key between the quotation marks and uncomment the two lines below
+  #googleApiKeys:
+  #  - "PutYourGoogleAPIKeyHere"
 
   # The preferred way of setting the token is described in ./common.sh
   #discordBotToken: ""

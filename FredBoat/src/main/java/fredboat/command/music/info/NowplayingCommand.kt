@@ -49,6 +49,8 @@ import java.awt.Color
 
 class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand {
 
+    private val hasYtKeys get() = Launcher.botController.credentials.googleKeys.isNotEmpty()
+
     override suspend fun invoke(context: CommandContext) {
         val player = Launcher.botController.playerRegistry.getExisting(context.guild)
 
@@ -61,7 +63,7 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
         val at = atc!!.track
 
         val embed = when {
-            at is YoutubeAudioTrack -> getYoutubeEmbed(atc, player, at)
+            at is YoutubeAudioTrack && hasYtKeys -> getYoutubeEmbed(atc, player, at)
             at is SoundCloudAudioTrack -> getSoundcloudEmbed(atc, player, at)
             at is BandcampAudioTrack -> getBandcampResponse(atc, player, at)
             at is TwitchStreamAudioTrack -> getTwitchEmbed(atc, at)
