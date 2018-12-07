@@ -16,7 +16,7 @@ import fredboat.sentinel.Member
 import fredboat.util.TextUtils
 import java.util.*
 
-class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
+class VoteSkipCommand(private val isUnvote: Boolean, name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
         get() = PermissionLevel.USER
@@ -81,7 +81,7 @@ class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *ali
         val user = context.user
         var voters: MutableSet<Long>? = guildSkipVotes[context.guild.id]?.toMutableSet()
 
-        if (context.trigger == "unvoteskip" || context.trigger == "unv") {
+        if (isUnvote) {
             if (voters == null) {
                 voters = HashSet()
             }
