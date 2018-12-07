@@ -26,8 +26,6 @@
 package fredboat.audio.player
 
 import com.google.common.collect.Lists
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
-import com.sedmelluq.discord.lavaplayer.tools.FriendlyException
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
 import com.sedmelluq.discord.lavaplayer.track.TrackMarker
@@ -41,7 +39,6 @@ import fredboat.sentinel.Guild
 import fredboat.util.TextUtils
 import lavalink.client.player.IPlayer
 import lavalink.client.player.LavalinkPlayer
-import lavalink.client.player.event.AudioEventAdapterWrapped
 import lavalink.client.player.event.PlayerEventListenerAdapter
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -264,12 +261,12 @@ abstract class AbstractPlayer internal constructor(
         player.link.destroy()
     }
 
-    override fun onTrackException(player: AudioPlayer?, track: AudioTrack, exception: FriendlyException?) {
+    override fun onTrackException(player: IPlayer?, track: AudioTrack, exception: Exception?) {
         log.error("Lavaplayer encountered an exception while playing {}",
                 track.identifier, exception)
     }
 
-    override fun onTrackStuck(player: AudioPlayer?, track: AudioTrack, thresholdMs: Long) {
+    override fun onTrackStuck(player: IPlayer?, track: AudioTrack, thresholdMs: Long) {
         log.error("Lavaplayer got stuck while playing {}",
                 track.identifier)
     }
