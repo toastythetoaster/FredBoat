@@ -6,19 +6,23 @@ import fredboat.config.idString
 import fredboat.config.property.AppConfig
 import fredboat.config.property.LavalinkConfig
 import fredboat.sentinel.Guild
+import fredboat.sentinel.GuildCache
 import fredboat.sentinel.Sentinel
-import fredboat.sentinel.getGuildMono
+import fredboat.util.DiscordUtil
 import lavalink.client.io.Lavalink
 import lavalink.client.io.metrics.LavalinkCollector
 import org.json.JSONObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.Duration
+import java.util.concurrent.TimeoutException
 
 @Suppress("ImplicitThis", "LeakingThis")
 @Service
 class SentinelLavalink(
         val sentinel: Sentinel,
+        val guildCache: GuildCache,
         val appConfig: AppConfig,
         lavalinkConfig: LavalinkConfig
 ) : Lavalink<SentinelLink>(
@@ -33,7 +37,6 @@ class SentinelLavalink(
         lateinit var INSTANCE: SentinelLavalink
         private const val DEFAULT_RESUME_TIMEOUT = 300 // 5 mins
         private val log: Logger = LoggerFactory.getLogger(SentinelLavalink::class.java)
-
     }
 
     init {
@@ -46,13 +49,21 @@ class SentinelLavalink(
     }
 
     override fun buildNewLink(guildId: String): SentinelLink {
-        getGuildMono(guildId.toLong()).subscribe { guild ->
+        val shardId = DiscordUtil.getShardId(guildId.toLong(), appConfig)
+        val shardMono = sentinel.tracker.awaitHello(shardId)
+        val guildMono = guildCache.getGuildMono(guildId.toLong()).doOnSuccess { guild ->
             if (guild == null) {
                 log.warn("Built link for non-existing guild. This should not happen.")
-                return@subscribe
+                return@doOnSuccess
             }
             playerRegistry.getOrCreate(guild).subscribe()
         }
+
+        shardMono.timeout(Duration.ofSeconds(120))
+                .onErrorMap(TimeoutException::class.java) {
+                    RuntimeException("Attempted to resume Lavalink, but Sentinel hello timed out")
+                }.then(guildMono)
+                .subscribe()
 
         return SentinelLink(this, guildId)
     }

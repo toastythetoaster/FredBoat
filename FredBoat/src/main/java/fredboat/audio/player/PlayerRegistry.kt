@@ -38,7 +38,7 @@ import fredboat.definitions.RepeatMode
 import fredboat.sentinel.Guild
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
-import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirst
 import lavalink.client.LavalinkUtil
 import lavalink.client.io.Link.State
 import org.slf4j.Logger
