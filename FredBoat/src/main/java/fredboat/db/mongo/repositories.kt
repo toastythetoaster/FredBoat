@@ -9,45 +9,40 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long> {
+interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long>
 
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(PlayerRepository::class.java)
-    }
+private val log: Logger = LoggerFactory.getLogger(PlayerRepository::class.java)
 
-    fun save(player: GuildPlayer): Mono<MongoPlayer> {
-        return save(player.toMongo())
-    }
-
-    fun saveAll(players: List<GuildPlayer>): Flux<MongoPlayer> {
-        val entities = players.mapNotNull {
-            try {
-                return@mapNotNull it.toMongo()
-            } catch (e: Exception) {
-                log.error("Problem saving player state", e)
-                return@mapNotNull null
-            }
-        }
-        return saveAll(entities)
-    }
-
-    private fun GuildPlayer.toMongo() = MongoPlayer(
-            guildId,
-            isPaused,
-            isShuffle,
-            isPlaying,
-            repeatMode.ordinal.toByte(),
-            volume,
-            playingTrack?.track?.position,
-            currentVoiceChannel?.id,
-            remainingTracks.map {
-                if (it is SplitAudioTrackContext) {
-                    MongoTrack(it.trackId, LavalinkUtil.toBinary(it.track), it.member.id, it.startPosition, it.endPosition, it.effectiveTitle)
-                } else {
-                    MongoTrack(it.trackId, LavalinkUtil.toBinary(it.track), it.member.id, null, null, it.effectiveTitle)
-                }
-            }
-    )
-
+fun PlayerRepository.convertAndSave(player: GuildPlayer): Mono<MongoPlayer> {
+    return save(player.toMongo())
 }
 
+fun PlayerRepository.convertAndSaveAll(players: List<GuildPlayer>): Flux<MongoPlayer> {
+    val entities = players.mapNotNull {
+        try {
+            return@mapNotNull it.toMongo()
+        } catch (e: Exception) {
+            log.error("Problem saving player state", e)
+            return@mapNotNull null
+        }
+    }
+    return saveAll(entities)
+}
+
+private fun GuildPlayer.toMongo() = MongoPlayer(
+        guildId,
+        isPaused,
+        isShuffle,
+        isPlaying,
+        repeatMode.ordinal.toByte(),
+        volume,
+        playingTrack?.track?.position,
+        currentVoiceChannel?.id,
+        remainingTracks.map {
+            if (it is SplitAudioTrackContext) {
+                MongoTrack(it.trackId, LavalinkUtil.toBinary(it.track), it.member.id, it.startPosition, it.endPosition, it.effectiveTitle)
+            } else {
+                MongoTrack(it.trackId, LavalinkUtil.toBinary(it.track), it.member.id, null, null, it.effectiveTitle)
+            }
+        }
+)

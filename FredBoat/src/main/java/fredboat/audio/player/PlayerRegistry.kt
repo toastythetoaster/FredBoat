@@ -33,6 +33,7 @@ import fredboat.config.property.AppConfig
 import fredboat.db.api.GuildConfigService
 import fredboat.db.mongo.MongoPlayer
 import fredboat.db.mongo.PlayerRepository
+import fredboat.db.mongo.convertAndSaveAll
 import fredboat.definitions.RepeatMode
 import fredboat.sentinel.Guild
 import fredboat.util.ratelimit.Ratelimiter
@@ -216,8 +217,8 @@ class PlayerRegistry(
     }
 
     private fun beforeShutdown() {
-        log.info("Running shutdown hook to save player state")
-        val count = playerRepo.saveAll(registry.values.toList())
+        log.info("Running shutdown hook to convertAndSave player state")
+        val count = playerRepo.convertAndSaveAll(registry.values.toList())
                 .count()
                 .block(Duration.ofMinutes(2))
         log.info("Saved $count player states")

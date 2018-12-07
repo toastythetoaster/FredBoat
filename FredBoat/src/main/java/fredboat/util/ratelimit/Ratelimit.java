@@ -140,7 +140,7 @@ public class Ratelimit {
             return true; //not expected to happen, let it slip in a user friendly way
         }
 
-        //synchronize on the individual rate objects since we are about to change and save them
+        //synchronize on the individual rate objects since we are about to change and convertAndSave them
         // we can use these to synchronize because they are backed by a cache, subsequent calls to fetch them
         // will return the same object
         //noinspection SynchronizationOnLocalVariableOrMethodParameter

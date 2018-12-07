@@ -3,6 +3,7 @@ package fredboat.agent
 import com.fredboat.sentinel.entities.GuildUnsubscribeRequest
 import fredboat.audio.player.PlayerRegistry
 import fredboat.db.mongo.PlayerRepository
+import fredboat.db.mongo.convertAndSave
 import fredboat.sentinel.GuildCache
 import fredboat.sentinel.InternalGuild
 import lavalink.client.io.Link
@@ -62,7 +63,7 @@ class GuildCacheInvalidationAgent(
 
     fun invalidateGuild(guild: InternalGuild) {
         val mono = playerRegistry.getExisting(guild)?.let {
-            playerRepository.save(it).timeout(Duration.ofSeconds(60))
+            playerRepository.convertAndSave(it).timeout(Duration.ofSeconds(60))
         } ?: Mono.empty()
         mono.subscribe {
             playerRegistry.destroyPlayer(guild)

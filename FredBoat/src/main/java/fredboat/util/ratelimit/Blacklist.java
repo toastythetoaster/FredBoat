@@ -104,7 +104,7 @@ public class Blacklist {
         long blacklistingLength = 0;
         BlacklistEntry blEntry = blacklistService.fetchBlacklistEntry(id);
 
-        //synchronize on the individual blacklist entries since we are about to change and save them
+        //synchronize on the individual blacklist entries since we are about to change and convertAndSave them
         // we can use these to synchronize because they are backed by a cache, subsequent calls to fetch them
         // will return the same object
         //noinspection SynchronizationOnLocalVariableOrMethodParameter
