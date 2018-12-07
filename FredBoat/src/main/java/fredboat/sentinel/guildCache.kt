@@ -5,7 +5,9 @@ import com.fredboat.sentinel.entities.GuildSubscribeRequest
 import com.google.common.cache.CacheBuilder
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.config.property.AppConfig
-import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired

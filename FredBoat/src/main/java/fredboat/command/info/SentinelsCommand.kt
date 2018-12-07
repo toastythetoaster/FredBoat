@@ -7,7 +7,7 @@ import fredboat.commandmeta.abs.IInfoCommand
 import fredboat.messaging.internal.Context
 import fredboat.sentinel.Sentinel
 import fredboat.util.MessageBuilder
-import kotlinx.coroutines.experimental.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitLast
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration

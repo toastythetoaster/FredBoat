@@ -44,8 +44,8 @@ import fredboat.util.TextUtils
 import fredboat.util.extension.addFooter
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.extension.escapeMarkdown
-import kotlinx.coroutines.experimental.reactive.awaitFirst
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitSingle
 import java.util.*
 
 class PermissionsCommand(

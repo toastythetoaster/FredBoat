@@ -36,7 +36,7 @@ import fredboat.perms.PermsUtil
 import fredboat.sentinel.Member
 import fredboat.util.ArgumentUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId

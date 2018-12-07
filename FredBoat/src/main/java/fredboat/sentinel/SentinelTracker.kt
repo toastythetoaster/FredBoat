@@ -6,8 +6,9 @@ import com.fredboat.sentinel.entities.SentinelHello
 import fredboat.agent.FredBoatAgent
 import fredboat.agent.HelloSender
 import fredboat.config.property.AppConfig
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.amqp.AmqpConnectException
@@ -33,7 +34,7 @@ class SentinelTracker(
         val time = SimpleDateFormat("dd-MM-yyyy-HH:mm:ss").format(Date.from(Instant.now()))
         val id = "FredBoat@$time"
 
-        val task = launch {
+        val task = GlobalScope.launch {
             log.info("Sending FredBoat hello")
             hello(id)
             delay(5000)

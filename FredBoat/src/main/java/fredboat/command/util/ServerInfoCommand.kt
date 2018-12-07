@@ -32,7 +32,7 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IUtilCommand
 import fredboat.messaging.internal.Context
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirst
 import java.time.format.DateTimeFormatter
 
 /**

@@ -8,7 +8,8 @@ import fredboat.testutil.config.RabbitConfig
 import fredboat.testutil.sentinel.CommandTester
 import fredboat.testutil.sentinel.SentinelState
 import fredboat.testutil.sentinel.delayUntil
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.junit.Assert.assertTrue
 import org.junit.jupiter.api.extension.*
 import org.slf4j.Logger
@@ -28,7 +29,7 @@ class SharedSpringContext : ParameterResolver, BeforeAllCallback, AfterEachCallb
         if (application != null) return // Don't start the application again
 
         log.info("Initializing test context")
-        launch { Launcher.main(emptyArray()) }
+        GlobalScope.launch { Launcher.main(emptyArray()) }
         var i = 0
         while (Launcher.instance == null) {
             sleep(1000)

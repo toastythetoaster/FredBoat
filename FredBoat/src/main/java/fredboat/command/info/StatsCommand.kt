@@ -39,7 +39,7 @@ import fredboat.sentinel.RawUser
 import fredboat.util.AppInfo
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import java.text.MessageFormat
 import java.util.*
 

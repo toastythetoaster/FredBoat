@@ -40,8 +40,9 @@ import fredboat.sentinel.User
 import fredboat.shared.constant.DistributionEnum
 import fredboat.util.ArgumentUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -214,7 +215,7 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
                 sink.success() // Unable to find user, already sent feedback
                 return@create
             }
-            launch {
+            GlobalScope.launch {
                 checkPreconditionWithFeedback(user!!, context)
                         .doOnError { sink.error(it) }
                         .subscribe { preconditionMet ->

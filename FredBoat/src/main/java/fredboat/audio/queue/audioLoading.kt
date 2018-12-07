@@ -126,7 +126,7 @@ class AudioLoader(private val ratelimiter: Ratelimiter, internal val trackProvid
 
     /**
      * this function needs to be updated if we add more manual playlist loaders
-     * currently it only covers the Hastebin and Spotify playlists
+     * currently it only covers the Wastebin and Spotify playlists
      *
      * @param identifier the very same identifier that the playlist loaders will be presented with if we asked them to
      * load a playlist

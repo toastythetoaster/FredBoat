@@ -33,7 +33,7 @@ import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.shared.constant.ExitCodes
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import java.time.Duration
 
 class BotRestartCommand(name: String, vararg aliases: String) : Command(name, *aliases), ICommandRestricted {

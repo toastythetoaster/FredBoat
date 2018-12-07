@@ -31,7 +31,7 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
-import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirst
 
 class LeaveServerCommand(name: String, vararg aliases: String) : Command(name, *aliases), ICommandRestricted {
 

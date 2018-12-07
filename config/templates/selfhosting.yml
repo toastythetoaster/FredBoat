@@ -9,8 +9,6 @@
 # quarterdeck.yml    - Quarterdeck config
 #
 
-# TODO: Switch to the stable branches once Sentinel is release, then rename this file back to the original
-
 ################################################################################
 ###                  Selfhosting FredBoat with docker-compose
 ################################################################################
@@ -35,16 +33,16 @@ services:
     #build: ./FredBoat/docker/database/ #useful alternative for developers
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
 
     # WINDOWS ONLY: if you are running under windows you need to comment out the following two lines:
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+    - ./postgres-data:/var/lib/postgresql/data
 
     # WINDOWS ONLY: if you are running under windows and want to take manual backups of the database
     # via a docker volume, uncomment the following two lines and read the snippet at the bottom of this file
     #volumes:
-      #- postgres-data-volume:/var/lib/postgresql/data
+    #- postgres-data-volume:/var/lib/postgresql/data
 
   ################################################################################
   ##                               RabbitMQ
@@ -62,15 +60,17 @@ services:
   ##                               Lavalink
   ################################################################################
   lavalink:
-    image: fredboat/lavalink:v3
+    image: fredboat/lavalink:master
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
     ports:
     - 127.0.01:2333:2333
     volumes:
-      - ./lavalink.yml:/opt/Lavalink/application.yaml
-      - ./lavalink_logs:/opt/Lavalink/logs
+    - ./lavalink.yml:/opt/Lavalink/application.yaml
+    - ./lavalink_logs:/opt/Lavalink/logs
+    # Need a bigger memory size or any other custom JVM args? Edit the line below accordingly
+    entrypoint: java -Xmx128m -jar Lavalink.jar
 
   ################################################################################
   ##                               Sentinel
@@ -79,14 +79,14 @@ services:
     image: fredboat/sentinel:dev
     restart: on-failure:3
     depends_on:
-      - rabbitmq
+    - rabbitmq
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
     volumes:
-      - ./sentinel_logs:/opt/sentinel/logs
-      - ./common.yml:/opt/sentinel/common.yml
+    - ./sentinel_logs:/opt/sentinel/logs
+    - ./common.yml:/opt/sentinel/common.yml
     environment:
-      - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
+    - "SPRING_RABBITMQ_ADDRESSES=amqp://guest:guest@rabbitmq"
     # Need a bigger memory size or any other custom JVM args? Uncomment and edit the line below accordingly
     #entrypoint: java -Xmx512m -jar sentinel.jar
 
@@ -99,26 +99,28 @@ services:
     # FredBoat selfhosting website and/or the selfhosters channel (see top of this file for how to get to these places)
     # Once you use the dev branch, you may not be able to go back to stable without deleting your database.
     # To run on (some) arm based machines, prepend the tag with arm64v8-, for example: fredboat/quarterdeck:arm64v8-dev-v1
-    #image: fredboat/quarterdeck:stable-v1
-    image: fredboat/quarterdeck:dev-v1
+    # NOTE: Don't use the dev-v1 build unless otherwise noted as it has breaking changes with the other builds.
+    #image: fredboat/quarterdeck:dev-v1
+    image: fredboat/quarterdeck:stable-v1
     restart: always
     labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    - "com.centurylinklabs.watchtower.enable=true"
     depends_on:
-      - db
-    volumes:
-      - ./quarterdeck.yml:/opt/Quarterdeck/quarterdeck.yaml
-      - ./quarterdeck_logs:/opt/Quarterdeck/logs
+    - db
     ports:
-     - 127.0.01:4269:4269
+    - 127.0.01:4269:4269
+    volumes:
+    - ./quarterdeck.yml:/opt/Quarterdeck/quarterdeck.yaml
+    - ./quarterdeck_logs:/opt/Quarterdeck/logs
+
     # Need a bigger memory size or any other custom JVM args? Edit the list below accordingly
     entrypoint:
-     - java
-     - -Xmx128m
-     - -jar
-     - Quarterdeck.jar
-     - >
-       --spring.application.json={"security": {"admins": [{"name": "docker", "pass": "docker"}]}}
+    - java
+    - -Xmx128m
+    - -jar
+    - Quarterdeck.jar
+    - >
+      --spring.application.json={"security": {"admins": [{"name": "docker", "pass": "docker"}]}}
 
   ################################################################################
   ##                               FredBoat

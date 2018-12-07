@@ -177,7 +177,7 @@ class GuildPlayer(
     private fun announceTrack(atc: AudioTrackContext) {
         if (repeatMode != RepeatMode.SINGLE && isTrackAnnounceEnabled && !isPaused) {
             val activeTextChannel = activeTextChannel
-            activeTextChannel?.send(atc.i18nFormat("trackAnnounce", atc.effectiveTitle.escapeAndDefuse()))
+            activeTextChannel?.send(atc.i18nFormat("trackAnnounce", atc.effectiveTitle.escapeAndDefuse(), atc.member.effectiveName.escapeAndDefuse()))
                     ?.subscribe()
         }
     }

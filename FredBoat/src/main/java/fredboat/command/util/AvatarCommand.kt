@@ -30,7 +30,7 @@ import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IUtilCommand
 import fredboat.messaging.internal.Context
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 
 class AvatarCommand(name: String, vararg aliases: String) : Command(name, *aliases), IUtilCommand {
 

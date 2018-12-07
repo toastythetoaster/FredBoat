@@ -43,7 +43,7 @@ import fredboat.messaging.internal.Context
 import fredboat.util.TextUtils
 import fredboat.util.extension.toDecimalString
 import fredboat.util.rest.YoutubeAPI
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import org.json.XML
 import java.awt.Color
 

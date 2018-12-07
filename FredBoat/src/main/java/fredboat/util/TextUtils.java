@@ -149,10 +149,6 @@ public class TextUtils {
                 .thenApply(json -> json.getString("key"));
     }
 
-    private static CompletionStage<String> postToHastebin(String body) {
-        return postToHasteBasedService("https://hastebin.com/documents", body);
-    }
-
     private static CompletionStage<String> postToWastebin(String body) {
         return postToHasteBasedService("https://wastebin.party/documents", body);
     }
@@ -167,23 +163,14 @@ public class TextUtils {
      * Optional return type
      */
     public static CompletionStage<Optional<String>> postToPasteService(String body) {
-        return postToHastebin(body)
-                .thenApply(key -> Optional.of("https://hastebin.com/" + key))
+        return postToWastebin(body)
+                .thenApply(key -> Optional.of("https://wastebin.party/" + key))
                 .exceptionally(t -> {
-                    log.info("Could not post to hastebin", t);
+                    log.error("Could not post to wastebin", t);
                     return Optional.empty();
                 })
                 .thenCompose(url -> {
-                    if (!url.isPresent()) {
-                        return postToWastebin(body)
-                                .thenApply(key -> Optional.of("https://wastebin.party/" + key))
-                                .exceptionally(t -> {
-                                    log.error("Could not post to wastebin either", t);
-                                    return Optional.empty();
-                                });
-                    } else {
-                        return CompletableFuture.completedFuture(url);
-                    }
+                    return CompletableFuture.completedFuture(url);
                 });
     }
 

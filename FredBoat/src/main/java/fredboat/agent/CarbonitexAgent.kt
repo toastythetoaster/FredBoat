@@ -31,8 +31,9 @@ import fredboat.config.property.Credentials
 import fredboat.main.BotController
 import fredboat.util.SentinelCountingService
 import fredboat.util.rest.Http
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
@@ -47,7 +48,7 @@ class CarbonitexAgent(
 ) : FredBoatAgent("carbonitex", 30, TimeUnit.MINUTES) {
 
     public override fun doRun() {
-        async {
+        GlobalScope.launch {
             sendStats()
         }
     }
