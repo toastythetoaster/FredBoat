@@ -25,10 +25,12 @@
 
 package fredboat.feature.metrics.collectors
 
+import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.feature.metrics.BotMetrics
 import io.prometheus.client.Collector
 import io.prometheus.client.CounterMetricFamily
 import io.prometheus.client.GaugeMetricFamily
+import lavalink.client.io.Link
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -39,7 +41,8 @@ import java.util.*
  */
 @Component
 class FredBoatCollector(
-        private val botMetrics: BotMetrics
+        private val botMetrics: BotMetrics,
+        private val ll: SentinelLavalink
 ) : Collector() {
 
     private var lastEntityCountHash = 0
@@ -90,6 +93,15 @@ class FredBoatCollector(
             dockerPulls.addMetric(Arrays.asList("total", "Bot"), dockerStats.dockerPullsBot.toDouble())
             dockerPulls.addMetric(Arrays.asList("total", "Db"), dockerStats.dockerPullsDb.toDouble())
         }
+
+        val linkStateGauge = GaugeMetricFamily("lavalink_link_states",
+                "Number of Lavalink Links in different states", listOf("state"))
+        val statesMap = Link.State.values().associate { it to 0 }.toMutableMap()
+        ll.links.forEach { statesMap[it.state] = statesMap[it.state]!! + 1 }
+        statesMap.forEach { state, count ->
+            linkStateGauge.addMetric(listOf(state.name), count.toDouble())
+        }
+        mfs.add(linkStateGauge)
 
         return mfs
     }
