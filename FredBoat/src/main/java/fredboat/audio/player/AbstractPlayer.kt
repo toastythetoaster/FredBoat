@@ -39,8 +39,10 @@ import fredboat.audio.queue.TrackEndMarkerHandler
 import fredboat.commandmeta.MessagingException
 import fredboat.sentinel.Guild
 import fredboat.util.TextUtils
+import lavalink.client.player.IPlayer
 import lavalink.client.player.LavalinkPlayer
 import lavalink.client.player.event.AudioEventAdapterWrapped
+import lavalink.client.player.event.PlayerEventListenerAdapter
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -50,7 +52,7 @@ abstract class AbstractPlayer internal constructor(
         lavalink: SentinelLavalink,
         internal val audioTrackProvider: ITrackProvider,
         guild: Guild
-) : AudioEventAdapterWrapped() {
+) : PlayerEventListenerAdapter() {
 
     val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
     protected var context: AudioTrackContext? = null
@@ -197,7 +199,7 @@ abstract class AbstractPlayer internal constructor(
         }
     }
 
-    override fun onTrackEnd(player: AudioPlayer?, track: AudioTrack?, endReason: AudioTrackEndReason?) {
+    override fun onTrackEnd(player: IPlayer?, track: AudioTrack?, endReason: AudioTrackEndReason?) {
         log.debug("onTrackEnd({} {} {}) called", track!!.info.title, endReason!!.name, endReason.mayStartNext)
 
         if (endReason == AudioTrackEndReason.FINISHED || endReason == AudioTrackEndReason.STOPPED) {
