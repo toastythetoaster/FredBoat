@@ -27,18 +27,20 @@ class SentinelLavalink(
 ) {
 
     lateinit var playerRegistry: PlayerRegistry
+    private val resumeKey = "fredboat-${sentinel.selfUser.idString}"
 
     companion object {
         lateinit var INSTANCE: SentinelLavalink
         private const val DEFAULT_RESUME_TIMEOUT = 300 // 5 mins
         private val log: Logger = LoggerFactory.getLogger(SentinelLavalink::class.java)
+
     }
 
     init {
         INSTANCE = this
         lavalinkConfig.nodes.forEach {
-            addNode(it.name, it.uri, it.password)
-                    .setResuming("fredboat-${sentinel.selfUser.idString}", DEFAULT_RESUME_TIMEOUT)
+            addNode(it.name, it.uri, it.password, resumeKey)
+                    .setResuming(resumeKey, DEFAULT_RESUME_TIMEOUT)
         }
         LavalinkCollector(this).register<LavalinkCollector>()
     }
