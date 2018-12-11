@@ -179,6 +179,7 @@ class PlayerRegistry(
         }
     }.doOnSuccess {
         registry[it.guildId] = it
+        it.player.link.releaseHeldEvents()
     }.doFinally {
         monoCache.remove(guild.id)
     }
@@ -211,9 +212,10 @@ class PlayerRegistry(
             }
         }
 
-        // Optionally set current track position
-        if (mongo.position != null && queue.isNotEmpty()) {
-            queue[0].track.position = mongo.position
+        if (queue.isNotEmpty()) {
+            player.player.explicitlySetTrack(queue[0].track)
+            // Optionally set current track position
+            if (mongo.position != null) queue[0].track.position = mongo.position
         }
 
         player.loadAll(queue)

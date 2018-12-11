@@ -41,6 +41,7 @@ class SentinelLavalink(
 
     init {
         INSTANCE = this
+        setHoldEvents(true)
         lavalinkConfig.nodes.forEach {
             addNode(it.name, it.uri, it.password, resumeKey)
                     .setResuming(resumeKey, DEFAULT_RESUME_TIMEOUT)
