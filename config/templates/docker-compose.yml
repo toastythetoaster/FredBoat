@@ -25,7 +25,7 @@ version: '3' # This is not the FredBoat version, do not touch this line.
 services:
 
   ################################################################################
-  ##                               Database
+  ##                                   Database
   ################################################################################
   db:
     image: fredboat/postgres:latest
@@ -45,7 +45,7 @@ services:
     #- postgres-data-volume:/var/lib/postgresql/data
 
   ################################################################################
-  ##                               RabbitMQ
+  ##                                   RabbitMQ
   ################################################################################
   rabbitmq:
     image: rabbitmq:3-management
@@ -57,7 +57,7 @@ services:
      - "com.centurylinklabs.watchtower.enable=true"
 
   ################################################################################
-  ##                               Lavalink
+  ##                                   Lavalink
   ################################################################################
   lavalink:
     image: fredboat/lavalink:master
@@ -73,7 +73,7 @@ services:
     entrypoint: java -Xmx128m -jar Lavalink.jar
 
   ################################################################################
-  ##                               Sentinel
+  ##                                   Sentinel
   ################################################################################
   sentinel:
     image: fredboat/sentinel:dev
@@ -91,7 +91,7 @@ services:
     #entrypoint: java -Xmx512m -jar sentinel.jar
 
   ################################################################################
-  ##                     Quarterdeck (Database Backend)
+  ##                           Quarterdeck (Database Backend)
   ################################################################################
   quarterdeck:
     # versions (example: v2) receive continous non-breaking (best effort) updates via watchtower. switching between versions
@@ -122,7 +122,17 @@ services:
        --spring.application.json={"security": {"admins": [{"name": "docker", "pass": "docker"}]}}
 
   ################################################################################
-  ##                         Automatic updates
+  ##                                   MongoDB
+  ################################################################################
+  mongo:
+    image: mongo:latest
+    ports:
+      - 127.0.0.1:27017:27017
+    volumes:
+      - ./mongo:/data/db"
+
+  ################################################################################
+  ##                              Automatic updates
   ################################################################################
   # if you want automatic updates, uncomment the watchtower lines below
   # watchtower is not yet officially available for arm64v8. See https://github.com/v2tec/watchtower/pull/178 for progress
@@ -139,7 +149,7 @@ services:
 
 
   ################################################################################
-  ##                         Windows stuff
+  ##                                Windows stuff
   ################################################################################
 
 # WINDOWS ONLY: If you are running on Windows and want to be able to backup the postgres data volume, run
