@@ -224,6 +224,10 @@ abstract class AbstractPlayer internal constructor(
     }
 
     private fun updateHistoryQueue() {
+        if (lastLoadedTrack == null) {
+            log.warn("No lastLoadedTrack in $this after track end")
+            return
+        }
         if (historyQueue.size == MAX_HISTORY_SIZE) {
             historyQueue.poll()
         }
