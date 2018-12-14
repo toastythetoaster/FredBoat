@@ -197,7 +197,7 @@ class PlayerRegistry(
             player.volume = mongo.volume
         }
 
-        val queue = mongo.queue.mapNotNull { track ->
+        var queue = mongo.queue.mapNotNull { track ->
             try {
                 val at = LavalinkUtil.toAudioTrack(track.blob)
                 val member = guild.getMember(track.requester) ?: guild.selfMember
@@ -213,7 +213,8 @@ class PlayerRegistry(
         }
 
         if (queue.isNotEmpty()) {
-            val atc = queue[0]
+            queue = queue.toMutableList()
+            val atc = queue.removeAt(0)
             player.player.explicitlySetTrack(atc.track)
             player.internalContext = atc
             // Optionally set current track position
