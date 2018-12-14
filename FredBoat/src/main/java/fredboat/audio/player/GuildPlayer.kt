@@ -25,7 +25,6 @@
 
 package fredboat.audio.player
 
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.lavalink.SentinelLavalink
@@ -43,6 +42,7 @@ import fredboat.sentinel.*
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import lavalink.client.player.IPlayer
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import org.bson.types.ObjectId
@@ -81,7 +81,7 @@ class GuildPlayer(
         get() {
             var millis = audioTrackProvider.durationMillis
 
-            val currentTrack = if (player.playingTrack != null) context else null
+            val currentTrack = if (player.playingTrack != null) internalContext else null
             if (currentTrack != null && !currentTrack.track.info.isStream) {
                 millis += Math.max(0, currentTrack.effectiveDuration - position)
             }
@@ -92,7 +92,7 @@ class GuildPlayer(
     val streamsCount: Long
         get() {
             var streams = audioTrackProvider.streamsCount().toLong()
-            val atc = if (player.playingTrack != null) context else null
+            val atc = if (player.playingTrack != null) internalContext else null
             if (atc != null && atc.track.info.isStream) streams++
             return streams
         }
@@ -291,7 +291,7 @@ class GuildPlayer(
 
         if (player.playingTrack != null) {
             if (start_ <= 0) {
-                result.add(context!!)
+                result.add(internalContext!!)
                 end_--//shorten the requested range by 1, but still start at 0, since that's the way the trackprovider counts its tracks
             } else {
                 //dont add the currently playing track, drop the args by one since the "first" track is currently playing
@@ -372,7 +372,7 @@ class GuildPlayer(
         var skipCurrentTrack = false
 
         val toRemove = ArrayList<ObjectId>()
-        val playing = if (player.playingTrack != null) context else null
+        val playing = if (player.playingTrack != null) internalContext else null
         for (trackId in trackIds) {
             if (playing != null && trackId == playing.trackId) {
                 //Should be skipped last, in respect to PlayerEventListener
@@ -387,7 +387,7 @@ class GuildPlayer(
         if (skipCurrentTrack) skip()
     }
 
-    override fun onTrackStart(player: AudioPlayer?, track: AudioTrack?) {
+    override fun onTrackStart(player: IPlayer?, track: AudioTrack?) {
         voteSkipCleanup()
         super.onTrackStart(player, track)
     }

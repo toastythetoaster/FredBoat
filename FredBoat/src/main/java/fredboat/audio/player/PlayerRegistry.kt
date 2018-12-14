@@ -213,9 +213,11 @@ class PlayerRegistry(
         }
 
         if (queue.isNotEmpty()) {
-            player.player.explicitlySetTrack(queue[0].track)
+            val atc = queue[0]
+            player.player.explicitlySetTrack(atc.track)
+            player.internalContext = atc
             // Optionally set current track position
-            if (mongo.position != null) queue[0].track.position = mongo.position
+            if (mongo.position != null) atc.track.position = mongo.position
         }
 
         player.loadAll(queue)

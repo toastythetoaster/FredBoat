@@ -52,7 +52,7 @@ abstract class AbstractPlayer internal constructor(
 ) : PlayerEventListenerAdapter() {
 
     val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
-    protected var context: AudioTrackContext? = null
+    var internalContext: AudioTrackContext? = null
 
     internal var onPlayHook: Consumer<AudioTrackContext>? = null
     internal var onErrorHook: Consumer<Throwable>? = null
@@ -82,9 +82,9 @@ abstract class AbstractPlayer internal constructor(
         get() {
             log.trace("getPlayingTrack()")
 
-            return if (player.playingTrack == null && context == null) {
+            return if (player.playingTrack == null && internalContext == null) {
                 audioTrackProvider.peek()
-            } else context
+            } else internalContext
         }
 
     //the unshuffled playlist
@@ -180,7 +180,7 @@ abstract class AbstractPlayer internal constructor(
     fun stopTrack() {
         log.trace("stopTrack()")
 
-        context = null
+        internalContext = null
         player.stopTrack()
     }
 
@@ -239,7 +239,7 @@ abstract class AbstractPlayer internal constructor(
     private fun playTrack(trackContext: AudioTrackContext, silent: Boolean = false) {
         log.trace("playTrack({})", trackContext.effectiveTitle)
 
-        context = trackContext
+        internalContext = trackContext
         player.playTrack(trackContext.track)
         trackContext.track.position = trackContext.startPosition
 
@@ -272,10 +272,10 @@ abstract class AbstractPlayer internal constructor(
     }
 
     fun seekTo(position: Long) {
-        if (context!!.track.isSeekable) {
+        if (internalContext!!.track.isSeekable) {
             player.seekTo(position)
         } else {
-            throw MessagingException(context!!.i18n("seekDeniedLiveTrack"))
+            throw MessagingException(internalContext!!.i18n("seekDeniedLiveTrack"))
         }
     }
 }
