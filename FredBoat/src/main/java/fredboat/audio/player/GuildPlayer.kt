@@ -28,6 +28,7 @@ package fredboat.audio.player
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.lavalink.SentinelLavalink
+import fredboat.audio.lavalink.SentinelLink
 import fredboat.audio.queue.*
 import fredboat.command.music.control.VoteSkipCommand
 import fredboat.commandmeta.MessagingException
@@ -155,30 +156,17 @@ class GuildPlayer(
         onPlayHook = Consumer { this.announceTrack(it) }
         onErrorHook = Consumer { this.handleError(it) }
 
-        audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager,
-                this, youtubeAPI)
-
-        // If FredBoat just restarted, we will want to reconnect the link
-        val iGuild = guild as InternalGuild
-        val vsu = iGuild.cachedVsu
-        iGuild.cachedVsu = null
-        if (vsu != null) {
-            player.link.onVoiceServerUpdate(JSONObject(vsu.raw), vsu.sessionId)
-            log.info("Using cached VOICE_SERVER_UPDATE for $guild")
-
-            val vc = guild.selfMember.voiceChannel
-            if (vc == null)
-                log.warn("Using cached VOICE_SERVER_UPDATE, but it doesn't appear like we are in a voice channel!")
-            else
-                player.link.setChannel(vc.idString)
-        }
+        audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager, this, youtubeAPI)
     }
 
     private fun announceTrack(atc: AudioTrackContext) {
         if (repeatMode != RepeatMode.SINGLE && isTrackAnnounceEnabled && !isPaused) {
             val activeTextChannel = activeTextChannel
-            activeTextChannel?.send(atc.i18nFormat("trackAnnounce", atc.effectiveTitle.escapeAndDefuse(), atc.member.effectiveName.escapeAndDefuse()))
-                    ?.subscribe()
+            activeTextChannel?.send(atc.i18nFormat(
+                    "trackAnnounce",
+                    atc.effectiveTitle.escapeAndDefuse(),
+                    atc.member.effectiveName.escapeAndDefuse()
+            ))?.subscribe()
         }
     }
 
@@ -400,5 +388,28 @@ class GuildPlayer(
 
     private fun voteSkipCleanup() {
         VoteSkipCommand.guildSkipVotes.remove(guildId)
+    }
+
+    /**
+     * Invoked when subscribing to this player's guild, with an already existing guild
+     */
+    fun linkPostProcess() {
+        val iGuild = guild as InternalGuild
+        val vsu = iGuild.cachedVsu
+        val slink = player.link as SentinelLink
+        if (vsu != null) {
+            iGuild.cachedVsu = null
+            slink.onVoiceServerUpdate(JSONObject(vsu.raw), vsu.sessionId)
+            log.info("Using cached VOICE_SERVER_UPDATE for $guild")
+
+            val vc = guild.selfMember.voiceChannel
+            if (vc == null)
+                log.warn("Using cached VOICE_SERVER_UPDATE, but it doesn't appear like we are in a voice channel!")
+            else
+                slink.setChannel(vc.idString)
+        } else {
+            val vc = slink.getChannel(guild) ?: return
+            slink.connect(vc, skipIfSameChannel = false)
+        }
     }
 }

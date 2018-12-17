@@ -125,9 +125,17 @@ class InternalGuild(raw: RawGuild) : Guild(raw) {
     init {
         update(raw)
         cachedVsu = raw.voiceServerUpdate // Must only be set on subscribing, unless setting to null
-        // Any old GuildPlayer needs to be aware of the new guild object
-        val player: GuildPlayer? = getBotController().playerRegistry.getExisting(this)
-        if (player != null) player.guild = this
+        try {
+            // Any old GuildPlayer needs to be aware of the new guild object
+            val player: GuildPlayer? = getBotController().playerRegistry.getExisting(this)
+            if (player != null) {
+                player.guild = this
+                player.linkPostProcess()
+            }
+        } catch (e: Exception) {
+            log.error("Failed to update GuildPlayer after subscribe", e)
+        }
+
         if (raw.voiceServerUpdate != null) log.info("Received cached VSU for $this")
     }
 
