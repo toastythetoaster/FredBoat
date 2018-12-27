@@ -5,8 +5,8 @@ import fredboat.audio.player.PlayerRegistry
 import fredboat.sentinel.getGuildMono
 import fredboat.testutil.IntegrationTest
 import fredboat.testutil.sentinel.Raws
-import kotlinx.coroutines.experimental.reactive.awaitFirst
-import kotlinx.coroutines.experimental.runBlocking
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.mockito.Mockito
 import reactor.test.StepVerifier
@@ -23,7 +23,6 @@ class PlayerRegistryTest : IntegrationTest() {
         }
 
     @Test
-    @Suppress("BlockingMethodInNonBlockingContext")
     fun testLazyMono(playerRegistry: PlayerRegistry) {
         val guild = runBlocking {
             getGuildMono(Raws.guild.id).awaitFirst()!!
