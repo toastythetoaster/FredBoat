@@ -41,6 +41,9 @@ public enum FeatureFlags implements Feature {
     @Label("Force soundcloud search instead of youtube")
     FORCE_SOUNDCLOUD_SEARCH,
 
+    @Label("Count active users on a monthly, weekly, and daily basis")
+    INSTRUMENT_ACTIVE_USERS
+
     ;
 
     public boolean isActive() {

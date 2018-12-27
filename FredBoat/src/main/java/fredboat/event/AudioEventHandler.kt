@@ -20,8 +20,13 @@ class AudioEventHandler(
 
     override fun onVoiceJoin(channel: VoiceChannel, member: Member) {
         checkForAutoResume(channel, member)
-        if (!member.isUs) return
-        getLink(channel).setChannel(channel.id.toString())
+
+        if (member.isUs) {
+            getLink(channel).setChannel(channel.id.toString())
+        } else if (member.guild.guildPlayer?.isPlaying == true &&
+                member.guild.guildPlayer?.currentVoiceChannel == member.voiceChannel) {
+            lavalink.activityMetrics.logListener(member)
+        }
     }
 
     override fun onVoiceLeave(channel: VoiceChannel, member: Member) {

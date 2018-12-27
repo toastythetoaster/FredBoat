@@ -412,4 +412,8 @@ class GuildPlayer(
             slink.connect(vc, skipIfSameChannel = false)
         }
     }
+
+    override fun logListeners() {
+        humanUsersInCurrentVC.forEach { lavalink.activityMetrics.logListener(it) }
+    }
 }

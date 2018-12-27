@@ -5,11 +5,13 @@ import fredboat.audio.queue.SplitAudioTrackContext
 import lavalink.client.LavalinkUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.data.annotation.Id
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long>
+interface ActivityRepository : ReactiveCrudRepository<Activity, Long>
 
 private val log: Logger = LoggerFactory.getLogger(PlayerRepository::class.java)
 
@@ -46,3 +48,13 @@ private fun GuildPlayer.toMongo() = MongoPlayer(
             }
         }
 )
+
+class Activity(
+        @Id
+        val id: Long,
+        val listenerDays: List<Int>
+) {
+    constructor(id: Long, day: Int) : this(id, listOf(day))
+}
+
+

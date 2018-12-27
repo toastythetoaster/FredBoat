@@ -5,6 +5,7 @@ import fredboat.audio.player.PlayerRegistry
 import fredboat.config.idString
 import fredboat.config.property.AppConfig
 import fredboat.config.property.LavalinkConfig
+import fredboat.db.mongo.ActivityMetricsController
 import fredboat.sentinel.Guild
 import fredboat.sentinel.GuildCache
 import fredboat.sentinel.Sentinel
@@ -24,6 +25,7 @@ class SentinelLavalink(
         val sentinel: Sentinel,
         val guildCache: GuildCache,
         val appConfig: AppConfig,
+        val activityMetrics: ActivityMetricsController,
         lavalinkConfig: LavalinkConfig
 ) : Lavalink<SentinelLink>(
         sentinel.selfUser.idString,
