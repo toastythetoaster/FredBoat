@@ -1,5 +1,6 @@
 package fredboat.db.mongo
 
+import fredboat.feature.togglz.FeatureFlags
 import fredboat.sentinel.Member
 import io.netty.util.internal.ConcurrentSet
 import org.slf4j.Logger
@@ -39,6 +40,7 @@ class ActivityMetricsController(val repo: ActivityRepository) {
     }
 
     fun logListener(member: Member) {
+        if (!FeatureFlags.INSTRUMENT_ACTIVE_USERS.isActive) return
         if (member.isBot) return
         val id = member.id
         val day = currentDay.toInt()
@@ -54,6 +56,8 @@ class ActivityMetricsController(val repo: ActivityRepository) {
     }
 
     fun dailyTask() {
+        if (!FeatureFlags.INSTRUMENT_ACTIVE_USERS.isActive) return
+
         val day = currentDay.toInt() - 1
         val week = (day - 6) until day
         val month = (day - 29) until day
