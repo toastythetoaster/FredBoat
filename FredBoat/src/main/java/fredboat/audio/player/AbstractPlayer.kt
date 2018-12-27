@@ -129,6 +129,7 @@ abstract class AbstractPlayer internal constructor(
             player.isPaused = false
         }
         if (player.playingTrack == null) {
+            logListeners()
             loadAndPlay()
         }
 
@@ -282,4 +283,6 @@ abstract class AbstractPlayer internal constructor(
             throw MessagingException(internalContext!!.i18n("seekDeniedLiveTrack"))
         }
     }
+
+    abstract fun logListeners()
 }
