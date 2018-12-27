@@ -28,6 +28,7 @@ import com.fredboat.sentinel.entities.LifecycleEventEnum.*
 import com.fredboat.sentinel.entities.ShardLifecycleEvent
 import fredboat.agent.GuildCacheInvalidationAgent
 import fredboat.audio.player.PlayerRegistry
+import fredboat.audio.player.voiceChannel
 import fredboat.config.property.AppConfig
 import fredboat.sentinel.Guild
 import fredboat.sentinel.GuildCache
@@ -105,7 +106,7 @@ class ShardLifecycleHandler(
             channelsToRejoin[shardId] = playerRegistry.playingPlayers.stream()
                     .filter { DiscordUtil.getShardId(it.guildId, appConfig) == shardId }
                     .flatMap {
-                        val channel = it.currentVoiceChannel ?: return@flatMap Stream.empty<ChannelReference>()
+                        val channel = it.voiceChannel ?: return@flatMap Stream.empty<ChannelReference>()
                         return@flatMap Stream.of(ChannelReference(channel.guild, channel.id))
                     }.toList().toMutableList()
         } catch (ex: Exception) {

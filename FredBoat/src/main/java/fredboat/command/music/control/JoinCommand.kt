@@ -25,6 +25,7 @@
 
 package fredboat.command.music.control
 
+import fredboat.audio.player.joinChannel
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted

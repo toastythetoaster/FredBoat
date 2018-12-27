@@ -25,6 +25,7 @@
 
 package fredboat.command.admin
 
+import fredboat.audio.player.voiceChannel
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
@@ -101,7 +102,7 @@ class EvalCommand(
             engine.put("players", Launcher.botController.playerRegistry)
             engine.put("link", (player.player as LavalinkPlayer?)?.link)
             engine.put("lavalink", player.lavalink)
-            engine.put("vc", player.currentVoiceChannel)
+            engine.put("vc", player.voiceChannel)
             engine.put("author", member)
             engine.put("invoker", member)
             engine.put("bot", guild.selfMember)

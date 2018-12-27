@@ -3,6 +3,9 @@ package fredboat.event
 import com.fredboat.sentinel.entities.VoiceServerUpdate
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.player.PlayerRegistry
+import fredboat.audio.player.getHumanUsersInVC
+import fredboat.audio.player.humanUsersInCurrentVC
+import fredboat.audio.player.voiceChannel
 import fredboat.config.property.AppConfig
 import fredboat.db.api.GuildConfigService
 import fredboat.feature.I18n
@@ -24,7 +27,7 @@ class AudioEventHandler(
         if (member.isUs) {
             getLink(channel).setChannel(channel.id.toString())
         } else if (member.guild.guildPlayer?.isPlaying == true &&
-                member.guild.guildPlayer?.currentVoiceChannel == member.voiceChannel) {
+                member.guild.guildPlayer?.voiceChannel == member.voiceChannel) {
             lavalink.activityMetrics.logListener(member)
         }
     }
@@ -53,7 +56,7 @@ class AudioEventHandler(
         val player = playerRegistry.getExisting(channelLeft.guild.id) ?: return
 
         //are we in the channel that someone left from?
-        val currentVc = player.currentVoiceChannel
+        val currentVc = player.voiceChannel
         if (currentVc != null && currentVc.id != channelLeft.id) {
             return
         }

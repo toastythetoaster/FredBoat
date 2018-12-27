@@ -25,7 +25,7 @@
 
 package fredboat.command.music.control
 
-import fredboat.audio.player.GuildPlayer
+import fredboat.audio.player.*
 import fredboat.command.info.HelpCommand
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext

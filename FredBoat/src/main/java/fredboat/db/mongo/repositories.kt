@@ -1,6 +1,7 @@
 package fredboat.db.mongo
 
 import fredboat.audio.player.GuildPlayer
+import fredboat.audio.player.voiceChannel
 import fredboat.audio.queue.SplitAudioTrackContext
 import lavalink.client.LavalinkUtil
 import org.slf4j.Logger
@@ -39,7 +40,7 @@ private fun GuildPlayer.toMongo() = MongoPlayer(
         repeatMode.ordinal.toByte(),
         volume,
         playingTrack?.track?.position,
-        currentVoiceChannel?.id,
+        voiceChannel?.id,
         remainingTracks.map {
             if (it is SplitAudioTrackContext) {
                 MongoTrack(it.trackId, LavalinkUtil.toBinary(it.track), it.member.id, it.startPosition, it.endPosition, it.effectiveTitle)

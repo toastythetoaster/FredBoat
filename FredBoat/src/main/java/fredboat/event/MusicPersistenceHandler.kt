@@ -34,6 +34,8 @@ import com.sedmelluq.discord.lavaplayer.tools.io.MessageOutput
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.player.MusicTextChannelProvider
 import fredboat.audio.player.PlayerRegistry
+import fredboat.audio.player.joinChannel
+import fredboat.audio.player.voiceChannel
 import fredboat.audio.queue.AudioTrackContext
 import fredboat.audio.queue.SplitAudioTrackContext
 import fredboat.config.property.AppConfig
@@ -127,7 +129,7 @@ class MusicPersistenceHandler(private val playerRegistry: PlayerRegistry, privat
                 }
 
                 val data = JSONObject()
-                val vc = player.currentVoiceChannel
+                val vc = player.voiceChannel
                 data.put("vc", vc?.id ?: 0)
                 data.put("tc", activeTextChannel?.id ?: 0)
                 data.put("isPaused", player.isPaused)

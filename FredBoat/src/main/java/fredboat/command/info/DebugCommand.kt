@@ -29,6 +29,9 @@ import com.fredboat.sentinel.entities.Embed
 import com.fredboat.sentinel.entities.coloredEmbed
 import com.fredboat.sentinel.entities.field
 import fredboat.audio.player.GuildPlayer
+import fredboat.audio.player.humanUsersInCurrentVC
+import fredboat.audio.player.trackCount
+import fredboat.audio.player.voiceChannel
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
@@ -88,7 +91,7 @@ class DebugCommand(name: String, vararg aliases: String) : Command(name, *aliase
         title = "**VoiceChannel Debug**"
         body = "Current vc: null"
 
-        val vc = player.currentVoiceChannel
+        val vc = player.voiceChannel
         if (vc != null) {
             val vcUsers = player.humanUsersInCurrentVC
             val str = StringBuilder()
