@@ -70,8 +70,8 @@ class GuildPlayer(
         youtubeAPI: YoutubeAPI
 ) : PlayerEventListenerAdapter() {
 
-    private val audioLoader: AudioLoader
     private val audioTrackProvider: ITrackProvider = SimpleTrackProvider()
+    private val audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager, this, youtubeAPI)
     val guildId = guild.id
     val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
     var internalContext: AudioTrackContext? = null
@@ -168,12 +168,64 @@ class GuildPlayer(
             return enabled
         }
 
+    val isQueueEmpty: Boolean
+        get() {
+            log.trace("isQueueEmpty()")
+
+            return player.playingTrack == null && audioTrackProvider.isEmpty
+        }
+
+    val trackCountInHistory: Int
+        get() = historyQueue.size
+
+    val isHistoryQueueEmpty: Boolean
+        get() = historyQueue.isEmpty()
+
+    val playingTrack: AudioTrackContext?
+        get() {
+            log.trace("getPlayingTrack()")
+
+            return if (player.playingTrack == null && internalContext == null) {
+                audioTrackProvider.peek()
+            } else internalContext
+        }
+
+    //the unshuffled playlist
+    //Includes currently playing track, which comes first
+    val remainingTracks: List<AudioTrackContext>
+        get() {
+            log.trace("getRemainingTracks()")
+            val list = ArrayList<AudioTrackContext>()
+            val atc = playingTrack
+            if (atc != null) {
+                list.add(atc)
+            }
+
+            list.addAll(audioTrackProvider.asList)
+            return list
+        }
+
+    var volume: Float
+        get() = player.volume.toFloat() / 100
+        set(vol) {
+            player.volume = (vol * 100).toInt()
+        }
+
+    val isPlaying: Boolean
+        get() = player.playingTrack != null && !player.isPaused
+
+    val isPaused: Boolean
+        get() = player.isPaused
+
+    val position: Long
+        get() = player.trackPosition
+
     init {
         log.debug("Constructing GuildPlayer({})", guild)
         onPlayHook = Consumer { this.announceTrack(it) }
         onErrorHook = Consumer { this.handleError(it) }
-
-        audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager, this, youtubeAPI)
+        @Suppress("LeakingThis")
+        player.addListener(this)
     }
 
     private fun announceTrack(atc: AudioTrackContext) {
@@ -430,63 +482,6 @@ class GuildPlayer(
             val vc = slink.getChannel(guild) ?: return
             slink.connect(vc, skipIfSameChannel = false)
         }
-    }
-
-    val isQueueEmpty: Boolean
-        get() {
-            log.trace("isQueueEmpty()")
-
-            return player.playingTrack == null && audioTrackProvider.isEmpty
-        }
-
-    val trackCountInHistory: Int
-        get() = historyQueue.size
-
-    val isHistoryQueueEmpty: Boolean
-        get() = historyQueue.isEmpty()
-
-    val playingTrack: AudioTrackContext?
-        get() {
-            log.trace("getPlayingTrack()")
-
-            return if (player.playingTrack == null && internalContext == null) {
-                audioTrackProvider.peek()
-            } else internalContext
-        }
-
-    //the unshuffled playlist
-    //Includes currently playing track, which comes first
-    val remainingTracks: List<AudioTrackContext>
-        get() {
-            log.trace("getRemainingTracks()")
-            val list = ArrayList<AudioTrackContext>()
-            val atc = playingTrack
-            if (atc != null) {
-                list.add(atc)
-            }
-
-            list.addAll(audioTrackProvider.asList)
-            return list
-        }
-
-    var volume: Float
-        get() = player.volume.toFloat() / 100
-        set(vol) {
-            player.volume = (vol * 100).toInt()
-        }
-
-    val isPlaying: Boolean
-        get() = player.playingTrack != null && !player.isPaused
-
-    val isPaused: Boolean
-        get() = player.isPaused
-
-    val position: Long
-        get() = player.trackPosition
-
-    init {
-        @Suppress("LeakingThis")
-        player.addListener(this)
     }
 
     fun play() {
