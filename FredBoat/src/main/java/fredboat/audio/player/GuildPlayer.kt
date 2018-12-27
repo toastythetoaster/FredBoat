@@ -25,8 +25,11 @@
 
 package fredboat.audio.player
 
+import com.google.common.collect.Lists
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
+import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason
+import com.sedmelluq.discord.lavaplayer.track.TrackMarker
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.lavalink.SentinelLink
 import fredboat.audio.queue.*
@@ -40,16 +43,20 @@ import fredboat.feature.I18n
 import fredboat.perms.Permission
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.*
+import fredboat.util.TextUtils
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
 import lavalink.client.player.IPlayer
+import lavalink.client.player.LavalinkPlayer
+import lavalink.client.player.event.PlayerEventListenerAdapter
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import org.bson.types.ObjectId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.Consumer
 import kotlin.streams.toList
 
@@ -61,13 +68,23 @@ class GuildPlayer(
         private val guildConfigService: GuildConfigService,
         ratelimiter: Ratelimiter,
         youtubeAPI: YoutubeAPI
-) : AbstractPlayer(lavalink, SimpleTrackProvider(), guild) {
+) : PlayerEventListenerAdapter() {
 
     private val audioLoader: AudioLoader
+    private val audioTrackProvider: ITrackProvider = SimpleTrackProvider()
     val guildId = guild.id
+    val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
+    var internalContext: AudioTrackContext? = null
+
+    private var onPlayHook: Consumer<AudioTrackContext>? = null
+    private var onErrorHook: Consumer<Throwable>? = null
+    @Volatile
+    private var lastLoadedTrack: AudioTrackContext? = null
+    private val historyQueue = ConcurrentLinkedQueue<AudioTrackContext>()
 
     companion object {
         private val log = LoggerFactory.getLogger(GuildPlayer::class.java)
+        private const val MAX_HISTORY_SIZE = 20
     }
 
     val trackCount: Int
@@ -380,9 +397,11 @@ class GuildPlayer(
         super.onTrackStart(player, track)
     }
 
-    override fun destroy() {
+    fun destroy() {
         audioTrackProvider.clear()
-        super.destroy()
+        stop()
+        player.removeListener(this)
+        player.link.destroy()
         log.info("Player for $guildId was destroyed.")
     }
 
@@ -413,7 +432,220 @@ class GuildPlayer(
         }
     }
 
-    override fun logListeners() {
+    val isQueueEmpty: Boolean
+        get() {
+            log.trace("isQueueEmpty()")
+
+            return player.playingTrack == null && audioTrackProvider.isEmpty
+        }
+
+    val trackCountInHistory: Int
+        get() = historyQueue.size
+
+    val isHistoryQueueEmpty: Boolean
+        get() = historyQueue.isEmpty()
+
+    val playingTrack: AudioTrackContext?
+        get() {
+            log.trace("getPlayingTrack()")
+
+            return if (player.playingTrack == null && internalContext == null) {
+                audioTrackProvider.peek()
+            } else internalContext
+        }
+
+    //the unshuffled playlist
+    //Includes currently playing track, which comes first
+    val remainingTracks: List<AudioTrackContext>
+        get() {
+            log.trace("getRemainingTracks()")
+            val list = ArrayList<AudioTrackContext>()
+            val atc = playingTrack
+            if (atc != null) {
+                list.add(atc)
+            }
+
+            list.addAll(audioTrackProvider.asList)
+            return list
+        }
+
+    var volume: Float
+        get() = player.volume.toFloat() / 100
+        set(vol) {
+            player.volume = (vol * 100).toInt()
+        }
+
+    val isPlaying: Boolean
+        get() = player.playingTrack != null && !player.isPaused
+
+    val isPaused: Boolean
+        get() = player.isPaused
+
+    val position: Long
+        get() = player.trackPosition
+
+    init {
+        @Suppress("LeakingThis")
+        player.addListener(this)
+    }
+
+    fun play() {
+        log.trace("play()")
+
+        if (player.isPaused) {
+            player.isPaused = false
+        }
+        if (player.playingTrack == null) {
+            logListeners()
+            loadAndPlay()
+        }
+
+    }
+
+    fun setPause(pause: Boolean) {
+        log.trace("setPause({})", pause)
+
+        if (pause) {
+            player.isPaused = true
+        } else {
+            player.isPaused = false
+            play()
+        }
+    }
+
+    /**
+     * Pause the player
+     */
+    fun pause() {
+        log.trace("pause()")
+
+        player.isPaused = true
+    }
+
+    /**
+     * Clear the tracklist and stop the current track
+     */
+    fun stop() {
+        log.trace("stop()")
+
+        audioTrackProvider.clear()
+        stopTrack()
+    }
+
+    /**
+     * Skip the current track
+     */
+    fun skip() {
+        log.trace("skip()")
+
+        audioTrackProvider.skipped()
+        stopTrack()
+    }
+
+    /**
+     * Stop the current track.
+     */
+    fun stopTrack() {
+        log.trace("stopTrack()")
+
+        internalContext = null
+        player.stopTrack()
+    }
+
+    fun getTracksInHistory(start: Int, end: Int): List<AudioTrackContext> {
+        val start2 = Math.max(start, 0)
+        val end2 = Math.max(end, start)
+        val historyList = ArrayList(historyQueue)
+
+        return if (historyList.size >= end2) {
+            Lists.reverse(ArrayList(historyQueue)).subList(start2, end2)
+        } else {
+            ArrayList()
+        }
+    }
+
+    override fun onTrackEnd(player: IPlayer?, track: AudioTrack?, endReason: AudioTrackEndReason?) {
+        log.debug("onTrackEnd({} {} {}) called", track!!.info.title, endReason!!.name, endReason.mayStartNext)
+
+        if (endReason == AudioTrackEndReason.FINISHED || endReason == AudioTrackEndReason.STOPPED) {
+            updateHistoryQueue()
+            loadAndPlay()
+        } else if (endReason == AudioTrackEndReason.CLEANUP) {
+            log.info("Track " + track.identifier + " was cleaned up")
+        } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
+            if (onErrorHook != null)
+                onErrorHook!!.accept(MessagingException("Track `" + TextUtils.escapeAndDefuse(track.info.title) + "` failed to load. Skipping..."))
+            audioTrackProvider.skipped()
+            loadAndPlay()
+        } else {
+            log.warn("Track " + track.identifier + " ended with unexpected reason: " + endReason)
+        }
+    }
+
+    //request the next track from the track provider and start playing it
+    private fun loadAndPlay() {
+        log.trace("loadAndPlay()")
+
+        val atc = audioTrackProvider.provideAudioTrack()
+        lastLoadedTrack = atc
+        atc?.let { playTrack(it) }
+    }
+
+    private fun updateHistoryQueue() {
+        if (lastLoadedTrack == null) {
+            log.warn("No lastLoadedTrack in $this after track end")
+            return
+        }
+        if (historyQueue.size == MAX_HISTORY_SIZE) {
+            historyQueue.poll()
+        }
+        historyQueue.add(lastLoadedTrack)
+    }
+
+    /**
+     * Plays the provided track.
+     *
+     *
+     * Silently playing a track will not trigger the onPlayHook (which announces the track usually)
+     */
+    private fun playTrack(trackContext: AudioTrackContext, silent: Boolean = false) {
+        log.trace("playTrack({})", trackContext.effectiveTitle)
+
+        internalContext = trackContext
+        player.playTrack(trackContext.track)
+        trackContext.track.position = trackContext.startPosition
+
+        if (trackContext is SplitAudioTrackContext) {
+            //Ensure we don't step over our bounds
+            log.info("Start: ${trackContext.startPosition} End: ${trackContext.startPosition + trackContext.effectiveDuration}")
+
+            trackContext.track.setMarker(
+                    TrackMarker(trackContext.startPosition + trackContext.effectiveDuration,
+                            TrackEndMarkerHandler(this, trackContext)))
+        }
+
+        if (!silent && onPlayHook != null) onPlayHook!!.accept(trackContext)
+    }
+
+    override fun onTrackException(player: IPlayer?, track: AudioTrack, exception: Exception?) {
+        log.error("Lavaplayer encountered an exception while playing {}",
+                track.identifier, exception)
+    }
+
+    override fun onTrackStuck(player: IPlayer?, track: AudioTrack, thresholdMs: Long) {
+        log.error("Lavaplayer got stuck while playing {}",
+                track.identifier)
+    }
+
+    fun seekTo(position: Long) {
+        if (internalContext!!.track.isSeekable) {
+            player.seekTo(position)
+        } else {
+            throw MessagingException(internalContext!!.i18n("seekDeniedLiveTrack"))
+        }
+    }
+
+    private fun logListeners() {
         humanUsersInCurrentVC.forEach { lavalink.activityMetrics.logListener(it) }
     }
 }
