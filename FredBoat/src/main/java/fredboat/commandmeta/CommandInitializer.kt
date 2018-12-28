@@ -44,6 +44,8 @@ import fredboat.command.music.seeking.RewindCommand
 import fredboat.command.music.seeking.SeekCommand
 import fredboat.command.util.*
 import fredboat.config.SentryConfiguration
+import fredboat.config.property.AppConfig
+import fredboat.db.mongo.GuildSettingsRepository
 import fredboat.definitions.Module
 import fredboat.definitions.PermissionLevel
 import fredboat.definitions.SearchProvider
@@ -60,10 +62,20 @@ import java.util.*
 import java.util.function.Supplier
 
 @Service
-class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, trackSearcher: TrackSearcher,
-                         videoSelectionCache: VideoSelectionCache, sentryConfiguration: SentryConfiguration,
-                         playerLimiter: PlayerLimiter, youtubeAPI: YoutubeAPI, sentinel: Sentinel,
-                         playerRegistry: PlayerRegistry, springContext: Supplier<ApplicationContext>) {
+class CommandInitializer(
+        cacheMetrics: CacheMetricsCollector,
+        weather: Weather,
+        trackSearcher: TrackSearcher,
+        videoSelectionCache: VideoSelectionCache,
+        sentryConfiguration: SentryConfiguration,
+        playerLimiter: PlayerLimiter,
+        youtubeAPI: YoutubeAPI,
+        sentinel: Sentinel,
+        playerRegistry: PlayerRegistry,
+        guildSettingsRepository: GuildSettingsRepository,
+        appConfig: AppConfig,
+        springContext: Supplier<ApplicationContext>
+) {
 
     companion object {
         /** Used for integration testing  */
@@ -130,6 +142,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         configModule.registerCommand(LanguageCommand(LANGUAGE_COMM_NAME, "lang"))
         configModule.registerCommand(ModulesCommand("modules", "module", "mods"))
         configModule.registerCommand(PrefixCommand(cacheMetrics, PREFIX_COMM_NAME, "pre"))
+        configModule.registerCommand(ConfigWebInfoCommand("webinfo", repo = guildSettingsRepository, appConfig = appConfig))
         /* Perms */
         configModule.registerCommand(PermissionsCommand(PermissionLevel.ADMIN, "admin", "admins"))
         configModule.registerCommand(PermissionsCommand(PermissionLevel.DJ, "dj", "djs"))

@@ -52,6 +52,7 @@ public class AppConfigProperties implements AppConfig {
     private String game = "";
     private boolean continuePlayback = false;
     private int shardCount = 1;
+    private String webInfoBaseUrl = "";
 
     //undocumented
     private int playerLimit = -1;
@@ -106,6 +107,11 @@ public class AppConfigProperties implements AppConfig {
         return shardCount;
     }
 
+    @Override
+    public String getWebInfoBaseUrl() {
+        return webInfoBaseUrl;
+    }
+
     public void setDevelopment(boolean development) {
         this.development = development;
     }
@@ -145,5 +151,9 @@ public class AppConfigProperties implements AppConfig {
 
     public void setShardCount(int shardCount) {
         this.shardCount = shardCount;
+    }
+
+    public void setWebInfoBaseUrl(String webInfoBaseUrl) {
+        this.webInfoBaseUrl = webInfoBaseUrl;
     }
 }

@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono
 
 interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long>
 interface ActivityRepository : ReactiveCrudRepository<Activity, Long>
+interface GuildSettingsRepository : ReactiveCrudRepository<GuildSettings, Long>
 
 private val log: Logger = LoggerFactory.getLogger(PlayerRepository::class.java)
 
