@@ -106,6 +106,8 @@ class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig
 
     override fun getCarbonKey() = ""
 
+    override fun getWebInfoBaseUrl() = ""
+
     override fun getQuarterdeck() = object : BackendConfig.Quarterdeck {
         override fun getHost() = "http://localhost:4269"
         override fun getUser() = "test"
