@@ -10,6 +10,7 @@ import fredboat.sentinel.Guild
 import fredboat.sentinel.GuildCache
 import fredboat.sentinel.Sentinel
 import fredboat.util.DiscordUtil
+import fredboat.ws.UserSessionHandler
 import lavalink.client.io.Lavalink
 import lavalink.client.io.metrics.LavalinkCollector
 import org.json.JSONObject
@@ -26,6 +27,7 @@ class SentinelLavalink(
         val guildCache: GuildCache,
         val appConfig: AppConfig,
         val activityMetrics: ActivityMetricsController,
+        val userSessionHandler: UserSessionHandler,
         lavalinkConfig: LavalinkConfig
 ) : Lavalink<SentinelLink>(
         sentinel.selfUser.idString,

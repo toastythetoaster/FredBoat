@@ -60,6 +60,7 @@ subprojects {
 
         sentinelVersion             = 'd8680e86'
         springBootVersion           = springBootVersion
+        springWebSocketVersion      = '5.0.8.RELEASE'
         kotlinVersion               = kotlinVersion
 
         //audio deps

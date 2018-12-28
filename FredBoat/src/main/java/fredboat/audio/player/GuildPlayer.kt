@@ -44,6 +44,8 @@ import fredboat.util.TextUtils
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import fredboat.ws.emptyPlayerInfo
+import fredboat.ws.toPlayerInfo
 import lavalink.client.player.IPlayer
 import lavalink.client.player.LavalinkPlayer
 import lavalink.client.player.event.PlayerEventListenerAdapter
@@ -210,6 +212,7 @@ class GuildPlayer(
             joinChannel(member)
         }
         audioTrackProvider.add(atc)
+        if (isPlaying) updateClients()
         play()
     }
 
@@ -225,6 +228,7 @@ class GuildPlayer(
     fun reshuffle() {
         if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.reshuffle()
+            updateClients()
         } else {
             throw UnsupportedOperationException("Can't reshuffle " + audioTrackProvider.javaClass)
         }
@@ -260,6 +264,7 @@ class GuildPlayer(
         player.removeListener(this)
         player.link.destroy()
         log.info("Player for $guildId was destroyed.")
+        lavalink.userSessionHandler.sendLazy(guildId) { emptyPlayerInfo }
     }
 
     private fun voteSkipCleanup() {
@@ -287,6 +292,7 @@ class GuildPlayer(
             val vc = slink.getChannel(guild) ?: return
             slink.connect(vc, skipIfSameChannel = false)
         }
+        updateClients()
     }
 
     fun play() {
@@ -311,16 +317,10 @@ class GuildPlayer(
             player.isPaused = false
             play()
         }
+        updateClients()
     }
 
-    /**
-     * Pause the player
-     */
-    fun pause() {
-        log.trace("pause()")
-
-        player.isPaused = true
-    }
+    fun pause() = setPause(true)
 
     /**
      * Clear the tracklist and stop the current track
@@ -377,6 +377,7 @@ class GuildPlayer(
         val atc = audioTrackProvider.provideAudioTrack()
         lastLoadedTrack = atc
         atc?.let { playTrack(it) }
+        updateClients()
     }
 
     private fun updateHistoryQueue() {
@@ -427,6 +428,7 @@ class GuildPlayer(
     fun seekTo(position: Long) {
         if (internalContext!!.track.isSeekable) {
             player.seekTo(position)
+            updateClients()
         } else {
             throw MessagingException(internalContext!!.i18n("seekDeniedLiveTrack"))
         }
@@ -434,5 +436,9 @@ class GuildPlayer(
 
     private fun logListeners() {
         humanUsersInCurrentVC.forEach { lavalink.activityMetrics.logListener(it) }
+    }
+
+    private fun updateClients() {
+        lavalink.userSessionHandler.sendLazy(guildId) { toPlayerInfo() }
     }
 }
