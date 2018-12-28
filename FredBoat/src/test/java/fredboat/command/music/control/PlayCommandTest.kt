@@ -86,7 +86,10 @@ internal class PlayCommandTest(
 
             val track = players.getOrCreate(guild).block()?.remainingTracks?.get(1)
             assertNotNull(track)
-            assertEquals(url, track?.track?.info?.uri)
+            assertEquals(url2, track?.track?.info?.uri)
+
+            // Check that the first track is still playing
+            assertEquals(url, players.getOrCreate(guild).block()?.playingTrack?.track?.info?.uri)
         }
     }
 
