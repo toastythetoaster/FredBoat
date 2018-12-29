@@ -49,7 +49,6 @@ dependencies {
     }
 
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-webflux', version: springBootVersion
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: springBootVersion // Needed for WS
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-mongodb-reactive', version: springBootVersion
     compile group: 'org.springframework', name: 'spring-websocket', version: springWebSocketVersion
     compile group: 'it.unimi.dsi', name: 'fastutil', version: fastUtilVersion
