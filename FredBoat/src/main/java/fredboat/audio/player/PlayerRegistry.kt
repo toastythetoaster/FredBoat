@@ -153,7 +153,11 @@ class PlayerRegistry(
     @Suppress("RedundantLambdaArrow")
     private fun createPlayer(guild: Guild): Mono<GuildPlayer> {
         // Checks for recursion, and returns the mono getting dealt with
-        if (recursionSafeguard.get() != null) return recursionSafeguard.get()
+        if (recursionSafeguard.get() != null) return recursionSafeguard.get().doOnSuccess {
+            if (guild != it.guild) {
+                throw IllegalStateException("Recursion safeguard held mono for wrong guild. That shouldn't happen!")
+            }
+        }
 
         return monoCache.computeIfAbsent(guild.id) { _ ->
             createPlayerMono(guild)
