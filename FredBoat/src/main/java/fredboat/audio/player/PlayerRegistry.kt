@@ -47,7 +47,6 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
-import reactor.core.scheduler.Schedulers
 import java.io.IOException
 import java.time.Duration
 import java.util.*
@@ -75,7 +74,7 @@ class PlayerRegistry(
     private val registry = ConcurrentHashMap<Long, GuildPlayer>()
     private val iteratorLock = Any() //iterators, which are also used by stream(), need to be synced, despite it being a concurrent map
     private val monoCache = ConcurrentHashMap<Long, Mono<GuildPlayer>>()
-    private val playerCreationScheduler = Schedulers.newElastic("player-creation")
+    private val recursionSafeguard = ThreadLocal<Mono<GuildPlayer>>()
 
     /**
      * @return a copied list of the the playing players of the registry. This may be an expensive operation depending on
@@ -152,12 +151,43 @@ class PlayerRegistry(
      * @return a [Mono] with a fully loaded [GuildPlayer]
      */
     @Suppress("RedundantLambdaArrow")
-    private fun createPlayer(guild: Guild): Mono<GuildPlayer> = monoCache.computeIfAbsent(guild.id) { _ ->
+    private fun createPlayer(guild: Guild): Mono<GuildPlayer> {
+        // Checks for recursion, and returns the mono getting dealt with
+        if (recursionSafeguard.get() != null) return recursionSafeguard.get()
+
+        return monoCache.computeIfAbsent(guild.id) { _ ->
+            createPlayerMono(guild)
+        }.doOnSuccess {
+            registry[it.guildId] = it
+            it.player.link.releaseHeldEvents()
+        }.doFinally {
+            monoCache.remove(guild.id)
+        }
+    }
+
+    private fun createPlayerMono(guild: Guild): Mono<GuildPlayer> {
+        lateinit var player: GuildPlayer
+
+        val mono = playerRepo.findById(guild.id)
+                .map {
+                    // player repo may complete as empty.
+                    // The zip operator will cancel the other mono, if we return empty-handed.
+                    // We can deal with this by using Optional
+                    Optional.of(it)
+                }
+                .switchIfEmpty(Optional.empty<MongoPlayer>().toMono())
+                .map { mongo ->
+                    if (mongo.isEmpty) return@map player
+                    loadMongoData(player, mongo.get())
+                    player
+                }
+
         // GuildPlayer's constructor will indirectly call #createPlayer().
         // We can defer the construction to a different thread, to prevent an IllegalStateException, which
         // would be caused by accessing monoCache recursively
-        Mono.create<GuildPlayer> {
-            it.success(GuildPlayer(
+        try {
+            recursionSafeguard.set(mono)
+            player = GuildPlayer(
                     sentinelLavalink,
                     guild,
                     musicTextChannelProvider,
@@ -165,27 +195,12 @@ class PlayerRegistry(
                     guildConfigService,
                     ratelimiter,
                     youtubeAPI
-            ))
+            )
+        } finally {
+            recursionSafeguard.remove()
         }
-                .subscribeOn(playerCreationScheduler)
-                .zipWith(playerRepo.findById(guild.id)
-                        .map {
-                            // player repo may complete as empty.
-                            // The zip operator will cancel the other mono, if we return empty-handed.
-                            // We can deal with this by using Optional
-                            Optional.of(it)
-                        }
-                        .switchIfEmpty(Optional.empty<MongoPlayer>().toMono())
-                ).map { pair ->
-                    if (pair.t2.isEmpty) return@map pair.t1
-                    loadMongoData(pair.t1, pair.t2.get())
-                    pair.t1
-                }
-    }.doOnSuccess {
-        registry[it.guildId] = it
-        it.player.link.releaseHeldEvents()
-    }.doFinally {
-        monoCache.remove(guild.id)
+
+        return mono
     }
 
     /**
