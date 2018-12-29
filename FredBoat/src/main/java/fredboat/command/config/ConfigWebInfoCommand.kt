@@ -31,7 +31,7 @@ class ConfigWebInfoCommand(
                 .defaultIfEmpty(GuildSettings(context.guild.id))
                 .awaitSingle()
 
-        when(context.args.last().trim().toLowerCase()) {
+        when(context.args.getOrNull(0)?.trim()?.toLowerCase()) {
             "allow" -> settings.allowPublicPlayerInfo = true
             "deny" -> settings.allowPublicPlayerInfo = false
             else -> {
