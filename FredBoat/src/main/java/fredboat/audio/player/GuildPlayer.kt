@@ -169,6 +169,7 @@ class GuildPlayer(
         onErrorHook = Consumer { this.handleError(it) }
         @Suppress("LeakingThis")
         player.addListener(this)
+        linkPostProcess()
     }
 
     private fun announceTrack(atc: AudioTrackContext) {
