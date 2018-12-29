@@ -41,7 +41,7 @@ class ConfigWebInfoCommand(
         }
         repo.save(settings).subscribe {
             val response = if (it.allowPublicPlayerInfo)
-                "Online playing status is not available at ${appConfig.webInfoBaseUrl}${context.guild.id}"
+                "Online playing status is now available at ${appConfig.webInfoBaseUrl}${context.guild.id}"
             else "Online playing status has been disabled."
             context.reply(response)
         }
