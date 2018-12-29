@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
 import reactor.core.publisher.toMono
+import reactor.core.scheduler.Schedulers
 import java.io.IOException
 import java.time.Duration
 import java.util.*
@@ -74,6 +75,7 @@ class PlayerRegistry(
     private val registry = ConcurrentHashMap<Long, GuildPlayer>()
     private val iteratorLock = Any() //iterators, which are also used by stream(), need to be synced, despite it being a concurrent map
     private val monoCache = ConcurrentHashMap<Long, Mono<GuildPlayer>>()
+    private val playerCreationScheduler = Schedulers.newElastic("player-creation")
 
     /**
      * @return a copied list of the the playing players of the registry. This may be an expensive operation depending on
@@ -164,19 +166,21 @@ class PlayerRegistry(
                     ratelimiter,
                     youtubeAPI
             ))
-        }.zipWith(playerRepo.findById(guild.id)
-                .map {
-                    // player repo may complete as empty.
-                    // The zip operator will cancel the other mono, if we return empty-handed.
-                    // We can deal with this by using Optional
-                    Optional.of(it)
-                }
-                .switchIfEmpty(Optional.empty<MongoPlayer>().toMono())
-        ).map { pair ->
-            if (pair.t2.isEmpty) return@map pair.t1
-            loadMongoData(pair.t1, pair.t2.get())
-            pair.t1
         }
+                .subscribeOn(playerCreationScheduler)
+                .zipWith(playerRepo.findById(guild.id)
+                        .map {
+                            // player repo may complete as empty.
+                            // The zip operator will cancel the other mono, if we return empty-handed.
+                            // We can deal with this by using Optional
+                            Optional.of(it)
+                        }
+                        .switchIfEmpty(Optional.empty<MongoPlayer>().toMono())
+                ).map { pair ->
+                    if (pair.t2.isEmpty) return@map pair.t1
+                    loadMongoData(pair.t1, pair.t2.get())
+                    pair.t1
+                }
     }.doOnSuccess {
         registry[it.guildId] = it
         it.player.link.releaseHeldEvents()
