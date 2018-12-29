@@ -25,6 +25,7 @@
 
 package fredboat.audio.queue
 
+import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.player.GuildPlayer
 import fredboat.feature.I18n
@@ -60,6 +61,12 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member) : Compar
             val guildPlayer = Launcher.botController.playerRegistry.getExisting(guildId)
             return guildPlayer?.activeTextChannel
         }
+
+    val thumbnailUrl: String? get() {
+        return if (track is YoutubeAudioTrack) {
+            "https://img.youtube.com/vi/${track.info.identifier}/mqdefault.jpg"
+        } else null
+    }
 
     init {
         this.rand = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE)
