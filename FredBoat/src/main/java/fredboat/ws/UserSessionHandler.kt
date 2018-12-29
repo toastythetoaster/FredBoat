@@ -1,40 +1,70 @@
 package fredboat.ws
 
 import com.google.gson.Gson
+import fredboat.db.mongo.GuildSettings
+import fredboat.db.mongo.GuildSettingsRepository
+import fredboat.sentinel.GuildCache
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Controller
-import org.springframework.web.socket.CloseStatus
-import org.springframework.web.socket.TextMessage
-import org.springframework.web.socket.WebSocketSession
-import org.springframework.web.socket.handler.TextWebSocketHandler
+import org.springframework.web.reactive.socket.WebSocketHandler
+import org.springframework.web.reactive.socket.WebSocketMessage
+import org.springframework.web.reactive.socket.WebSocketSession
+import reactor.core.publisher.Mono
 import java.util.concurrent.ConcurrentHashMap
 
 @Controller
-class UserSessionHandler(val gson: Gson) : TextWebSocketHandler() {
+class UserSessionHandler(
+        val gson: Gson,
+        val guildCache: GuildCache,
+        val repository: GuildSettingsRepository
+) : WebSocketHandler {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(UserSessionHandler::class.java)
-        val WebSocketSession.info: SocketInfo get() = attributes["info"] as SocketInfo
-        fun WebSocketSession.send(gson: Gson, payload: Any) {
-            sendMessage(TextMessage(gson.toJson(payload)))
-        }
     }
 
-    private val sessions = ConcurrentHashMap<Long, MutableList<WebSocketSession>>()
+    private val sessions = ConcurrentHashMap<Long, MutableList<UserSession>>()
 
-    operator fun get(guildId: Long): List<WebSocketSession> = sessions[guildId] ?: emptyList()
+    override fun handle(rawSession: WebSocketSession): Mono<Void> {
+        val session = UserSession(rawSession, guildCache, gson)
+        log.info("Established user connection for guild ${session.guildId}")
 
-    override fun afterConnectionEstablished(session: WebSocketSession) {
-        log.info("Established user connection for guild ${session.info.guildId}")
-        sessions.computeIfAbsent(session.info.guildId) { mutableListOf() }.add(session)
-        val info = session.info.player?.toPlayerInfo() ?: emptyPlayerInfo
-        session.send(gson, info)
+        val interceptMono = repository.findById(session.guildId)
+                .defaultIfEmpty(GuildSettings(session.guildId))
+                .doOnError { e ->
+                    log.error("Exception while validating privacy setting", e)
+                    session.close()
+                }.doOnSuccess { settings ->
+                    if (settings?.allowPublicPlayerInfo != true) {
+                        log.info("Closing $session because webinfo is not enabled")
+                        session.close()
+                        return@doOnSuccess
+                    }
+
+                    log.info("Allowed $session to pass as anonymous view is allowed")
+                    sessions.computeIfAbsent(session.guildId) { mutableListOf() }.add(session)
+                    val info = session.player?.toPlayerInfo() ?: emptyPlayerInfo
+                    session.sendJson(info)
+                }
+
+        return session.initSendStream()
+                .doOnSubscribe { interceptMono.subscribe() }
+                .and(session.receive().doOnNext { handleMessage(session, it) })
+                .doFinally {
+                    afterConnectionClosed(session)
+                }
     }
 
-    override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
-        val id = session.info.guildId
-        log.info("Disconnected user for guild $id with status $status")
+    fun handleMessage(session: UserSession, msg: WebSocketMessage) {
+        log.info("User session: {}", msg.payloadAsText)
+    }
+
+    operator fun get(guildId: Long): List<UserSession> = sessions[guildId] ?: emptyList()
+
+    fun afterConnectionClosed(session: UserSession) {
+        val id = session.guildId
+        log.info("Disconnected user for guild $id")
         val list = sessions[id] ?: return
         if (list.size == 1) sessions.remove(id)
         else list.remove(session)
@@ -44,9 +74,9 @@ class UserSessionHandler(val gson: Gson) : TextWebSocketHandler() {
         val sessions = this[guildId]
         if (sessions.isEmpty()) return
 
-        val msg = TextMessage(gson.toJson(producer()))
+        val msg = sessions.first().textMessage(gson.toJson(producer()))
         sessions.forEach {
-            if (it.isOpen) it.sendMessage(msg)
+            if (it.isOpen) it.send(msg)
         }
     }
 
