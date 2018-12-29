@@ -8,13 +8,11 @@ import org.springframework.web.reactive.HandlerMapping
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping
 import org.springframework.web.reactive.socket.WebSocketHandler
 import org.springframework.web.reactive.socket.server.support.WebSocketHandlerAdapter
-import org.springframework.web.socket.config.annotation.EnableWebSocket
 import java.util.*
 
 
 
 @Configuration
-@EnableWebSocket
 class WebSocketConfig(
         private val userSessionHandler: UserSessionHandler
 ) {
