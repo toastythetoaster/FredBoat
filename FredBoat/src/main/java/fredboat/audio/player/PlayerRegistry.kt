@@ -154,8 +154,8 @@ class PlayerRegistry(
         // GuildPlayer's constructor will indirectly call #createPlayer().
         // We can defer the construction to a different thread, to prevent an IllegalStateException, which
         // would be caused by accessing monoCache recursively
-        Mono.defer {
-            GuildPlayer(
+        Mono.create<GuildPlayer> {
+            it.success(GuildPlayer(
                     sentinelLavalink,
                     guild,
                     musicTextChannelProvider,
@@ -163,7 +163,7 @@ class PlayerRegistry(
                     guildConfigService,
                     ratelimiter,
                     youtubeAPI
-            ).toMono()
+            ))
         }.zipWith(playerRepo.findById(guild.id)
                 .map {
                     // player repo may complete as empty.
