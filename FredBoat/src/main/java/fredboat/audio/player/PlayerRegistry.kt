@@ -184,7 +184,7 @@ class PlayerRegistry(
                     if (mongo.isEmpty) return@map player
                     loadMongoData(player, mongo.get())
                     player
-                }
+                }.cache() // Cache avoids loading the mongo data twice
 
         // GuildPlayer's constructor will indirectly call #createPlayer().
         // We can defer the construction to a different thread, to prevent an IllegalStateException, which
@@ -235,10 +235,12 @@ class PlayerRegistry(
             }
         }
 
+        log.info("Restoring ${queue.size} loaded tracks for $guild")
+
         if (queue.isNotEmpty()) {
             queue = queue.toMutableList()
             val atc = queue.removeAt(0)
-            player.player.explicitlySetTrack(atc.track)
+            player.player.playTrack(atc.track, true)
             player.internalContext = atc
             // Optionally set current track position
             if (mongo.position != null) atc.track.position = mongo.position
