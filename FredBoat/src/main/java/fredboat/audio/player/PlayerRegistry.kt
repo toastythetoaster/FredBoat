@@ -246,6 +246,9 @@ class PlayerRegistry(
             if (mongo.position != null) atc.track.position = mongo.position
         }
 
+        val channel = mongo.textChannel?.let { guild.getTextChannel(it) }
+        if (channel != null) musicTextChannelProvider.setMusicChannel(channel)
+
         player.loadAll(queue)
     }
 

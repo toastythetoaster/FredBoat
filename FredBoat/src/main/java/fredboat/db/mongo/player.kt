@@ -4,7 +4,7 @@ import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 
-@Document
+@Document(collection = "MongoPlayer")
 class MongoPlayer(
         @Id
         val gid: Long,
@@ -21,6 +21,8 @@ class MongoPlayer(
         val position: Long?,
         /** Voice channel we were playing in if interrupted */
         val voiceChannel: Long?,
+        /** Channel to send event messages in */
+        val textChannel: Long?,
         val queue: List<MongoTrack>
 )
 

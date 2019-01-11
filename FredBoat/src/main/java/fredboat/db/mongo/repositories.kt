@@ -42,6 +42,7 @@ private fun GuildPlayer.toMongo() = MongoPlayer(
         volume,
         playingTrack?.track?.position,
         voiceChannel?.id,
+        activeTextChannel?.id,
         remainingTracks.map {
             if (it is SplitAudioTrackContext) {
                 MongoTrack(it.trackId, LavalinkUtil.toBinary(it.track), it.member.id, it.startPosition, it.endPosition, it.effectiveTitle)
