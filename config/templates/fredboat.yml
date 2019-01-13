@@ -54,6 +54,7 @@ config:
                                   # things happening to your bot in the selfhosting chat you will be publicly taunted.
   prefix:            '<<'         # Default prefix used by the bot
   botAdmins:         []           # Add comma separated userIds and roleIds that should have access to bot admin commands. Find role ids with the ;;roleinfo command
+  botOwners:         []           # Add comma separated userIds that should have access to bot OWNER commands. Mainly intended for Bots that belong to teams
   autoBlacklist:     true         # Set to true to automatically blacklist users who frequently hit the rate limits
   game:              ""           # Set the displayed game/status. Leave empty quote marks for the default status
   continuePlayback:  false        # Set to true to force the player to continue playback even if left alone

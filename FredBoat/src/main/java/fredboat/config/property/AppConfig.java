@@ -63,6 +63,8 @@ public interface AppConfig {
 
     List<Long> getAdminIds();
 
+    List<Long> getOwnerIds();
+
     boolean useAutoBlacklist();
 
     int getPlayerLimit();
