@@ -38,8 +38,6 @@ import javax.annotation.CheckReturnValue
 object PermsUtil {
 
     suspend fun getPerms(member: Member): PermissionLevel = when {
-        member.sentinel.applicationInfo.ownerId == member.id
-        -> PermissionLevel.BOT_OWNER // https://fred.moe/Q-EB.png
         isBotOwner(member)
         -> PermissionLevel.BOT_OWNER
         isBotAdmin(member)
@@ -91,12 +89,8 @@ object PermsUtil {
         }
     }
 
-    private fun isBotOwner(member: Member): Boolean {
-        for (id in Launcher.botController.appConfig.ownerIds) {
-            if (member.id == id) return true
-        }
-        return false
-    }
+    private fun isBotOwner(member: Member): Boolean = Launcher.botController.appConfig.ownerIds.contains(member.id) or
+            (member.sentinel.applicationInfo.ownerId == member.id)
 
     /**
      * returns true if the member is or holds a role defined as admin in the configuration file
