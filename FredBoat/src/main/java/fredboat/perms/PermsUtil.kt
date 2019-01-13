@@ -40,10 +40,8 @@ object PermsUtil {
     suspend fun getPerms(member: Member): PermissionLevel = when {
         member.sentinel.applicationInfo.ownerId == member.id
         -> PermissionLevel.BOT_OWNER // https://fred.moe/Q-EB.png
-
-        //TODO: This is a kinda "fix" for Bots that belong to a Team since we currently can't query the members in a team as a bot (https://github.com/discordapp/discord-api-docs/issues/787)
-        isBotOwner(member) -> PermissionLevel.BOT_OWNER
-
+        isBotOwner(member)
+        -> PermissionLevel.BOT_OWNER
         isBotAdmin(member)
         -> PermissionLevel.BOT_ADMIN
         member.hasPermission(Permission.ADMINISTRATOR).awaitSingle()
