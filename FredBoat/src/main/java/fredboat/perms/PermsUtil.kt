@@ -90,7 +90,7 @@ object PermsUtil {
     }
 
     private fun isBotOwner(member: Member): Boolean = Launcher.botController.appConfig.ownerIds.contains(member.id) ||
-            member.sentinel.applicationInfo.ownerId == member.id
+            member.sentinel.applicationInfo.ownerId == member.id // https://fred.moe/Q-EB.png
 
     /**
      * returns true if the member is or holds a role defined as admin in the configuration file
