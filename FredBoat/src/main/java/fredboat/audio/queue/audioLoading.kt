@@ -64,10 +64,10 @@ class AudioLoader(private val ratelimiter: Ratelimiter, internal val trackProvid
         private const val QUEUE_TRACK_LIMIT = 10000
     }
 
-    fun loadAsync(ic: IdentifierContext) {
+    fun loadAsync(ic: IdentifierContext, topQueue: Boolean = false) {
 
         if (ratelimitIfSlowLoadingPlaylistAndAnnounce(ic)) {
-            identifierQueue.add(ic)
+            if (topQueue) identifierQueue.addFirst(ic) else identifierQueue.add(ic)
             if (!isLoading) {
                 loadNextAsync()
             }
