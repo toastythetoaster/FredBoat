@@ -47,11 +47,11 @@ import org.slf4j.LoggerFactory
 
 class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSearcher: TrackSearcher,
                   private val videoSelectionCache: VideoSelectionCache, private val searchProviders: List<SearchProvider>,
-                  name: String, vararg aliases: String
+                  name: String, vararg aliases: String, private val topQueue: Boolean = false
 ) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
-        get() = PermissionLevel.USER
+        get() = if (topQueue) PermissionLevel.DJ else PermissionLevel.USER
 
     override suspend fun invoke(context: CommandContext) {
         if (context.member.voiceChannel == null) {
@@ -65,7 +65,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
             val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
 
             for (atc in context.msg.attachments) {
-                player.queue(atc, context)
+                player.queue(atc, context, topQueue)
             }
 
             player.setPause(false)
@@ -95,7 +95,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
         }
 
         val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
-        player.queue(url, context)
+        player.queue(url, context, topQueue)
         player.setPause(false)
 
         context.deleteMessage()
