@@ -78,6 +78,13 @@ interface ITrackProvider {
     fun addAll(tracks: Collection<AudioTrackContext>)
 
     /**
+     * Add track to the front of the Queue
+     *
+     * @param track track to be added
+     */
+    fun addFirst(track: AudioTrackContext)
+
+    /**
      * empty the queue
      */
     fun clear()

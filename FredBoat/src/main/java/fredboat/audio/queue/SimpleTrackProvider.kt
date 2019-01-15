@@ -27,11 +27,11 @@ package fredboat.audio.queue
 
 import fredboat.definitions.RepeatMode
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ConcurrentLinkedDeque
 
 class SimpleTrackProvider : AbstractTrackProvider() {
 
-    private val queue = ConcurrentLinkedQueue<AudioTrackContext>()
+    private val queue = ConcurrentLinkedDeque<AudioTrackContext>()
     private var lastTrack: AudioTrackContext? = null
     private var cachedShuffledQueue: List<AudioTrackContext> = ArrayList()
     private var shouldUpdateShuffledQueue = true
@@ -186,6 +186,11 @@ class SimpleTrackProvider : AbstractTrackProvider() {
     override fun addAll(tracks: Collection<AudioTrackContext>) {
         shouldUpdateShuffledQueue = true
         queue.addAll(tracks)
+    }
+
+    override fun addFirst(track: AudioTrackContext) {
+        shouldUpdateShuffledQueue = true
+        queue.addFirst(track)
     }
 
     override fun clear() {
