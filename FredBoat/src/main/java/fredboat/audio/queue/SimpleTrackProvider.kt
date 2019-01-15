@@ -189,7 +189,6 @@ class SimpleTrackProvider : AbstractTrackProvider() {
     }
 
     override fun addFirst(track: AudioTrackContext) {
-        shouldUpdateShuffledQueue = true
         queue.addFirst(track)
     }
 
