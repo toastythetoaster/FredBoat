@@ -238,8 +238,9 @@ class GuildPlayer(
         lavalink.getLink(guild).disconnect()
     }
 
-    fun queue(identifier: String, context: CommandContext) {
+    fun queue(identifier: String, context: CommandContext, topQueue: Boolean = false) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
+        ic.isTopQueue = topQueue
 
         joinChannel(context.member)
 

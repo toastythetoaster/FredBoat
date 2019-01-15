@@ -42,5 +42,6 @@ class IdentifierContext(
         get() = member.user
     var isQuiet = false
     var isSplit = false
+    var isTopQueue = false
     var position = 0L
 }

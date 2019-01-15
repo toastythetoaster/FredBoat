@@ -205,7 +205,9 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
 
                 at.position = context.position
 
-                loader.trackProvider.add(AudioTrackContext(at, context.member))
+                val atc = AudioTrackContext(at, context.member)
+                if (context.isTopQueue) loader.trackProvider.addFirst(atc) else loader.trackProvider.add(atc)
+
                 if (!loader.gplayer.isPaused) {
                     loader.gplayer.play()
                 }
