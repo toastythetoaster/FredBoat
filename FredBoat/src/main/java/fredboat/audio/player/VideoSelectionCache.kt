@@ -59,8 +59,8 @@ class VideoSelectionCache(
         return remove(member.guild.id, member.id)
     }
 
-    fun put(message: Long, context: CommandContext, choices: List<AudioTrack>) {
-        videoSelections.put(asKey(context.member), VideoSelection(message, context, choices))
+    fun put(message: Long, context: CommandContext, choices: List<AudioTrack>, topQueue: Boolean) {
+        videoSelections.put(asKey(context.member), VideoSelection(message, context, choices, topQueue))
     }
 
     private operator fun get(guildId: Long, userId: Long): VideoSelection? {
@@ -85,7 +85,8 @@ class VideoSelectionCache(
     data class VideoSelection internal constructor(
             val message: Long,
             val context: CommandContext,
-            val choices: List<AudioTrack>
+            val choices: List<AudioTrack>,
+            val topQueue: Boolean
     ) {
         fun deleteMessage() {
             context.textChannel.deleteMessage(message).subscribe()

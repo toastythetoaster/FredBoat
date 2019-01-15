@@ -166,7 +166,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
                 }
 
                 outMsg.edit(context.textChannel, builder.build()).subscribe()
-                videoSelectionCache.put(outMsg.messageId, context, selectable)
+                videoSelectionCache.put(outMsg.messageId, context, selectable, topQueue)
             }
         }
     }

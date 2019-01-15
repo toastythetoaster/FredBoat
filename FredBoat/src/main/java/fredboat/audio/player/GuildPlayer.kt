@@ -253,14 +253,15 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(atc: AudioTrackContext) {
+    fun queue(atc: AudioTrackContext, topQueue: Boolean = false) {
         if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
         if (member != null) {
             joinChannel(member)
         }
-        audioTrackProvider.add(atc)
+
+        if (topQueue) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
         play()
     }
 
