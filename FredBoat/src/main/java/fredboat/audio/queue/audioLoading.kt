@@ -46,13 +46,13 @@ import org.apache.commons.lang3.tuple.Pair
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedDeque
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 
 class AudioLoader(private val ratelimiter: Ratelimiter, internal val trackProvider: ITrackProvider,
                   private val playerManager: AudioPlayerManager, internal val gplayer: GuildPlayer,
                   internal val youtubeAPI: YoutubeAPI) {
-    private val identifierQueue = ConcurrentLinkedDeque<IdentifierContext>()
+    private val identifierQueue = ConcurrentLinkedQueue<IdentifierContext>()
     @Volatile
     private var isLoading = false
 
@@ -64,10 +64,10 @@ class AudioLoader(private val ratelimiter: Ratelimiter, internal val trackProvid
         private const val QUEUE_TRACK_LIMIT = 10000
     }
 
-    fun loadAsync(ic: IdentifierContext, topQueue: Boolean = false) {
+    fun loadAsync(ic: IdentifierContext) {
 
         if (ratelimitIfSlowLoadingPlaylistAndAnnounce(ic)) {
-            if (topQueue) identifierQueue.addFirst(ic) else identifierQueue.add(ic)
+            identifierQueue.add(ic)
             if (!isLoading) {
                 loadNextAsync()
             }
