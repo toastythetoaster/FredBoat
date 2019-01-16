@@ -46,10 +46,12 @@ class SimpleTrackProvider : AbstractTrackProvider() {
             if (shuffle) shouldUpdateShuffledQueue = true
         }
 
-    override//Update the new queue
-    //adjust rand values so they are evenly spread out
-    //this will calculate a value between 0.0 < rand < 1.0 multiplied by the full integer range
-    val asListOrdered: List<AudioTrackContext>
+    /**
+     * Update the new queue
+     * adjust rand values so they are evenly spread out
+     * this will calculate a value between 0.0 < rand < 1.0 multiplied by the full integer range
+     */
+    override val asListOrdered: List<AudioTrackContext>
         @Synchronized get() {
             if (!isShuffle) {
                 return asList
