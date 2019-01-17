@@ -194,6 +194,10 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         queue.addFirst(track)
     }
 
+    override fun addAllFirst(tracks: Collection<AudioTrackContext>) {
+        tracks.forEach { queue.addFirst(it) }
+    }
+
     override fun clear() {
         lastTrack = null
         shouldUpdateShuffledQueue = true
