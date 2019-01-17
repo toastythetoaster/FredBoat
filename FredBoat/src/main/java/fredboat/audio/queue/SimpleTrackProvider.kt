@@ -195,7 +195,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
     }
 
     override fun addAllFirst(tracks: Collection<AudioTrackContext>) {
-        tracks.forEach { queue.addFirst(it) }
+        tracks.reversed().forEach { queue.addFirst(it) }
     }
 
     override fun clear() {
