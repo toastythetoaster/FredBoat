@@ -47,11 +47,11 @@ import org.slf4j.LoggerFactory
 
 class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSearcher: TrackSearcher,
                   private val videoSelectionCache: VideoSelectionCache, private val searchProviders: List<SearchProvider>,
-                  name: String, vararg aliases: String, private val topQueue: Boolean = false
+                  name: String, vararg aliases: String, private val isPriority: Boolean = false
 ) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
-        get() = if (topQueue) PermissionLevel.DJ else PermissionLevel.USER
+        get() = if (isPriority) PermissionLevel.DJ else PermissionLevel.USER
 
     override suspend fun invoke(context: CommandContext) {
         if (context.member.voiceChannel == null) {
@@ -65,7 +65,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
             val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
 
             for (atc in context.msg.attachments) {
-                player.queue(atc, context, topQueue)
+                player.queue(atc, context, isPriority)
             }
 
             player.setPause(false)
@@ -95,7 +95,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
         }
 
         val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
-        player.queue(url, context, topQueue)
+        player.queue(url, context, isPriority)
         player.setPause(false)
 
         context.deleteMessage()
@@ -166,14 +166,14 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
                 }
 
                 outMsg.edit(context.textChannel, builder.build()).subscribe()
-                videoSelectionCache.put(outMsg.messageId, context, selectable, topQueue)
+                videoSelectionCache.put(outMsg.messageId, context, selectable, isPriority)
             }
         }
     }
 
     override fun help(context: Context): String {
         val usage = "{0}{1} <url> OR {0}{1} <search-term>\n#"
-        return usage + context.i18nFormat(if (!topQueue) "helpPlayCommand" else "helpPlayNowCommand", BotConstants.DOCS_URL)
+        return usage + context.i18nFormat(if (!isPriority) "helpPlayCommand" else "helpPlayNowCommand", BotConstants.DOCS_URL)
     }
 
     companion object {

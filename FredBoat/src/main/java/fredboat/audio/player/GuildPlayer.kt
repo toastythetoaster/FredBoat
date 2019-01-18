@@ -238,9 +238,9 @@ class GuildPlayer(
         lavalink.getLink(guild).disconnect()
     }
 
-    fun queue(identifier: String, context: CommandContext, topQueue: Boolean = false) {
+    fun queue(identifier: String, context: CommandContext, isPriority: Boolean = false) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
-        ic.isTopQueue = topQueue
+        ic.isPriority = isPriority
 
         joinChannel(context.member)
 
@@ -253,7 +253,7 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(atc: AudioTrackContext, topQueue: Boolean = false) {
+    fun queue(atc: AudioTrackContext, isPriority: Boolean = false) {
         if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
@@ -261,7 +261,7 @@ class GuildPlayer(
             joinChannel(member)
         }
 
-        if (topQueue) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
+        if (isPriority) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
         play()
     }
 
