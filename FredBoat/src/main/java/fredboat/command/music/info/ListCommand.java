@@ -113,7 +113,7 @@ public class ListCommand extends JCommand implements IMusicCommand {
 
             mb.code("[" + TextUtils.forceNDigits(i + 1, numberLength) + "]");
             if (atc.isPriority()) {
-                mb.append(" ").code("P");
+                mb.append(" ").code("⬆");
             }
             mb.append(status);
             mb.append(context.i18nFormat("listAddedBy", TextUtils.escapeAndDefuse(atc.getEffectiveTitle()),
