@@ -68,7 +68,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
             val size = newList.size
             for ((i, atc) in newList.withIndex()) {
                 val rand = ((i / (size + 1.0) + 1.0 / (size + 1.0)) * Integer.MAX_VALUE).toInt()
-                atc.rand = rand
+                atc.rand = if (atc.isPriority) Integer.MIN_VALUE else rand
             }
 
             cachedShuffledQueue = newList
