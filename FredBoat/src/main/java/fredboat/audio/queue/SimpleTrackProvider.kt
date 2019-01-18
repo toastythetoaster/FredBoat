@@ -198,12 +198,15 @@ class SimpleTrackProvider : AbstractTrackProvider() {
 
     override fun addFirst(track: AudioTrackContext) {
         shouldUpdateShuffledQueue = true
+        track.rand = Integer.MIN_VALUE
         queue.addFirst(track)
     }
 
     override fun addAllFirst(tracks: Collection<AudioTrackContext>) {
         shouldUpdateShuffledQueue = true
-        tracks.reversed().forEach { queue.addFirst(it) }
+        tracks.reversed().forEach {
+            it.rand = Integer.MIN_VALUE
+            queue.addFirst(it) }
     }
 
     override fun clear() {
