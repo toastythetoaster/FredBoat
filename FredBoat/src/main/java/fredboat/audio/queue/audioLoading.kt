@@ -205,7 +205,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
 
                 at.position = context.position
 
-                val atc = AudioTrackContext(at, context.member)
+                val atc = AudioTrackContext(at, context.member, context.isTopQueue)
                 if (context.isTopQueue) loader.trackProvider.addFirst(atc) else loader.trackProvider.add(atc)
 
                 if (!loader.gplayer.isPaused) {
@@ -230,7 +230,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
 
             val toAdd = ArrayList<AudioTrackContext>()
             for (at in ap.tracks) {
-                toAdd.add(AudioTrackContext(at, context.member))
+                toAdd.add(AudioTrackContext(at, context.member, context.isTopQueue))
             }
             if (context.isTopQueue) loader.trackProvider.addAllFirst(toAdd) else loader.trackProvider.addAll(toAdd)
             context.reply(context.i18nFormat("loadListSuccess", ap.tracks.size, ap.name))
