@@ -43,7 +43,10 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         get() = super.isShuffle
         set(shuffle) {
             super.isShuffle = shuffle
-            if (shuffle) shouldUpdateShuffledQueue = true
+            if (shuffle) {
+                shouldUpdateShuffledQueue = true
+                queue.forEach { it.isPriority = false} // reset all priority tracks
+            }
         }
 
     /**
@@ -169,7 +172,10 @@ class SimpleTrackProvider : AbstractTrackProvider() {
 
     @Synchronized
     override fun reshuffle() {
-        queue.forEach { it.randomize() }
+        queue.forEach {
+            it.randomize()
+            it.isPriority = false
+        }
         shouldUpdateShuffledQueue = true
     }
 
