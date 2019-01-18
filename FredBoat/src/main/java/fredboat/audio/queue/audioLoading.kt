@@ -195,7 +195,8 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
 
                 if (!context.isQuiet) {
                     context.reply(if (loader.gplayer.isPlaying)
-                        context.i18nFormat("loadSingleTrack", TextUtils.escapeAndDefuse(at.info.title))
+                        context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
+                                TextUtils.escapeAndDefuse(at.info.title))
                     else
                         context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
                     )
