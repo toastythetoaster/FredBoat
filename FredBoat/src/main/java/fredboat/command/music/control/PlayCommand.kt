@@ -116,6 +116,8 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
                 player.play()
                 context.reply(context.i18n("playWillNowPlay"))
             }
+        } else if (isPriority) {
+            HelpCommand.sendFormattedCommandHelp(context)
         } else {
             player.play()
             context.reply(context.i18n("playWillNowPlay"))
