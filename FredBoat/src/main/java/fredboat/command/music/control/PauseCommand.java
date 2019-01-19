@@ -36,6 +36,7 @@ import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
+import static fredboat.commandmeta.CommandInitializer.PLAY_COMM_NAME;
 import static fredboat.main.LauncherKt.getBotController;
 
 public class PauseCommand extends JCommand implements IMusicCommand, ICommandRestricted {
@@ -48,7 +49,7 @@ public class PauseCommand extends JCommand implements IMusicCommand, ICommandRes
     public void onInvoke(@Nonnull CommandContext context) {
         GuildPlayer player = getBotController().getPlayerRegistry().getOrCreate(context.getGuild());
         if (player.isQueueEmpty()) {
-            context.reply(context.i18n("playQueueEmpty"));
+            context.reply(context.i18nFormat("playQueueEmpty", context.getPrefix(), PLAY_COMM_NAME));
         } else if (player.isPaused()) {
             context.reply(context.i18n("pauseAlreadyPaused"));
         } else {

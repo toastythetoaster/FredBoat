@@ -29,6 +29,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.PlayerLimiter
 import fredboat.audio.player.VideoSelectionCache
+import fredboat.command.info.HelpCommand
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
@@ -103,8 +104,8 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
 
     private suspend fun handleNoArguments(context: CommandContext, player: GuildPlayer?) {
         if (player == null || player.isQueueEmpty) {
-            context.reply(context.i18n("playQueueEmpty"))
-        } else if (player.isPlaying) {
+            context.reply(context.i18nFormat("playQueueEmpty", context.prefix, context.command.name))
+        } else if (player.isPlaying && !isPriority) {
             context.reply(context.i18n("playAlreadyPlaying"))
         } else if (player.humanUsersInCurrentVC.isEmpty() && context.guild.selfMember.voiceChannel != null) {
             context.reply(context.i18n("playVCEmpty"))
