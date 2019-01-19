@@ -33,9 +33,10 @@ import fredboat.sentinel.Member
 import fredboat.sentinel.TextChannel
 import java.util.concurrent.ThreadLocalRandom
 
-open class AudioTrackContext(val track: AudioTrack, val member: Member) : Comparable<AudioTrackContext> {
+open class AudioTrackContext(val track: AudioTrack, val member: Member, priority: Boolean = false) : Comparable<AudioTrackContext> {
     val added: Long = System.currentTimeMillis()
     var rand: Int = 0
+    var isPriority: Boolean = priority
     val trackId: Long //used to identify this track even when the track gets cloned and the rand reranded
 
     val userId: Long
@@ -72,7 +73,7 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member) : Compar
     }
 
     open fun makeClone(): AudioTrackContext {
-        return AudioTrackContext(track.makeClone(), member)
+        return AudioTrackContext(track.makeClone(), member, isPriority)
     }
 
     //NOTE: convenience method that returns the position of the track currently playing in the guild where this track was added

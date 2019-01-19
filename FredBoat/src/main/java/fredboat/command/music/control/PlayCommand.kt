@@ -29,6 +29,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.PlayerLimiter
 import fredboat.audio.player.VideoSelectionCache
+import fredboat.command.info.HelpCommand
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
@@ -47,11 +48,11 @@ import org.slf4j.LoggerFactory
 
 class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSearcher: TrackSearcher,
                   private val videoSelectionCache: VideoSelectionCache, private val searchProviders: List<SearchProvider>,
-                  name: String, vararg aliases: String
+                  name: String, vararg aliases: String, private val isPriority: Boolean = false
 ) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
-        get() = PermissionLevel.USER
+        get() = if (isPriority) PermissionLevel.DJ else PermissionLevel.USER
 
     override suspend fun invoke(context: CommandContext) {
         if (context.member.voiceChannel == null) {
@@ -65,7 +66,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
             val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
 
             for (atc in context.msg.attachments) {
-                player.queue(atc, context)
+                player.queue(atc, context, isPriority)
             }
 
             player.setPause(false)
@@ -95,7 +96,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
         }
 
         val player = Launcher.botController.playerRegistry.getOrCreate(context.guild)
-        player.queue(url, context)
+        player.queue(url, context, isPriority)
         player.setPause(false)
 
         context.deleteMessage()
@@ -103,8 +104,9 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
 
     private suspend fun handleNoArguments(context: CommandContext, player: GuildPlayer?) {
         if (player == null || player.isQueueEmpty) {
-            context.reply(context.i18n("playQueueEmpty"))
-        } else if (player.isPlaying) {
+            context.reply(context.i18n("playQueueEmpty")
+                    .replace(";;play", context.prefix + context.command.name))
+        } else if (player.isPlaying && !isPriority) {
             context.reply(context.i18n("playAlreadyPlaying"))
         } else if (player.humanUsersInCurrentVC.isEmpty() && context.guild.selfMember.voiceChannel != null) {
             context.reply(context.i18n("playVCEmpty"))
@@ -115,6 +117,8 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
                 player.play()
                 context.reply(context.i18n("playWillNowPlay"))
             }
+        } else if (isPriority) {
+            HelpCommand.sendFormattedCommandHelp(context)
         } else {
             player.play()
             context.reply(context.i18n("playWillNowPlay"))
@@ -166,14 +170,14 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
                 }
 
                 outMsg.edit(context.textChannel, builder.build()).subscribe()
-                videoSelectionCache.put(outMsg.messageId, context, selectable)
+                videoSelectionCache.put(outMsg.messageId, context, selectable, isPriority)
             }
         }
     }
 
     override fun help(context: Context): String {
         val usage = "{0}{1} <url> OR {0}{1} <search-term>\n#"
-        return usage + context.i18nFormat("helpPlayCommand", BotConstants.DOCS_URL)
+        return usage + context.i18nFormat(if (!isPriority) "helpPlayCommand" else "helpPlayNextCommand", BotConstants.DOCS_URL)
     }
 
     companion object {
