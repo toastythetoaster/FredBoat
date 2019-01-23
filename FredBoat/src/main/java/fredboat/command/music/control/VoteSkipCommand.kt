@@ -43,9 +43,12 @@ class VoteSkipCommand(name: String, vararg aliases: String, private val isUnvote
         }
 
         if (!context.hasArguments()) {
-            var response = addVoteWithResponse(context)
-            if (isUnvote)
+            var response = ""
+            if (!isUnvote) {
+                response = addVoteWithResponse(context)
+            } else {
                 response = removeVoteWithResponse(context)
+            }
 
             val actualMinSkip = if (player.humanUsersInCurrentVC.size < 3) 1.0f else MIN_SKIP_PERCENTAGE
 
@@ -170,9 +173,9 @@ class VoteSkipCommand(name: String, vararg aliases: String, private val isUnvote
 
     override fun help(context: Context): String {
         return if (isUnvote) {
-        "{0}{1}\n#" + context.i18n("helpUnvoteSkip")
+            "{0}{1}\n#" + context.i18n("helpUnvoteSkip")
         } else {
-        "{0}{1} OR {0}{1} list\n#" + context.i18n("helpVoteSkip")
+            "{0}{1} OR {0}{1} list\n#" + context.i18n("helpVoteSkip")
         }
     }
 
