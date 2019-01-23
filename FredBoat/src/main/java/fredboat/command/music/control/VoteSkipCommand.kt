@@ -16,7 +16,7 @@ import fredboat.sentinel.Member
 import fredboat.util.TextUtils
 import java.util.*
 
-class VoteSkipCommand(private val isUnvote: Boolean, name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
+class VoteSkipCommand(name: String, vararg aliases: String, private val isUnvote: Boolean = false) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
         get() = PermissionLevel.USER
@@ -43,7 +43,10 @@ class VoteSkipCommand(private val isUnvote: Boolean, name: String, vararg aliase
         }
 
         if (!context.hasArguments()) {
-            val response = processVoteWithResponse(context)
+            var response = addVoteWithResponse(context)
+            if (isUnvote)
+                response = removeVoteWithResponse(context)
+
             val actualMinSkip = if (player.humanUsersInCurrentVC.size < 3) 1.0f else MIN_SKIP_PERCENTAGE
 
             val skipPercentage = getSkipPercentage(context.guild, player)
@@ -76,43 +79,43 @@ class VoteSkipCommand(private val isUnvote: Boolean, name: String, vararg aliase
         return currentTIme - guildIdToLastSkip.getOrDefault(guild.id, 0L) <= SKIP_COOLDOWN
     }
 
-    private fun processVoteWithResponse(context: CommandContext): String {
+    private fun addVoteWithResponse(context: CommandContext): String {
 
         val user = context.user
         var voters: MutableSet<Long>? = guildSkipVotes[context.guild.id]?.toMutableSet()
 
-        if (isUnvote) {
-            if (voters == null) {
-                voters = HashSet()
-            }
+        if (voters == null) {
+            voters = HashSet()
+            voters.add(user.id)
+            guildSkipVotes[context.guild.id] = voters
+            return context.i18n("voteSkipAdded")
+        }
 
-            return if (voters.contains(user.id)) {
-                voters.remove(user.id)
-                guildSkipVotes[context.guild.id] = voters
-                context.i18n("voteSkipRemoved")
-            } else {
-                context.i18n("voteSkipNotVoted")
-            }
-
+        return if (voters.contains(user.id)) {
+            context.i18n("voteSkipAlreadyVoted")
         } else {
-
-            if (voters == null) {
-                voters = HashSet()
-                voters.add(user.id)
-                guildSkipVotes[context.guild.id] = voters
-                return context.i18n("voteSkipAdded")
-            }
-
-            return if (voters.contains(user.id)) {
-                context.i18n("voteSkipAlreadyVoted")
-            } else {
-                voters.add(user.id)
-                guildSkipVotes[context.guild.id] = voters
-                context.i18n("voteSkipAdded")
-            }
+            voters.add(user.id)
+            guildSkipVotes[context.guild.id] = voters
+            context.i18n("voteSkipAdded")
         }
     }
 
+    private fun removeVoteWithResponse(context: CommandContext): String {
+        val user = context.user
+        var voters: MutableSet<Long>? = guildSkipVotes[context.guild.id]?.toMutableSet()
+
+        if (voters == null) {
+            voters = HashSet()
+            return context.i18n("voteSkipNotFound")
+        }
+        return if (voters.contains(user.id)) {
+            voters.remove(user.id)
+            guildSkipVotes[context.guild.id] = voters
+            context.i18n("voteSkipRemoved")
+        } else {
+            context.i18n("voteSkipNotFound")
+        }
+    }
 
     private fun getSkipPercentage(guild: Guild, player: GuildPlayer): Float {
         val vcMembers = player.humanUsersInCurrentVC
@@ -166,8 +169,11 @@ class VoteSkipCommand(private val isUnvote: Boolean, name: String, vararg aliase
     }
 
     override fun help(context: Context): String {
-        return ("{0}voteskip OR {0}voteskip list OR {0}unvoteskip \n"
-        + "#" + context.i18n("helpVoteSkip"))
+        return if (isUnvote) {
+        "{0}{1}\n#" + context.i18n("helpUnvoteSkip")
+        } else {
+        "{0}{1} OR {0}{1} list\n#" + context.i18n("helpVoteSkip")
+        }
     }
 
     companion object {
