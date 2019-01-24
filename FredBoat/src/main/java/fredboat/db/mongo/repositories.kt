@@ -1,5 +1,7 @@
 package fredboat.db.mongo
 
+import com.google.common.cache.Cache
+import com.google.common.cache.CacheBuilder
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.voiceChannel
 import fredboat.audio.queue.SplitAudioTrackContext
@@ -10,10 +12,23 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.util.concurrent.TimeUnit
+
 
 interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long>
 interface ActivityRepository : ReactiveCrudRepository<Activity, Long>
 interface GuildSettingsRepository : ReactiveCrudRepository<GuildSettings, Long>
+
+private val cache: Cache<Long, GuildSettings> = CacheBuilder
+        .newBuilder()
+        .maximumSize(10000)
+        .expireAfterWrite(5, TimeUnit.MINUTES)
+        .build<Long, GuildSettings>()
+
+fun GuildSettingsRepository.test(guildId: Long): Mono<GuildSettings> =Mono.justOrEmpty<GuildSettings>(cache.getIfPresent(guildId))
+        .switchIfEmpty(findById(guildId))
+        .defaultIfEmpty(GuildSettings(guildId))
+        .doOnNext { cache.put(guildId, it) }
 
 private val log: Logger = LoggerFactory.getLogger(PlayerRepository::class.java)
 

@@ -138,7 +138,7 @@ class CommandInitializer(
 
         // Configurational stuff - always on
         val configModule = CommandRegistry(Module.CONFIG)
-        configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, "cfg"))
+        configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, guildSettingsRepository, "cfg"))
         configModule.registerCommand(LanguageCommand(LANGUAGE_COMM_NAME, "lang"))
         configModule.registerCommand(ModulesCommand("modules", "module", "mods"))
         configModule.registerCommand(PrefixCommand(cacheMetrics, PREFIX_COMM_NAME, "pre"))
