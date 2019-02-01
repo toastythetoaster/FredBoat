@@ -51,7 +51,7 @@ class UptimeCommand(name: String, vararg aliases: String) : Command(name, *alias
         val mins = (totalSecs / 60 % 60).toInt()
         val secs = (totalSecs % 60).toInt()
 
-        val response = MessageFormat.format(("Online for: {0} days, {1} hours, {2} minutes and {3} seconds"), days, hours, mins, secs)
+        val response = "Online for: $days days, $hours hours, $mins minutes and $secs seconds"
 
         context.reply(response)
     }
