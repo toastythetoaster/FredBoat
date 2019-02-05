@@ -29,12 +29,12 @@ enum class PermissionLevel(val level: Int, val label: String) {
 
     // Warning: The order is important here, as comparison is based on ordinal, even if `level` is also defined
 
-    BASE(0, "Base"),
     BOT_OWNER(5, "Bot Owner"),
     BOT_ADMIN(4, "Bot Admin"),
     ADMIN(3, "Admin"),
     DJ(2, "DJ"),
-    USER(1, "User");
+    USER(1, "User"),
+    BASE(0, "Base");
 
     override fun toString() = label
 
