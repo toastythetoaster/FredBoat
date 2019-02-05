@@ -61,7 +61,7 @@ public class TextUtils {
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("^(\\d?\\d)(?::([0-5]?\\d))?(?::([0-5]?\\d))?$");
 
     private static final Collection<Character> BACKTICK = Collections.singleton('`');
-    private static final List<Character> MARKDOWN_CHARS = Arrays.asList('*', '`', '~', '_');
+    private static final List<Character> MARKDOWN_CHARS = Arrays.asList('*', '`', '~', '_', '|');
 
     public static final CharMatcher SPLIT_SELECT_SEPARATOR =
             CharMatcher.whitespace().or(CharMatcher.is(','))
