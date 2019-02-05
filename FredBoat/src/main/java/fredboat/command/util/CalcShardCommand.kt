@@ -16,16 +16,15 @@ class CalcShardCommand(name: String, vararg aliases: String) : Command(name, *al
             return
         }
 
-        try {
-            val guildId = context.args[0].toLong()
-            val id = DiscordUtil.getShardId(guildId, Launcher.botController.appConfig)
-            context.reply("Guild $guildId belongs to $id")
+        val guildId = try {
+            context.args[0].toLong()
         } catch (e: NumberFormatException) {
             HelpCommand.sendFormattedCommandHelp(context)
             return
         }
-
-
+        
+        val id = DiscordUtil.getShardId(guildId, Launcher.botController.appConfig)
+        context.reply("Guild $guildId belongs to $id")
     }
 
     override fun help(context: Context): String {
