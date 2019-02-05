@@ -7,7 +7,7 @@ import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IConfigCommand
 import fredboat.config.property.AppConfig
 import fredboat.db.mongo.GuildSettings
-import fredboat.db.mongo.GuildSettingsRepository
+import fredboat.db.mongo.GuildSettingsDelegate
 import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
 import kotlinx.coroutines.reactive.awaitSingle
@@ -15,7 +15,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 class ConfigWebInfoCommand(
         name: String,
         vararg aliases: String,
-        private val repo: GuildSettingsRepository,
+        private val repo: GuildSettingsDelegate,
         private val appConfig: AppConfig
 ) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
 

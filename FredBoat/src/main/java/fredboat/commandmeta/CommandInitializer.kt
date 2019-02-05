@@ -45,7 +45,7 @@ import fredboat.command.music.seeking.SeekCommand
 import fredboat.command.util.*
 import fredboat.config.SentryConfiguration
 import fredboat.config.property.AppConfig
-import fredboat.db.mongo.GuildSettingsRepository
+import fredboat.db.mongo.GuildSettingsDelegate
 import fredboat.definitions.Module
 import fredboat.definitions.PermissionLevel
 import fredboat.definitions.SearchProvider
@@ -72,7 +72,7 @@ class CommandInitializer(
         youtubeAPI: YoutubeAPI,
         sentinel: Sentinel,
         playerRegistry: PlayerRegistry,
-        guildSettingsRepository: GuildSettingsRepository,
+        guildSettingsDelegate: GuildSettingsDelegate,
         appConfig: AppConfig,
         springContext: Supplier<ApplicationContext>
 ) {
@@ -138,11 +138,11 @@ class CommandInitializer(
 
         // Configurational stuff - always on
         val configModule = CommandRegistry(Module.CONFIG)
-        configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, guildSettingsRepository, "cfg"))
+        configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, guildSettingsDelegate, "cfg"))
         configModule.registerCommand(LanguageCommand(LANGUAGE_COMM_NAME, "lang"))
         configModule.registerCommand(ModulesCommand("modules", "module", "mods"))
         configModule.registerCommand(PrefixCommand(cacheMetrics, PREFIX_COMM_NAME, "pre"))
-        configModule.registerCommand(ConfigWebInfoCommand("webinfo", repo = guildSettingsRepository, appConfig = appConfig))
+        configModule.registerCommand(ConfigWebInfoCommand("webinfo", repo = guildSettingsDelegate, appConfig = appConfig))
         /* Perms */
         configModule.registerCommand(PermissionsCommand(PermissionLevel.ADMIN, "admin", "admins"))
         configModule.registerCommand(PermissionsCommand(PermissionLevel.DJ, "dj", "djs"))

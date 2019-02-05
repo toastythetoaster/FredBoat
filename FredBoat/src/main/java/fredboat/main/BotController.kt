@@ -8,6 +8,7 @@ import fredboat.db.api.GuildConfigService
 import fredboat.db.api.GuildModulesService
 import fredboat.db.api.GuildPermsService
 import fredboat.db.api.PrefixService
+import fredboat.db.mongo.GuildSettingsDelegate
 import fredboat.feature.metrics.BotMetrics
 import fredboat.feature.metrics.Metrics
 import fredboat.metrics.OkHttpEventMetrics
@@ -30,7 +31,7 @@ class BotController(private val configProvider: ConfigPropertiesProvider,
                     val botMetrics: BotMetrics,
                     @param:Qualifier("loadAudioPlayerManager") val audioPlayerManager: AudioPlayerManager,
                     val ratelimiter: Ratelimiter,
-                    val guildConfigService: GuildConfigService,
+                    val guildSettingsDelegate: GuildSettingsDelegate,
                     val guildModulesService: GuildModulesService,
                     val guildPermsService: GuildPermsService,
                     val prefixService: PrefixService,

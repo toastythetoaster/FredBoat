@@ -35,7 +35,7 @@ import fredboat.audio.queue.*
 import fredboat.command.music.control.VoteSkipCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
-import fredboat.db.api.GuildConfigService
+import fredboat.db.mongo.GuildSettingsDelegate
 import fredboat.definitions.RepeatMode
 import fredboat.sentinel.Guild
 import fredboat.sentinel.InternalGuild
@@ -61,7 +61,7 @@ class GuildPlayer(
         var guild: Guild,
         private val musicTextChannelProvider: MusicTextChannelProvider,
         audioPlayerManager: AudioPlayerManager,
-        private val guildConfigService: GuildConfigService,
+        private val guildSettingsDelegate: GuildSettingsDelegate,
         ratelimiter: Ratelimiter,
         youtubeAPI: YoutubeAPI
 ) : PlayerEventListenerAdapter() {
@@ -116,12 +116,9 @@ class GuildPlayer(
     private val isTrackAnnounceEnabled: Boolean
         get() {
             var enabled = false
-            try {
                 if (guild.selfPresent) {
-                    enabled = guildConfigService.fetchGuildConfig(guild.id).isTrackAnnounce
+                    guildSettingsDelegate.findByCacheWithDefault(guild.id).subscribe { enabled = it.trackAnnounce }
                 }
-            } catch (ignored: Exception) {
-            }
 
             return enabled
         }

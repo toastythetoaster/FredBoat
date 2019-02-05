@@ -31,20 +31,15 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IConfigCommand
 import fredboat.db.mongo.GuildSettings
-import fredboat.db.mongo.GuildSettingsRepository
-import fredboat.db.mongo.test
-import fredboat.db.transfer.GuildConfig
+import fredboat.db.mongo.GuildSettingsDelegate
 import fredboat.definitions.PermissionLevel
-import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.perms.PermsUtil
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.localMessageBuilder
-import reactor.core.publisher.BaseSubscriber
-import kotlin.system.measureNanoTime
-import kotlin.system.measureTimeMillis
+import kotlinx.coroutines.reactive.awaitSingle
 
-class ConfigCommand(name: String, val repo: GuildSettingsRepository, vararg aliases: String) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
+class ConfigCommand(name: String, private val repo: GuildSettingsDelegate, vararg aliases: String) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
         get() = PermissionLevel.BASE
@@ -58,15 +53,16 @@ class ConfigCommand(name: String, val repo: GuildSettingsRepository, vararg alia
     }
 
     private fun printConfig(context: CommandContext) {
-        val gc = Launcher.botController.guildConfigService.fetchGuildConfig(context.guild.id)
+        repo.findByCacheWithDefault(context.guild.id)
+                .subscribe {
+                    val mb = localMessageBuilder()
+                            .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
+                            .append("track_announce = ${it.trackAnnounce}\n")
+                            .append("auto_resume = ${it.autoResume}\n")
+                            .append("```") //opening ``` is part of the configNoArgs language string
 
-        val mb = localMessageBuilder()
-                .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
-                .append("track_announce = ${gc.isTrackAnnounce}\n")
-                .append("auto_resume = ${gc.isAutoResume}\n")
-                .append("```") //opening ``` is part of the configNoArgs language string
-
-        context.reply(mb.build())
+                    context.reply(mb.build())
+                }
     }
 
     private suspend fun setConfig(context: CommandContext) {
@@ -81,37 +77,32 @@ class ConfigCommand(name: String, val repo: GuildSettingsRepository, vararg alia
         }
 
         val key = context.args[0]
-        val `val` = context.args[1]
+        val value = context.args[1]
 
-        System.out.println("total: " + measureTimeMillis {
-            System.out.println("elapsed: " + repo.test(context.guild.id).log().elapsed().block().t1)
-        })
+        if (!(value.equals("true", ignoreCase = true) or value.equals("false", ignoreCase = true))) {
+            context.reply(context.i18nFormat("configMustBeBoolean", invoker.effectiveName.escapeAndDefuse()))
+            return
+        }
 
-        System.out.println("old: " + measureTimeMillis {
-            Launcher.botController.guildConfigService.fetchGuildConfig(context.guild.id)
-        })
+        val guildSettings = repo.findByCacheWithDefault(context.guild.id).awaitSingle()
 
-        if (key == "track_announce") {
-            if (`val`.equals("true", ignoreCase = true) or `val`.equals("false", ignoreCase = true)) {
-                System.out.println("old update: " + measureTimeMillis {
-                    Launcher.botController.guildConfigService.transformGuildConfig(context.guild.id) { gc: GuildConfig ->
-                        gc.setTrackAnnounce(java.lang.Boolean.valueOf(`val`))
-                    }
-                })
+        when (key) {
+            "track_announce" -> {
+                guildSettings.trackAnnounce = value.toBoolean()
 
-                context.replyWithName("`track_announce` " + context.i18nFormat("configSetTo", `val`))
-            } else {
-                context.reply(context.i18nFormat("configMustBeBoolean", invoker.effectiveName.escapeAndDefuse()))
+                repo.saveWithCache(guildSettings).subscribe {
+                    context.replyWithName("`track_announce` " + context.i18nFormat("configSetTo", value))
+                }
             }
-        } else if (key == "auto_resume") {
-            if (`val`.equals("true", ignoreCase = true) or `val`.equals("false", ignoreCase = true)) {
-                Launcher.botController.guildConfigService.transformGuildConfig(
-                        context.guild.id) { gc -> gc.setAutoResume(java.lang.Boolean.valueOf(`val`)) }
-                context.replyWithName("`auto_resume` " + context.i18nFormat("configSetTo", `val`))
-            } else {
-                context.reply(context.i18nFormat("configMustBeBoolean", invoker.effectiveName.escapeAndDefuse()))
+            "auto_resume" -> {
+                guildSettings.autoResume = value.toBoolean()
+
+                repo.saveWithCache(guildSettings).subscribe {
+                    context.replyWithName("`auto_resume` " + context.i18nFormat("configSetTo", value))
+                }
             }
-        } else context.reply(context.i18nFormat("configUnknownKey", invoker.effectiveName.escapeAndDefuse()))
+            else -> context.reply(context.i18nFormat("configUnknownKey", invoker.effectiveName.escapeAndDefuse()))
+        }
     }
 
     override fun help(context: Context): String {

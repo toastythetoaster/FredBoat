@@ -2,7 +2,7 @@ package fredboat.ws
 
 import com.google.gson.Gson
 import fredboat.db.mongo.GuildSettings
-import fredboat.db.mongo.GuildSettingsRepository
+import fredboat.db.mongo.GuildSettingsDelegate
 import fredboat.sentinel.GuildCache
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 class UserSessionHandler(
         val gson: Gson,
         val guildCache: GuildCache,
-        val repository: GuildSettingsRepository
+        val repository: GuildSettingsDelegate
 ) : WebSocketHandler {
 
     companion object {

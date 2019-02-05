@@ -7,5 +7,8 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class GuildSettings(
         @Id
         val guildId: Long,
-        var allowPublicPlayerInfo: Boolean = false
+        var trackAnnounce: Boolean = false,
+        var autoResume: Boolean = false,
+        var allowPublicPlayerInfo: Boolean = false,
+        var lang: String = "en_US"
 )
