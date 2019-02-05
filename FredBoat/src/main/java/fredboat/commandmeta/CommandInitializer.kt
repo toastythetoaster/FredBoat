@@ -154,6 +154,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         utilityModule.registerCommand(ServerInfoCommand("serverinfo", "guildinfo"))
         utilityModule.registerCommand(UserInfoCommand("userinfo", "memberinfo"))
         utilityModule.registerCommand(WeatherCommand(weather, "weather"))
+        utilityModule.registerCommand(CalcShardCommand("calcshard", "cash", "cs"))
 
 
         // Fun Module - mostly ascii, memes, pictures, games
