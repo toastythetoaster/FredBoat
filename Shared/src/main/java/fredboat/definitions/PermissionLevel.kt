@@ -23,30 +23,19 @@
  * SOFTWARE.
  */
 
-package fredboat.definitions;
+package fredboat.definitions
 
-public enum PermissionLevel {
+enum class PermissionLevel(val level: Int, val label: String) {
 
+    // Warning: The order is important here, as comparison is based on ordinal, even if `level` is also defined
+
+    BASE(0, "Base"),
     BOT_OWNER(5, "Bot Owner"),
     BOT_ADMIN(4, "Bot Admin"),
     ADMIN(3, "Admin"),
     DJ(2, "DJ"),
-    USER(1, "User"),
-    BASE(0, "Base");
+    USER(1, "User");
 
-    private final int level;
-    private final String name;
+    override fun toString() = label
 
-    PermissionLevel(int level, String name) {
-        this.level = level;
-        this.name = name;
-    }
-
-    public int getLevel() {
-        return level;
-    }
-
-    public String getName() {
-        return name;
-    }
 }

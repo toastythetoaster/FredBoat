@@ -34,6 +34,7 @@ import fredboat.commandmeta.MessagingException
 import fredboat.feature.I18n
 import fredboat.perms.IPermissionSet
 import fredboat.perms.PermissionSet
+import fredboat.perms.PermsUtil
 import fredboat.sentinel.*
 import fredboat.shared.constant.BotConstants
 import fredboat.util.TextUtils
@@ -242,4 +243,6 @@ abstract class Context {
         color = BotConstants.FREDBOAT_COLOR.rgb
         image = url
     }
+
+    suspend fun memberLevel() = PermsUtil.getPerms(member)
 }
