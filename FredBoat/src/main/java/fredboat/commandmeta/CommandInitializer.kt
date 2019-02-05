@@ -149,7 +149,6 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         val utilityModule = CommandRegistry(Module.UTIL)
         utilityModule.registerCommand(AvatarCommand("avatar", "ava"))
         utilityModule.registerCommand(BrainfuckCommand("brainfuck"))
-        utilityModule.registerCommand(MALCommand("mal"))
         utilityModule.registerCommand(MathCommand("math"))
         utilityModule.registerCommand(RoleInfoCommand("roleinfo"))
         utilityModule.registerCommand(ServerInfoCommand("serverinfo", "guildinfo"))
