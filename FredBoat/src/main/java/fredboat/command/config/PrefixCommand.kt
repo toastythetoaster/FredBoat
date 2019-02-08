@@ -61,13 +61,9 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
                 .refreshAfterWrite(1, TimeUnit.MINUTES) //NOTE: never use refreshing without async reloading, because Guavas cache uses the thread calling it to do cleanup tasks (including refreshing)
                 .expireAfterAccess(1, TimeUnit.MINUTES) //evict inactive guilds
                 .concurrencyLevel(Launcher.botController.appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
-                .build(CacheLoader.asyncReloading(CacheLoader.from<Long, Optional<String>> {
-                    guildId -> Launcher.botController.prefixService.getPrefix(Prefix.GuildBotId(
-                        guildId!!,
-                        botId
-                ))
-                },
-                        Launcher.botController.executor))!!
+                .build(CacheLoader.asyncReloading(CacheLoader.from<Long, Optional<String>> { guildId ->
+                    Launcher.botController.prefixRepository.getOptional(guildId!!)
+                }, Launcher.botController.executor))!!
 
         fun giefPrefix(guildId: Long) = CacheUtil.getUncheckedUnwrapped(CUSTOM_PREFIXES, guildId)
                 .orElse(Launcher.botController.appConfig.prefix)
@@ -103,9 +99,10 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
             newPrefix = context.rawArgs
         }
 
-        Launcher.botController.prefixService.transformPrefix(context.guild, {
-            prefixEntity -> prefixEntity.setPrefix(newPrefix)
-        })
+        Launcher.botController.prefixRepository.fetch(context.guild.id)
+                .doOnSuccess { it.prefix = newPrefix }
+                .let { Launcher.botController.prefixRepository.update(it) }
+                .subscribe()
 
         //we could do a put instead of invalidate here and probably safe one lookup, but that undermines the database
         // as being the single source of truth for prefixes

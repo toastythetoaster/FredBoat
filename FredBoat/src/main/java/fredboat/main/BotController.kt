@@ -30,7 +30,7 @@ class BotController(private val configProvider: ConfigPropertiesProvider,
                     val guildSettingsRepository: GuildSettingsRepository,
                     val guildModulesService: GuildModulesService,
                     val guildPermissionsRepository: GuildPermissionsRepository,
-                    val prefixService: PrefixService,
+                    val prefixRepository: PrefixRepository,
                     val sentinel: Sentinel,
                     val sentinelCountingService: SentinelCountingService) {
 
