@@ -18,7 +18,6 @@ interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long>
 interface ActivityRepository : ReactiveCrudRepository<Activity, Long>
 interface InternalGuildSettingsRepository : ReactiveCrudRepository<GuildSettings, Long>
 interface InternalGuildPermissionRepository: ReactiveCrudRepository<GuildPermissions, Long>
-interface
 
 private val log: Logger = LoggerFactory.getLogger(PlayerRepository::class.java)
 

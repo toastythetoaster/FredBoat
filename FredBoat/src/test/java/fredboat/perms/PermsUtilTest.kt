@@ -33,34 +33,19 @@ internal class PermsUtilTest : IntegrationTest() {
 
     @Test
     fun testAdmin(permsService: MockGuildPermsService) {
-        permsService.factory = {
-            GuildPermissions().apply {
-                id = it.id.toString()
-                adminList = listOf(Raws.adminRole.id.toString())
-            }
-        }
+        permsService.factory = { GuildPermissions(it, adminList = listOf(Raws.adminRole.id)) }
         assertEquals(PermissionLevel.ADMIN, Raws.napster.level)
     }
 
     @Test
     fun testDj(permsService: MockGuildPermsService) {
-        permsService.factory = {
-            GuildPermissions().apply {
-                id = it.id.toString()
-                djList = listOf(Raws.adminRole.id.toString())
-            }
-        }
+        permsService.factory = { GuildPermissions(it, djList = listOf(Raws.adminRole.id)) }
         assertEquals(PermissionLevel.DJ, Raws.napster.level)
     }
 
     @Test
     fun testUser(permsService: MockGuildPermsService) {
-        permsService.factory = {
-            GuildPermissions().apply {
-                id = it.id.toString()
-                userList = listOf(Raws.adminRole.id.toString())
-            }
-        }
+        permsService.factory = { GuildPermissions(it, userList = listOf(Raws.adminRole.id)) }
         assertEquals(PermissionLevel.USER, Raws.napster.level)
     }
 
