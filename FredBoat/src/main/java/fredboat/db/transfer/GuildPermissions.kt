@@ -6,11 +6,12 @@ import org.springframework.data.mongodb.core.mapping.Document
 
 @Document(collection = "GuildPermissions")
 data class GuildPermissions(
-        @Id val guildId: Long,
+        @Id
+        override val id: Long,
         var adminList: List<Long> = emptyList(),
         var djList: List<Long> = emptyList(),
         var userList: List<Long> = emptyList()
-) {
+) : MongoEntry {
     fun fromEnum(level: PermissionLevel): List<Long> {
         return when (level) {
             PermissionLevel.ADMIN -> adminList

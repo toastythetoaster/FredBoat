@@ -10,6 +10,10 @@ import reactor.core.publisher.Mono
 @Primary
 class MockGuildPermsService : GuildPermissionsRepository {
 
+    override fun default(id: Long): GuildPermissions {
+        return GuildPermissions(id)
+    }
+
     final val default: (guild: Long) -> GuildPermissions = { GuildPermissions(it) }
     var factory = default
 
@@ -18,7 +22,7 @@ class MockGuildPermsService : GuildPermissionsRepository {
     }
 
     override fun update(mono: Mono<GuildPermissions>): Mono<GuildPermissions> {
-        return mono.flatMap { Mono.just(factory(it.guildId)) }
+        return mono.flatMap { Mono.just(factory(it.id)) }
     }
 
     override fun update(permissions: GuildPermissions): Mono<GuildPermissions> {
