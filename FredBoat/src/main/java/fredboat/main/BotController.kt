@@ -4,11 +4,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager
 import fredboat.agent.FredBoatAgent
 import fredboat.audio.player.PlayerRegistry
 import fredboat.config.property.*
-import fredboat.db.api.GuildConfigService
-import fredboat.db.api.GuildModulesService
-import fredboat.db.api.GuildPermsService
-import fredboat.db.api.PrefixService
-import fredboat.db.mongo.GuildSettingsDelegate
+import fredboat.db.api.*
 import fredboat.feature.metrics.BotMetrics
 import fredboat.feature.metrics.Metrics
 import fredboat.metrics.OkHttpEventMetrics
@@ -31,7 +27,7 @@ class BotController(private val configProvider: ConfigPropertiesProvider,
                     val botMetrics: BotMetrics,
                     @param:Qualifier("loadAudioPlayerManager") val audioPlayerManager: AudioPlayerManager,
                     val ratelimiter: Ratelimiter,
-                    val guildSettingsDelegate: GuildSettingsDelegate,
+                    val guildSettingsRepository: GuildSettingsRepository,
                     val guildModulesService: GuildModulesService,
                     val guildPermsService: GuildPermsService,
                     val prefixService: PrefixService,

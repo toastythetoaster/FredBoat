@@ -7,7 +7,7 @@ import fredboat.audio.player.getHumanUsersInVC
 import fredboat.audio.player.humanUsersInCurrentVC
 import fredboat.audio.player.voiceChannel
 import fredboat.config.property.AppConfig
-import fredboat.db.mongo.GuildSettingsDelegate
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.feature.I18n
 import fredboat.sentinel.Member
 import fredboat.sentinel.VoiceChannel
@@ -18,7 +18,7 @@ class AudioEventHandler(
         private val appConfig: AppConfig,
         private val playerRegistry: PlayerRegistry,
         private val lavalink: SentinelLavalink,
-        private val guildSettingsDelegate: GuildSettingsDelegate
+        private val guildSettingsRepository: GuildSettingsRepository
 ) : SentinelEventHandler() {
 
     override fun onVoiceJoin(channel: VoiceChannel, member: Member) {
@@ -79,7 +79,7 @@ class AudioEventHandler(
                 && player.playingTrack != null
                 && joinedChannel.members.contains(guild.selfMember)
                 && player.humanUsersInCurrentVC.isNotEmpty()) {
-            guildSettingsDelegate.findByCacheWithDefault(guild.id).subscribe {
+            guildSettingsRepository.fetch(guild.id).subscribe {
                 if (it.autoResume) {
                     player.setPause(false)
                     player.activeTextChannel?.send(I18n.get(guild).getString("eventAutoResumed"))?.subscribe()

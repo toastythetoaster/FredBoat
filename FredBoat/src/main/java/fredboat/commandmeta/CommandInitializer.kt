@@ -45,7 +45,8 @@ import fredboat.command.music.seeking.SeekCommand
 import fredboat.command.util.*
 import fredboat.config.SentryConfiguration
 import fredboat.config.property.AppConfig
-import fredboat.db.mongo.GuildSettingsDelegate
+import fredboat.db.api.GuildPermissionsRepository
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.Module
 import fredboat.definitions.PermissionLevel
 import fredboat.definitions.SearchProvider
@@ -72,7 +73,8 @@ class CommandInitializer(
         youtubeAPI: YoutubeAPI,
         sentinel: Sentinel,
         playerRegistry: PlayerRegistry,
-        guildSettingsDelegate: GuildSettingsDelegate,
+        guildSettingsRepository: GuildSettingsRepository,
+        guildPermissionsRepository: GuildPermissionsRepository,
         appConfig: AppConfig,
         springContext: Supplier<ApplicationContext>
 ) {
@@ -138,15 +140,15 @@ class CommandInitializer(
 
         // Configurational stuff - always on
         val configModule = CommandRegistry(Module.CONFIG)
-        configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, guildSettingsDelegate, "cfg"))
+        configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, guildSettingsRepository, "cfg"))
         configModule.registerCommand(LanguageCommand(LANGUAGE_COMM_NAME, "lang"))
         configModule.registerCommand(ModulesCommand("modules", "module", "mods"))
         configModule.registerCommand(PrefixCommand(cacheMetrics, PREFIX_COMM_NAME, "pre"))
-        configModule.registerCommand(ConfigWebInfoCommand("webinfo", repo = guildSettingsDelegate, appConfig = appConfig))
+        configModule.registerCommand(ConfigWebInfoCommand("webinfo", repo = guildSettingsRepository, appConfig = appConfig))
         /* Perms */
-        configModule.registerCommand(PermissionsCommand(PermissionLevel.ADMIN, "admin", "admins"))
-        configModule.registerCommand(PermissionsCommand(PermissionLevel.DJ, "dj", "djs"))
-        configModule.registerCommand(PermissionsCommand(PermissionLevel.USER, "user", "users"))
+        configModule.registerCommand(PermissionsCommand(PermissionLevel.ADMIN, guildPermissionsRepository, "admin", "admins"))
+        configModule.registerCommand(PermissionsCommand(PermissionLevel.DJ, guildPermissionsRepository, "dj", "djs"))
+        configModule.registerCommand(PermissionsCommand(PermissionLevel.USER, guildPermissionsRepository, "user", "users"))
 
 
         // Moderation Module - Anything related to managing Discord guilds

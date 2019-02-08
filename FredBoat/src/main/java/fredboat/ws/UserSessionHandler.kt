@@ -1,8 +1,8 @@
 package fredboat.ws
 
 import com.google.gson.Gson
-import fredboat.db.mongo.GuildSettings
-import fredboat.db.mongo.GuildSettingsDelegate
+import fredboat.db.api.GuildSettingsRepository
+import fredboat.db.transfer.GuildSettings
 import fredboat.sentinel.GuildCache
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
 class UserSessionHandler(
         val gson: Gson,
         val guildCache: GuildCache,
-        val repository: GuildSettingsDelegate
+        val repository: GuildSettingsRepository
 ) : WebSocketHandler {
 
     companion object {
@@ -30,7 +30,7 @@ class UserSessionHandler(
         val session = UserSession(rawSession, guildCache, gson)
         log.info("Established user connection for guild ${session.guildId}")
 
-        val interceptMono = repository.findById(session.guildId)
+        val interceptMono = repository.fetch(session.guildId)
                 .defaultIfEmpty(GuildSettings(session.guildId))
                 .doOnError { e ->
                     log.error("Exception while validating privacy setting", e)

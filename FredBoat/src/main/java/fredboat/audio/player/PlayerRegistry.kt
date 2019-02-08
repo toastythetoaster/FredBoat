@@ -30,8 +30,7 @@ import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.queue.AudioTrackContext
 import fredboat.audio.queue.SplitAudioTrackContext
 import fredboat.config.property.AppConfig
-import fredboat.db.api.GuildConfigService
-import fredboat.db.mongo.GuildSettingsDelegate
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.db.mongo.MongoPlayer
 import fredboat.db.mongo.PlayerRepository
 import fredboat.db.mongo.convertAndSaveAll
@@ -59,7 +58,7 @@ import kotlin.streams.toList
 @Component
 class PlayerRegistry(
         private val musicTextChannelProvider: MusicTextChannelProvider,
-        private val guildSettingsDelegate: GuildSettingsDelegate,
+        private val guildSettingsRepository: GuildSettingsRepository,
         private val sentinelLavalink: SentinelLavalink,
         @param:Qualifier("loadAudioPlayerManager") val audioPlayerManager: AudioPlayerManager,
         private val ratelimiter: Ratelimiter,
@@ -197,7 +196,7 @@ class PlayerRegistry(
                     guild,
                     musicTextChannelProvider,
                     audioPlayerManager,
-                    guildSettingsDelegate,
+                    guildSettingsRepository,
                     ratelimiter,
                     youtubeAPI
             )

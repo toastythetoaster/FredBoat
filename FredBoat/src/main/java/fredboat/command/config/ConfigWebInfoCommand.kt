@@ -6,8 +6,8 @@ import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IConfigCommand
 import fredboat.config.property.AppConfig
-import fredboat.db.mongo.GuildSettings
-import fredboat.db.mongo.GuildSettingsDelegate
+import fredboat.db.api.GuildSettingsRepository
+import fredboat.db.transfer.GuildSettings
 import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
 import kotlinx.coroutines.reactive.awaitSingle
@@ -15,7 +15,7 @@ import kotlinx.coroutines.reactive.awaitSingle
 class ConfigWebInfoCommand(
         name: String,
         vararg aliases: String,
-        private val repo: GuildSettingsDelegate,
+        private val repo: GuildSettingsRepository,
         private val appConfig: AppConfig
 ) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
 
@@ -27,7 +27,7 @@ class ConfigWebInfoCommand(
             return
         }
 
-        val settings = repo.findById(context.guild.id)
+        val settings = repo.fetch(context.guild.id)
                 .defaultIfEmpty(GuildSettings(context.guild.id))
                 .awaitSingle()
 
@@ -39,7 +39,7 @@ class ConfigWebInfoCommand(
                 return
             }
         }
-        repo.save(settings).subscribe {
+        repo.update(settings).subscribe {
             val response = if (it.allowPublicPlayerInfo)
                 "Online playing status is now available at ${appConfig.webInfoBaseUrl}${context.guild.id}"
             else "Online playing status has been disabled."

@@ -30,16 +30,14 @@ import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IConfigCommand
-import fredboat.db.mongo.GuildSettings
-import fredboat.db.mongo.GuildSettingsDelegate
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
 import fredboat.perms.PermsUtil
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.localMessageBuilder
-import kotlinx.coroutines.reactive.awaitSingle
 
-class ConfigCommand(name: String, private val repo: GuildSettingsDelegate, vararg aliases: String) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
+class ConfigCommand(name: String, private val repo: GuildSettingsRepository, vararg aliases: String) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
         get() = PermissionLevel.BASE
@@ -53,7 +51,7 @@ class ConfigCommand(name: String, private val repo: GuildSettingsDelegate, varar
     }
 
     private fun printConfig(context: CommandContext) {
-        repo.findByCacheWithDefault(context.guild.id)
+        repo.fetch(context.guild.id)
                 .subscribe {
                     val mb = localMessageBuilder()
                             .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
@@ -84,22 +82,18 @@ class ConfigCommand(name: String, private val repo: GuildSettingsDelegate, varar
             return
         }
 
-        val guildSettings = repo.findByCacheWithDefault(context.guild.id).awaitSingle()
-
         when (key) {
             "track_announce" -> {
-                guildSettings.trackAnnounce = value.toBoolean()
-
-                repo.saveWithCache(guildSettings).subscribe {
-                    context.replyWithName("`track_announce` " + context.i18nFormat("configSetTo", value))
-                }
+                repo.fetch(context.guild.id)
+                        .doOnSuccess { it.trackAnnounce = value.toBoolean() }
+                        .let { repo.update(it) }
+                        .subscribe { context.replyWithName("`track_announce` " + context.i18nFormat("configSetTo", value)) }
             }
             "auto_resume" -> {
-                guildSettings.autoResume = value.toBoolean()
-
-                repo.saveWithCache(guildSettings).subscribe {
-                    context.replyWithName("`auto_resume` " + context.i18nFormat("configSetTo", value))
-                }
+                repo.fetch(context.guild.id)
+                        .doOnSuccess { it.autoResume = value.toBoolean() }
+                        .let { repo.update(it) }
+                        .subscribe { context.replyWithName("`auto_resume` " + context.i18nFormat("configSetTo", value)) }
             }
             else -> context.reply(context.i18nFormat("configUnknownKey", invoker.effectiveName.escapeAndDefuse()))
         }
