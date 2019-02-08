@@ -32,7 +32,7 @@ import fredboat.command.util.WeatherCommand;
 import fredboat.commandmeta.CommandInitializer;
 import fredboat.commandmeta.abs.JCommand;
 import fredboat.config.property.AppConfig;
-import fredboat.db.api.BlacklistService;
+import fredboat.db.api.BlacklistRepository;
 import fredboat.feature.metrics.Metrics;
 import fredboat.messaging.internal.Context;
 import fredboat.util.TextUtils;
@@ -63,18 +63,19 @@ public class Ratelimiter {
     @Nullable
     private final Blacklist autoBlacklist;
 
-    public Ratelimiter(AppConfig appConfig, ExecutorService executor, BlacklistService blacklistService,
+    public Ratelimiter(AppConfig appConfig, ExecutorService executor, BlacklistRepository repository,
                        CacheMetricsCollector cacheMetrics) {
         Set<Long> whitelist = ConcurrentHashMap.newKeySet();
 
         //only works for those admins who are added with their userId and not through a roleId
+        //TODO: Add ownerIds (needs merge with dev)
         whitelist.addAll(appConfig.getAdminIds());
 
         //Create all the rate limiters we want
         ratelimits = new ArrayList<>();
 
         if (appConfig.useAutoBlacklist()) {
-            autoBlacklist = new Blacklist(blacklistService, whitelist, RATE_LIMIT_HITS_BEFORE_BLACKLIST);
+            autoBlacklist = new Blacklist(repository, whitelist, RATE_LIMIT_HITS_BEFORE_BLACKLIST);
         } else {
             autoBlacklist = null;
         }

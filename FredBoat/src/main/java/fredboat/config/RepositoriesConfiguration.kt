@@ -1,11 +1,9 @@
 package fredboat.config
 
+import fredboat.db.api.BlacklistRepository
 import fredboat.db.api.GuildPermissionsRepository
 import fredboat.db.api.GuildSettingsRepository
-import fredboat.db.mongo.GuildPermissionsRepositoryImpl
-import fredboat.db.mongo.GuildSettingsRepositoryImpl
-import fredboat.db.mongo.InternalGuildPermissionRepository
-import fredboat.db.mongo.InternalGuildSettingsRepository
+import fredboat.db.mongo.*
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -20,5 +18,10 @@ class RepositoriesConfiguration {
     @Bean
     fun guildPermissionsRepository(repo: InternalGuildPermissionRepository): GuildPermissionsRepository {
         return GuildPermissionsRepositoryImpl(repo)
+    }
+
+    @Bean
+    fun blacklistRepository(repo: InternalBlacklistRepository): BlacklistRepository {
+        return BlacklistRepositoryImpl(repo)
     }
 }
