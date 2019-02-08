@@ -45,7 +45,7 @@ object PermsUtil {
         member.hasPermission(Permission.ADMINISTRATOR).awaitSingle()
         -> PermissionLevel.ADMIN
         else -> {
-            val gp = Launcher.botController.guildPermissionsRepository.fetch(member.guild.id).awaitSingle()
+            val gp = Launcher.botController.guildSettingsRepository.fetch(member.guild.id).awaitSingle().permissions
 
             when {
                 checkList(gp.adminList, member) -> PermissionLevel.ADMIN

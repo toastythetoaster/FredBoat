@@ -28,9 +28,6 @@ class BotController(private val configProvider: ConfigPropertiesProvider,
                     @param:Qualifier("loadAudioPlayerManager") val audioPlayerManager: AudioPlayerManager,
                     val ratelimiter: Ratelimiter,
                     val guildSettingsRepository: GuildSettingsRepository,
-                    val guildModulesService: GuildModulesService,
-                    val guildPermissionsRepository: GuildPermissionsRepository,
-                    val prefixRepository: PrefixRepository,
                     val sentinel: Sentinel,
                     val sentinelCountingService: SentinelCountingService) {
 

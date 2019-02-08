@@ -32,7 +32,7 @@ import fredboat.command.info.HelpCommand
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IConfigCommand
-import fredboat.db.api.GuildPermissionsRepository
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
 import fredboat.perms.Permission
@@ -50,7 +50,7 @@ import java.util.*
 
 class PermissionsCommand(
         private val permissionLevel: PermissionLevel,
-        private val repo: GuildPermissionsRepository,
+        private val repo: GuildSettingsRepository,
         name: String,
         vararg aliases: String
 ) : Command(name, *aliases), IConfigCommand {
@@ -100,7 +100,8 @@ class PermissionsCommand(
         val selected = ArgumentUtil.checkSingleFuzzySearchResult(search, context, term) ?: return
         val discordPerms = invoker.getPermissions(channel = null).awaitFirst()
 
-        val gp = repo.fetch(context.guild.id).awaitSingle()
+        val settings = repo.fetch(context.guild.id).awaitSingle()
+        val gp = settings.permissions
 
         if (!gp.fromEnum(permissionLevel).contains(mentionableToId(selected))) {
             context.replyWithName(context.i18nFormat("permsNotAdded", "`" + mentionableToName(selected) + "`", "`$permissionLevel`"))
@@ -121,7 +122,7 @@ class PermissionsCommand(
         context.replyWithName(context.i18nFormat("permsRemoved", mentionableToName(selected), permissionLevel))
 
         gp.fromEnum(permissionLevel, newList)
-        repo.update(gp).subscribe()
+        repo.update(settings).subscribe()
     }
 
     suspend fun add(context: CommandContext) {
@@ -135,7 +136,8 @@ class PermissionsCommand(
 
         val selected = ArgumentUtil.checkSingleFuzzySearchResult(list, context, term) ?: return
 
-        val gp = repo.fetch(context.guild.id).awaitSingle()
+        val settings = repo.fetch(context.guild.id).awaitSingle()
+        val gp = settings.permissions
         if (gp.fromEnum(permissionLevel).contains(mentionableToId(selected))) {
             context.replyWithName(context.i18nFormat("permsAlreadyAdded", "`" + TextUtils.escapeMarkdown(mentionableToName(selected)) + "`", "`$permissionLevel`"))
             return
@@ -147,15 +149,15 @@ class PermissionsCommand(
         context.replyWithName(context.i18nFormat("permsAdded", TextUtils.escapeMarkdown(mentionableToName(selected)), permissionLevel))
 
         gp.fromEnum(permissionLevel, newList)
-        repo.update(gp).subscribe()
+        repo.update(settings).subscribe()
     }
 
     suspend fun list(context: CommandContext) {
         val guild = context.guild
         val invoker = context.member
-        val gp = repo.fetch(context.guild.id).awaitSingle()
+        val settings = repo.fetch(context.guild.id).awaitSingle()
 
-        val mentionables = idsToMentionables(guild, gp.fromEnum(permissionLevel))
+        val mentionables = idsToMentionables(guild, settings.permissions.fromEnum(permissionLevel))
 
         var roleMentions = ""
         var memberMentions = ""

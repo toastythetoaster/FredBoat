@@ -30,7 +30,7 @@ import com.google.common.cache.CacheLoader
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IConfigCommand
-import fredboat.db.transfer.Prefix
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
@@ -44,14 +44,16 @@ import java.util.concurrent.TimeUnit
 /**
  * Created by napster on 19.10.17.
  */
-class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg aliases: String) : Command(name, *aliases), IConfigCommand {
+class PrefixCommand(cacheMetrics: CacheMetricsCollector,
+                    private val repo: GuildSettingsRepository,
+                    name: String, vararg aliases: String)
+    : Command(name, *aliases), IConfigCommand {
 
     init {
         cacheMetrics.addCache("customPrefixes", CUSTOM_PREFIXES)
     }
 
     companion object {
-        val botId = Launcher.botController.sentinel.selfUser.id
         val CUSTOM_PREFIXES = CacheBuilder.newBuilder()
                 //it is fine to check the db for updates occasionally, as we currently dont have any use case where we change
                 //the value saved there through other means. in case we add such a thing (like a dashboard), consider lowering
@@ -62,7 +64,7 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
                 .expireAfterAccess(1, TimeUnit.MINUTES) //evict inactive guilds
                 .concurrencyLevel(Launcher.botController.appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
                 .build(CacheLoader.asyncReloading(CacheLoader.from<Long, Optional<String>> { guildId ->
-                    Launcher.botController.prefixRepository.getOptional(guildId!!)
+                    Optional.ofNullable(Launcher.botController.guildSettingsRepository.fetch(guildId!!).block()?.prefix)
                 }, Launcher.botController.executor))!!
 
         fun giefPrefix(guildId: Long) = CacheUtil.getUncheckedUnwrapped(CUSTOM_PREFIXES, guildId)
@@ -99,9 +101,9 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
             newPrefix = context.rawArgs
         }
 
-        Launcher.botController.prefixRepository.fetch(context.guild.id)
+        repo.fetch(context.guild.id)
                 .doOnSuccess { it.prefix = newPrefix }
-                .let { Launcher.botController.prefixRepository.update(it) }
+                .let { repo.update(it) }
                 .subscribe()
 
         //we could do a put instead of invalidate here and probably safe one lookup, but that undermines the database
