@@ -218,6 +218,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         funModule.registerCommand(RandomImageCommand("https://imgur.com/a/mnhzS", "wombat"))
         funModule.registerCommand(RandomImageCommand("https://imgur.com/a/hfL80", "capybara"))
         funModule.registerCommand(RandomImageCommand("https://imgur.com/a/WvjQA", "quokka"))
+        funModule.registerCommand(RandomImageCommand("https://imgur.com/a/BL2MW", "otter"))
 
         // Music Module
 
