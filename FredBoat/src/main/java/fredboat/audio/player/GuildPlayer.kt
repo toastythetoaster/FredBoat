@@ -109,7 +109,7 @@ class GuildPlayer(
         get() = audioTrackProvider is AbstractTrackProvider && audioTrackProvider.isShuffle
         set(shuffle) = if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.isShuffle = shuffle
-            context?.isPriority = false
+            internalContext?.isPriority = false
         } else {
             throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
         }
@@ -229,7 +229,7 @@ class GuildPlayer(
     fun reshuffle() {
         if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.reshuffle()
-            context?.isPriority = false
+            internalContext?.isPriority = false
             updateClients()
         } else {
             throw UnsupportedOperationException("Can't reshuffle " + audioTrackProvider.javaClass)
