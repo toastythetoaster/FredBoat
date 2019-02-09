@@ -25,7 +25,7 @@
 package fredboat.util.ratelimit;
 
 import fredboat.db.api.BlacklistRepository;
-import fredboat.db.transfer.BlacklistEntry;
+import fredboat.db.transfer.BlacklistEntity;
 import fredboat.feature.metrics.Metrics;
 
 import java.util.Collections;
@@ -82,7 +82,7 @@ public class Blacklist {
         //first of all, ppl that can never get blacklisted no matter what
         if (userWhiteList.contains(id)) return false;
 
-        BlacklistEntry blEntry = repository.fetch(id).block();
+        BlacklistEntity blEntry = repository.fetch(id).block();
         if (blEntry.getLevel() < 0) return false; //blacklist entry exists, but id hasn't actually been blacklisted yet
 
 
@@ -102,7 +102,7 @@ public class Blacklist {
     public long hitRateLimit(long id) {
         //update blacklist entry of this id
         long blacklistingLength = 0;
-        BlacklistEntry blEntry = repository.fetch(id).block();
+        BlacklistEntity blEntry = repository.fetch(id).block();
 
         //synchronize on the individual blacklist entries since we are about to change and convertAndSave them
         // we can use these to synchronize because they are backed by a cache, subsequent calls to fetch them
@@ -138,7 +138,7 @@ public class Blacklist {
      * completely resets a blacklist for an id
      */
     public void liftBlacklist(long id) {
-        repository.delete(id);
+        repository.remove(id);
     }
 
     /**

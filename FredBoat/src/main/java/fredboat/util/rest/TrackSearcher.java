@@ -33,8 +33,9 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.BasicAudioPlaylist;
 import fredboat.config.property.AppConfig;
-import fredboat.db.api.SearchResultService;
+import fredboat.db.api.SearchResultRepository;
 import fredboat.db.transfer.SearchResult;
+import fredboat.db.transfer.SearchResultId;
 import fredboat.definitions.SearchProvider;
 import fredboat.feature.metrics.Metrics;
 import fredboat.feature.togglz.FeatureFlags;
@@ -49,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -69,18 +69,15 @@ public class TrackSearcher {
 
     private final AudioPlayerManager audioPlayerManager;
     private final YoutubeAPI youtubeAPI;
-    private final SearchResultService searchResultService;
+    private final SearchResultRepository repository;
     private final AppConfig appConfig;
-    private final ExecutorService executor;
 
     public TrackSearcher(@Qualifier("searchAudioPlayerManager") AudioPlayerManager audioPlayerManager,
-                         YoutubeAPI youtubeAPI, SearchResultService searchResultService, AppConfig appConfig,
-                         ExecutorService executor) {
+                         YoutubeAPI youtubeAPI, SearchResultRepository repository, AppConfig appConfig) {
         this.audioPlayerManager = audioPlayerManager;
         this.youtubeAPI = youtubeAPI;
-        this.searchResultService = searchResultService;
+        this.repository = repository;
         this.appConfig = appConfig;
-        this.executor = executor;
     }
 
     public AudioPlaylist searchForTracks(String query, List<SearchProvider> providers) throws SearchingException {
@@ -89,7 +86,6 @@ public class TrackSearcher {
 
     /**
      * @param query         The search term
-     * @param cacheMaxAge   Age of acceptable results from cache.
      * @param timeoutMillis How long to wait for each lavaplayer search to answer
      * @param providers     Providers that shall be used for the search. They will be used in the order they are provided, the
      *                      result of the first successful one will be returned
@@ -128,8 +124,7 @@ public class TrackSearcher {
                     if (!lavaplayerResult.getTracks().isEmpty()) {
                         log.debug("Loaded search result {} {} from lavaplayer", provider, query);
                         // got a search result? cache and return it
-                        executor.execute(() -> searchResultService
-                                .mergeSearchResult(new SearchResult(audioPlayerManager, provider, query, lavaplayerResult)));
+                        repository.update(new SearchResult(provider, query, lavaplayerResult)).subscribe();
                         Metrics.searchHits.labels("lavaplayer-" + provider.name().toLowerCase()).inc();
                         return lavaplayerResult;
                     }
@@ -152,8 +147,7 @@ public class TrackSearcher {
                     if (!youtubeApiResult.getTracks().isEmpty()) {
                         log.debug("Loaded search result {} {} from Youtube API", provider, query);
                         // got a search result? cache and return it
-                        executor.execute(() -> searchResultService
-                                .mergeSearchResult(new SearchResult(audioPlayerManager, provider, query, youtubeApiResult)));
+                        repository.update(new SearchResult(provider, query, youtubeApiResult)).subscribe();
                         Metrics.searchHits.labels("youtube-api").inc();
                         return youtubeApiResult;
                     }
@@ -180,10 +174,22 @@ public class TrackSearcher {
     @Nullable
     private AudioPlaylist fromCache(SearchProvider provider, String searchTerm, long cacheMaxAge) {
         try {
-            SearchResult.SearchResultId id = new SearchResult.SearchResultId(provider, searchTerm);
-            return searchResultService.getSearchResult(id, cacheMaxAge)
-                    .map(searchResult -> searchResult.getSearchResult(audioPlayerManager))
-                    .orElse(null);
+            SearchResultId id = new SearchResultId(provider, searchTerm);
+            SearchResult result = repository.fetch(id).block();
+
+            if (result == null) {
+                return null;
+            }
+
+            // If the cache entry is old evict it from DB and return null
+            if ((result.getTimestamp() + cacheMaxAge) < System.currentTimeMillis()) {
+                repository.remove(result.getId()).subscribe();
+
+                return null;
+            }
+
+            return result.getSearchResult();
+
         } catch (Exception e) {
             //could be a database issue, could be a serialization issue. better to catch them all here and "orderly" return
             log.warn("Could not retrieve cached search result from database.", e);

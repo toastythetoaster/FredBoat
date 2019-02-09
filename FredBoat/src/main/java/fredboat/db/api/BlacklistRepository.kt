@@ -1,5 +1,5 @@
 package fredboat.db.api
 
-import fredboat.db.transfer.BlacklistEntry
+import fredboat.db.transfer.BlacklistEntity
 
-interface BlacklistRepository : BaseRepository<BlacklistEntry>
+interface BlacklistRepository : BaseRepository<Long, BlacklistEntity>

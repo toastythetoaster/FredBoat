@@ -8,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 data class GuildSettings(
         @Id
         override val id: Long,
+        var helloSent: Boolean = false,
         var trackAnnounce: Boolean = false,
         var autoResume: Boolean = false,
         var allowPublicPlayerInfo: Boolean = false,
@@ -15,7 +16,7 @@ data class GuildSettings(
         var prefix: String? = null,
         var modules: List<ModuleEntity> = Module.values().toList().map { ModuleEntity(it, true) },
         var permissions: PermissionEntity = PermissionEntity()
-) : MongoEntry {
+) : MongoEntity<Long> {
 
     fun get(module: Module): ModuleEntity {
         return modules.first { it.module.name == module.name }

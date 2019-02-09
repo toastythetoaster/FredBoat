@@ -16,7 +16,8 @@ import reactor.core.publisher.Mono
 interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long>
 interface ActivityRepository : ReactiveCrudRepository<Activity, Long>
 interface InternalGuildSettingsRepository : ReactiveCrudRepository<GuildSettings, Long>
-interface InternalBlacklistRepository: ReactiveCrudRepository<BlacklistEntry, Long>
+interface InternalBlacklistRepository: ReactiveCrudRepository<BlacklistEntity, Long>
+interface InternalSearchResultRepository: ReactiveCrudRepository<SearchResult, SearchResultId>
 
 private val log: Logger = LoggerFactory.getLogger(PlayerRepository::class.java)
 

@@ -25,7 +25,6 @@
 
 package fredboat.feature;
 
-import fredboat.db.DatabaseNotReadyException;
 import fredboat.db.transfer.GuildSettings;
 import fredboat.definitions.Language;
 import fredboat.sentinel.Guild;
@@ -76,9 +75,6 @@ public class I18n {
     public static FredBoatLocale getLocale(long guild) {
         try {
             return LANGS.getOrDefault(getBotController().getGuildSettingsRepository().fetch(guild).block(Duration.ofSeconds(10)).getLang(), DEFAULT);
-        } catch (DatabaseNotReadyException e) {
-            //don't log spam the full exceptions or logs
-            return DEFAULT;
         } catch (Exception e) {
             log.error("Error when reading entity", e);
             return DEFAULT;
