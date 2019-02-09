@@ -28,11 +28,11 @@ package fredboat.audio.queue
 import fredboat.definitions.RepeatMode
 import org.bson.types.ObjectId
 import java.util.*
-import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.ConcurrentLinkedDeque
 
 class SimpleTrackProvider : AbstractTrackProvider() {
 
-    private val queue = ConcurrentLinkedQueue<AudioTrackContext>()
+    private val queue = ConcurrentLinkedDeque<AudioTrackContext>()
     private var lastTrack: AudioTrackContext? = null
     private var cachedShuffledQueue: List<AudioTrackContext> = ArrayList()
     private var shouldUpdateShuffledQueue = true
@@ -44,13 +44,18 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         get() = super.isShuffle
         set(shuffle) {
             super.isShuffle = shuffle
-            if (shuffle) shouldUpdateShuffledQueue = true
+            if (shuffle) {
+                shouldUpdateShuffledQueue = true
+                queue.forEach { it.isPriority = false} // reset all priority tracks
+            }
         }
 
-    override//Update the new queue
-    //adjust rand values so they are evenly spread out
-    //this will calculate a value between 0.0 < rand < 1.0 multiplied by the full integer range
-    val asListOrdered: List<AudioTrackContext>
+    /**
+     * Update the new queue
+     * adjust rand values so they are evenly spread out
+     * this will calculate a value between 0.0 < rand < 1.0 multiplied by the full integer range
+     */
+    override val asListOrdered: List<AudioTrackContext>
         @Synchronized get() {
             if (!isShuffle) {
                 return asList
@@ -67,7 +72,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
             val size = newList.size
             for ((i, atc) in newList.withIndex()) {
                 val rand = ((i / (size + 1.0) + 1.0 / (size + 1.0)) * Integer.MAX_VALUE).toInt()
-                atc.rand = rand
+                atc.rand = if (atc.isPriority) Integer.MIN_VALUE else rand
             }
 
             cachedShuffledQueue = newList
@@ -168,7 +173,10 @@ class SimpleTrackProvider : AbstractTrackProvider() {
 
     @Synchronized
     override fun reshuffle() {
-        queue.forEach { it.randomize() }
+        queue.forEach {
+            it.randomize()
+            it.isPriority = false
+        }
         shouldUpdateShuffledQueue = true
     }
 
@@ -187,6 +195,19 @@ class SimpleTrackProvider : AbstractTrackProvider() {
     override fun addAll(tracks: Collection<AudioTrackContext>) {
         shouldUpdateShuffledQueue = true
         queue.addAll(tracks)
+    }
+
+    override fun addFirst(track: AudioTrackContext) {
+        shouldUpdateShuffledQueue = true
+        track.rand = Integer.MIN_VALUE
+        queue.addFirst(track)
+    }
+
+    override fun addAllFirst(tracks: Collection<AudioTrackContext>) {
+        shouldUpdateShuffledQueue = true
+        tracks.reversed().forEach {
+            it.rand = Integer.MIN_VALUE
+            queue.addFirst(it) }
     }
 
     override fun clear() {

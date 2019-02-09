@@ -38,8 +38,8 @@ import javax.annotation.CheckReturnValue
 object PermsUtil {
 
     suspend fun getPerms(member: Member): PermissionLevel = when {
-        member.sentinel.applicationInfo.ownerId == member.id
-        -> PermissionLevel.BOT_OWNER // https://fred.moe/Q-EB.png
+        isBotOwner(member)
+        -> PermissionLevel.BOT_OWNER
         isBotAdmin(member)
         -> PermissionLevel.BOT_ADMIN
         member.hasPermission(Permission.ADMINISTRATOR).awaitSingle()
@@ -83,11 +83,14 @@ object PermsUtil {
                     context.reply("Sorry! That command is reserved for Fredboat administration. Please try something else.") //todo i18n
                 }
             } else {//regular user tried running command that requires a higher regular user permission level
-                context.replyWithName(context.i18nFormat("cmdPermsTooLow", minLevel, actual))
+                context.replyWithName(context.i18nFormat("cmdPermsTooLow", minLevel.label, actual.label))
             }
             return false
         }
     }
+
+    private fun isBotOwner(member: Member): Boolean = Launcher.botController.appConfig.ownerIds.contains(member.id) ||
+            member.sentinel.applicationInfo.ownerId == member.id // https://fred.moe/Q-EB.png
 
     /**
      * returns true if the member is or holds a role defined as admin in the configuration file

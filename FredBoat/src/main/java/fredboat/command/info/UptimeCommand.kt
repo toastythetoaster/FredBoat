@@ -23,25 +23,36 @@
  *
  */
 
-package fredboat.audio.queue
+package fredboat.command.info
 
+import com.sedmelluq.discord.lavaplayer.tools.PlayerLibrary
+import fredboat.agent.FredBoatAgent
+import fredboat.commandmeta.abs.Command
+import fredboat.commandmeta.abs.CommandContext
+import fredboat.commandmeta.abs.IInfoCommand
+import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
-import fredboat.sentinel.Guild
-import fredboat.sentinel.Member
-import fredboat.sentinel.TextChannel
-import fredboat.sentinel.User
+import fredboat.util.TextUtils
+import java.text.MessageFormat
+import java.util.*
 
-class IdentifierContext(
-        val identifier: String,
-        override val textChannel: TextChannel,
-        override val member: Member
-) : Context() {
-    override val guild: Guild
-        get() = member.guild
-    override val user: User
-        get() = member.user
-    var isQuiet = false
-    var isSplit = false
-    var isPriority = false
-    var position = 0L
+class UptimeCommand(name: String, vararg aliases: String) : Command(name, *aliases), IInfoCommand {
+
+    override fun help(context: Context): String {
+        return "{0}{1}\n#Show the uptime of this bot."
+    }
+
+    override suspend fun invoke(context: CommandContext) {
+        context.sendTyping()
+
+        val totalSecs = (System.currentTimeMillis() - Launcher.START_TIME) / 1000
+        val days = (totalSecs / (60 * 60 * 24)).toInt()
+        val hours = (totalSecs / (60 * 60) % 24).toInt()
+        val mins = (totalSecs / 60 % 60).toInt()
+        val secs = (totalSecs % 60).toInt()
+
+        val response = "Online for: $days days, $hours hours, $mins minutes and $secs seconds"
+
+        context.reply(response)
+    }
 }

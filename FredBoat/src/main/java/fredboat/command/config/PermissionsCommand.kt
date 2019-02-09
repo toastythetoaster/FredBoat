@@ -232,7 +232,7 @@ class PermissionsCommand(
 
     override fun help(context: Context): String {
         val usage = "{0}{1} add <role/user>\n{0}{1} del <role/user>\n{0}{1} list\n#"
-        return usage + context.i18nFormat("helpPerms", permissionLevel.getName()) + "\n" + BotConstants.DOCS_PERMISSIONS_URL
+        return usage + context.i18nFormat("helpPerms", permissionLevel) + "\n" + BotConstants.DOCS_PERMISSIONS_URL
     }
 
 }

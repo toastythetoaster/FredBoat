@@ -130,10 +130,11 @@ class CommandInitializer(
         infoModule.registerCommand(MusicHelpCommand(MUSICHELP_COMM_NAME, "musichelp"))
         infoModule.registerCommand(PingCommand("ping"))
         infoModule.registerCommand(ShardsCommand("shards"))
-        infoModule.registerCommand(StatsCommand("stats", sentinel.selfUser, "uptime"))
+        infoModule.registerCommand(StatsCommand("stats", sentinel.selfUser))
         infoModule.registerCommand(TextCommand("https://github.com/Frederikam", "github"))
         infoModule.registerCommand(TextCommand(BotConstants.GITHUB_URL, "repo"))
         infoModule.registerCommand(SentinelsCommand("sentinels", "sentisneks", "slist"))
+        infoModule.registerCommand(UptimeCommand("uptime"))
 
 
         // Configurational stuff - always on
@@ -161,12 +162,12 @@ class CommandInitializer(
         val utilityModule = CommandRegistry(Module.UTIL)
         utilityModule.registerCommand(AvatarCommand("avatar", "ava"))
         utilityModule.registerCommand(BrainfuckCommand("brainfuck"))
-        utilityModule.registerCommand(MALCommand("mal"))
         utilityModule.registerCommand(MathCommand("math"))
         utilityModule.registerCommand(RoleInfoCommand("roleinfo"))
         utilityModule.registerCommand(ServerInfoCommand("serverinfo", "guildinfo"))
         utilityModule.registerCommand(UserInfoCommand("userinfo", "memberinfo"))
         utilityModule.registerCommand(WeatherCommand(weather, "weather"))
+        utilityModule.registerCommand(CalcShardCommand("calcshard", "cash", "cs"))
 
 
         // Fun Module - mostly ascii, memes, pictures, games
@@ -248,6 +249,9 @@ class CommandInitializer(
         musicModule.registerCommand(PlayCommand(playerLimiter, trackSearcher, videoSelectionCache,
                 listOf(SearchProvider.SOUNDCLOUD),
                 SOUNDCLOUD_COMM_NAME, "sc"))
+        musicModule.registerCommand(PlayCommand(playerLimiter, trackSearcher, videoSelectionCache,
+                listOf(SearchProvider.YOUTUBE, SearchProvider.SOUNDCLOUD),
+                "playnext", "playtop", "pn", isPriority = true))
         musicModule.registerCommand(PlaySplitCommand(playerLimiter, "split"))
         musicModule.registerCommand(RepeatCommand("repeat", "rep", "loop"))
         musicModule.registerCommand(ReshuffleCommand("reshuffle", "resh"))

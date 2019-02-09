@@ -109,6 +109,7 @@ class GuildPlayer(
         get() = audioTrackProvider is AbstractTrackProvider && audioTrackProvider.isShuffle
         set(shuffle) = if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.isShuffle = shuffle
+            context?.isPriority = false
         } else {
             throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
         }
@@ -188,8 +189,9 @@ class GuildPlayer(
         activeTextChannel?.send("Something went wrong!\n${t.message}")?.subscribe()
     }
 
-    fun queue(identifier: String, context: CommandContext) {
+    fun queue(identifier: String, context: CommandContext, isPriority: Boolean = false) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
+        ic.isPriority = isPriority
 
         joinChannel(context.member)
 
@@ -202,14 +204,15 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(atc: AudioTrackContext) {
+    fun queue(atc: AudioTrackContext, isPriority: Boolean = false) {
         if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
         if (member != null) {
             joinChannel(member)
         }
-        audioTrackProvider.add(atc)
+
+        if (isPriority) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
         if (isPlaying) updateClients()
         play()
     }
@@ -226,6 +229,7 @@ class GuildPlayer(
     fun reshuffle() {
         if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.reshuffle()
+            context?.isPriority = false
             updateClients()
         } else {
             throw UnsupportedOperationException("Can't reshuffle " + audioTrackProvider.javaClass)

@@ -105,7 +105,6 @@ class StatsCommand(
             content += "Voice channels:                 " + counts.t1.voiceChannels + "\n"
             content += "Categories:                     " + counts.t1.categories + "\n"
             content += "Roles:                          " + counts.t1.roles + "\n"
-            content += "Emotes:                         " + counts.t1.emotes + "\n"
 
             content += "\n----------\n\n"
 
