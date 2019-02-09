@@ -250,6 +250,7 @@ class CommandInitializer(cacheMetrics: CacheMetricsCollector, weather: Weather, 
         musicModule.registerCommand(UnpauseCommand("unpause", "unp", "resume"))
         musicModule.registerCommand(VolumeCommand("volume", "vol"))
         musicModule.registerCommand(VoteSkipCommand("voteskip", "vsk", "v"))
+        musicModule.registerCommand(VoteSkipCommand("unvoteskip", "unv", isUnvote = true))
 
         /* Info */
         musicModule.registerCommand(ExportCommand("export", "ex"))
