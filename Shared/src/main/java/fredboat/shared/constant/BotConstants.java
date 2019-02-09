@@ -36,6 +36,7 @@ public class BotConstants {
     public static final long CUTTING_EDGE_BOT_ID = 341924447139135488L;
 
     public static final long FREDBOAT_HANGOUT_ID = 174820236481134592L;
+    public static final long FBH_MODERATOR_ROLE_ID = 242377373947920384L;
     public static final Color FREDBOAT_COLOR = new Color(28, 191, 226); //#1CBFE2
 
     public static final String FREDBOAT_URL = "https://fredboat.com";
