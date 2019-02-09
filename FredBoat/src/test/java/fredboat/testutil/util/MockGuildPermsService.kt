@@ -29,7 +29,7 @@ class MockGuildPermsService : GuildSettingsRepository {
         return Mono.just(target)
     }
 
-    override fun delete(id: Long): Mono<Void> {
+    override fun remove(id: Long): Mono<Void> {
         return Mono.empty()
     }
 }
