@@ -52,6 +52,7 @@ import lavalink.client.player.event.PlayerEventListenerAdapter
 import org.bson.types.ObjectId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
+import reactor.core.publisher.Mono
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.Consumer
@@ -114,14 +115,13 @@ class GuildPlayer(
             throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
         }
 
-    private val isTrackAnnounceEnabled: Boolean
+    private val isTrackAnnounceEnabled: Mono<Boolean>
         get() {
-            var enabled = false
-                if (guild.selfPresent) {
-                    guildSettingsRepository.fetch(guild.id).subscribe { enabled = it.trackAnnounce }
-                }
+            if (guild.selfPresent) {
+                 return guildSettingsRepository.fetch(guild.id).map { it.trackAnnounce }
+            }
 
-            return enabled
+            return Mono.just(false)
         }
 
     val playingTrack: AudioTrackContext?
@@ -171,14 +171,19 @@ class GuildPlayer(
     }
 
     private fun announceTrack(atc: AudioTrackContext) {
-        if (repeatMode != RepeatMode.SINGLE && isTrackAnnounceEnabled && !isPaused) {
-            val activeTextChannel = activeTextChannel
-            activeTextChannel?.send(atc.i18nFormat(
-                    "trackAnnounce",
-                    atc.effectiveTitle.escapeAndDefuse(),
-                    atc.member.effectiveName.escapeAndDefuse()
-            ))?.subscribe()
-        }
+        val activeTextChannel = activeTextChannel
+
+        isTrackAnnounceEnabled.flatMap {
+            if (it && !isPaused && repeatMode != RepeatMode.SINGLE) {
+                activeTextChannel?.send(atc.i18nFormat(
+                        "trackAnnounce",
+                        atc.effectiveTitle.escapeAndDefuse(),
+                        atc.member.effectiveName.escapeAndDefuse()
+                ))
+            } else {
+                Mono.empty<Boolean>()
+            }
+        }.subscribe()
     }
 
     private fun handleError(t: Throwable) {
