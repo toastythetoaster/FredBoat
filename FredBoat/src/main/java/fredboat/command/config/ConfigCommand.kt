@@ -51,16 +51,13 @@ class ConfigCommand(name: String, private val repo: GuildSettingsRepository, var
     }
 
     private fun printConfig(context: CommandContext) {
-        repo.fetch(context.guild.id)
-                .subscribe {
-                    val mb = localMessageBuilder()
-                            .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
-                            .append("track_announce = ${it.trackAnnounce}\n")
-                            .append("auto_resume = ${it.autoResume}\n")
-                            .append("```") //opening ``` is part of the configNoArgs language string
-
-                    context.reply(mb.build())
-                }
+        repo.fetch(context.guild.id).subscribe {
+            context.reply(localMessageBuilder()
+                    .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
+                    .append("track_announce = ${it.trackAnnounce}\n")
+                    .append("auto_resume = ${it.autoResume}\n")
+                    .append("```").build()) //opening ``` is part of the configNoArgs language string
+        }
     }
 
     private suspend fun setConfig(context: CommandContext) {

@@ -207,7 +207,8 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         shouldUpdateShuffledQueue = true
         tracks.reversed().forEach {
             it.rand = Integer.MIN_VALUE
-            queue.addFirst(it) }
+            queue.addFirst(it)
+        }
     }
 
     override fun clear() {
