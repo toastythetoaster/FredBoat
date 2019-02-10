@@ -1,5 +1,6 @@
 package fredboat.event
 
+import com.fredboat.sentinel.entities.SendMessageResponse
 import fredboat.audio.player.PlayerRegistry
 import fredboat.command.info.HelloCommand
 import fredboat.db.api.GuildSettingsRepository
@@ -17,10 +18,7 @@ class GuildEventHandler(
         private val playerRegistry: PlayerRegistry
 ) : SentinelEventHandler() {
     override fun onGuildJoin(guild: Guild) {
-        // Wait a few seconds to allow permissions to be set and applied and propagated
-        Mono.create<Unit> { sendHelloOnJoin(guild) }
-                .delaySubscription(Duration.ofSeconds(10))
-                .subscribe()
+        sendHelloOnJoin(guild).subscribe()
     }
 
     override fun onGuildLeave(guildId: Long, joinTime: Instant) {
@@ -30,14 +28,14 @@ class GuildEventHandler(
         Metrics.guildLifespan.observe(lifespan.toDouble())
     }
 
-    private fun sendHelloOnJoin(guild: Guild) {
-        repo.fetch(guild.id).subscribe { gs ->
+    private fun sendHelloOnJoin(guild: Guild): Mono<Any> {
+        return repo.fetch(guild.id).flatMap { gs ->
 
             //filter guilds that already received a hello message
             // useful for when discord trolls us with fake guild joins
             // or to prevent it send repeatedly due to kick and reinvite
             if (gs.helloSent) {
-                return@subscribe
+                return@flatMap Mono.empty<SendMessageResponse>()
             }
 
             var channel: TextChannel? = guild.getTextChannel(guild.id) //old public channel
@@ -50,8 +48,11 @@ class GuildEventHandler(
                     }
                 }
             }
+
             gs.helloSent = true
-            channel?.send(HelloCommand.getHello(guild))?.doOnSuccess { repo.update(gs) }?.subscribe()
+            channel?.send(HelloCommand.getHello(guild))
+                    ?.delaySubscription(Duration.ofSeconds(10)) // Wait a few seconds to allow permissions to be set and applied and propagated
+                    ?.flatMap { repo.update(gs) } ?: Mono.empty()
         }
     }
 }
