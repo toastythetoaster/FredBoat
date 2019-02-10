@@ -115,8 +115,7 @@ class GuildPlayer(
             throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
         }
 
-    private val isTrackAnnounceEnabled: Mono<Boolean>
-        get() {
+    private fun getTrackAnnounceStatus(): Mono<Boolean> {
             if (guild.selfPresent) {
                  return guildSettingsRepository.fetch(guild.id).map { it.trackAnnounce }
             }
@@ -173,7 +172,7 @@ class GuildPlayer(
     private fun announceTrack(atc: AudioTrackContext) {
         val activeTextChannel = activeTextChannel
 
-        isTrackAnnounceEnabled.subscribe {
+        getTrackAnnounceStatus().subscribe {
             if (it && !isPaused && repeatMode != RepeatMode.SINGLE) {
                 activeTextChannel?.send(atc.i18nFormat(
                         "trackAnnounce",
