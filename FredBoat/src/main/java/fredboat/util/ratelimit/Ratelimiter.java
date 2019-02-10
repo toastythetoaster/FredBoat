@@ -38,6 +38,7 @@ import fredboat.messaging.internal.Context;
 import fredboat.util.TextUtils;
 import io.prometheus.client.guava.cache.CacheMetricsCollector;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Mono;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -141,8 +142,8 @@ public class Ratelimiter {
      * @param id Id of the object whose blacklist status is to be checked, for example a userId or a guildId
      * @return true if the id is blacklisted, false if it's not
      */
-    public boolean isBlacklisted(long id) {
-        return autoBlacklist != null && autoBlacklist.isBlacklisted(id);
+    public Mono<Boolean> isBlacklisted(long id) {
+        return (autoBlacklist != null) ? autoBlacklist.isBlacklisted(id) : Mono.just(false);
     }
 
     /**
@@ -153,6 +154,7 @@ public class Ratelimiter {
             ratelimit.liftLimit(id);
         }
         if (autoBlacklist != null)
+
             autoBlacklist.liftBlacklist(id);
     }
 }

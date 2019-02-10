@@ -178,14 +178,16 @@ public class Ratelimit {
      * Best run async as the blacklist might be hitting a database
      */
     private void bannerinoUserino(Context context, Blacklist blacklist) {
-        long length = blacklist.hitRateLimit(context.getUser().getId());
-        if (length <= 0) {
-            return; //nothing to do here
-        }
-        long s = length / 1000;
-        String duration = String.format("%d:%02d:%02d", s / 3600, (s % 3600) / 60, (s % 60));
-        String out = "\uD83D\uDD28 _**BLACKLISTED**_ \uD83D\uDD28 for **" + duration + "**";
-        context.replyWithMention(out);
+        blacklist.hitRateLimit(context.getUser().getId()).subscribe(length -> {
+            if (length <= 0) {
+                return; //nothing to do here
+            }
+
+            long s = length / 1000;
+            String duration = String.format("%d:%02d:%02d", s / 3600, (s % 3600) / 60, (s % 60));
+            String out = "\uD83D\uDD28 _**BLACKLISTED**_ \uD83D\uDD28 for **" + duration + "**";
+            context.replyWithMention(out);
+        });
     }
 
     /**
