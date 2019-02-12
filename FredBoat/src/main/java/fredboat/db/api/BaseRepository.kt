@@ -11,6 +11,4 @@ interface BaseRepository<ID, T> {
     fun update(target: T): Mono<T>
 
     fun remove(id: ID): Mono<Void>
-
-    fun default(id: ID): T?
 }
