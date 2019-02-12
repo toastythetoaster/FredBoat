@@ -87,15 +87,7 @@ audio-sources:
 ################################################################
 
 backend:
-  quarterdeck:
-    # Host address of your quarterdeck backend, including port unless you are using a reverse proxy.
-    # Example: https://such.example.com:4269/
-    # No need set the host when running Quarterdeck in Docker.
-    host: ""
-    # Credentials used to authenticate to with Quarterdeck.
-    # By default Quarterdeck uses docker:docker when using our docker-compose files
-    user: "docker"
-    pass: "docker"
+  # TODO: Add Mongo here
 
 
 credentials:
