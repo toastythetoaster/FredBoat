@@ -68,6 +68,9 @@ spring:
   output:
     ansi:
       enabled: detect             # for developers: setting this to "always" will force colored logs in your console
+  data:
+    mongodb:
+      # uri:                      # URI connection for the mongodb server. Uncomment only if mongodb server is not on localhost with default settings
 
 
 audio-sources:
@@ -85,10 +88,6 @@ audio-sources:
 ################################################################
 ###                 Essential credentials
 ################################################################
-
-backend:
-  # TODO: Add Mongo here
-
 
 credentials:
   # Used by the ;;split and ;;np commands. Must be hooked up to the Youtube Data API.
