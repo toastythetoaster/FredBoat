@@ -64,6 +64,7 @@ import java.util.function.Supplier
 @Service
 class CommandInitializer(
         cacheMetrics: CacheMetricsCollector,
+        caffeineCacheMetrics: io.prometheus.client.cache.caffeine.CacheMetricsCollector,
         weather: Weather,
         trackSearcher: TrackSearcher,
         videoSelectionCache: VideoSelectionCache,
@@ -142,7 +143,7 @@ class CommandInitializer(
         configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, guildSettingsRepository, "cfg"))
         configModule.registerCommand(LanguageCommand(LANGUAGE_COMM_NAME, "lang"))
         configModule.registerCommand(ModulesCommand("modules", guildSettingsRepository, "module", "mods"))
-        configModule.registerCommand(PrefixCommand(cacheMetrics, guildSettingsRepository, PREFIX_COMM_NAME, "pre"))
+        configModule.registerCommand(PrefixCommand(caffeineCacheMetrics, guildSettingsRepository, PREFIX_COMM_NAME, "pre"))
         configModule.registerCommand(ConfigWebInfoCommand("webinfo", repo = guildSettingsRepository, appConfig = appConfig))
         /* Perms */
         configModule.registerCommand(PermissionsCommand(PermissionLevel.ADMIN, guildSettingsRepository, "admin", "admins"))
