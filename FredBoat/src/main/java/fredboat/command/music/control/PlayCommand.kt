@@ -143,33 +143,33 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
                     context.textChannel,
                     context.i18n("playSearchNoResults").replace("{q}", query)
             ).subscribe()
-
-        } else {
-            //Get at most 5 tracks
-            val selectable = list.tracks.subList(0, Math.min(TrackSearcher.MAX_RESULTS, list.tracks.size))
-
-            val oldSelection = videoSelectionCache.remove(context.member)
-            oldSelection?.deleteMessage()
-
-            val builder = localMessageBuilder()
-            builder.append(context.i18nFormat("playSelectVideo", TextUtils.escapeMarkdown(context.prefix)))
-
-            var i = 1
-            for (track in selectable) {
-                builder.append("\n**")
-                        .append(i.toString())
-                        .append(":** ")
-                        .append(TextUtils.escapeAndDefuse(track.info.title))
-                        .append(" (")
-                        .append(TextUtils.formatTime(track.info.length))
-                        .append(")")
-
-                i++
-            }
-
-            outMsg.edit(context.textChannel, builder.build()).subscribe()
-            videoSelectionCache.put(outMsg.messageId, context, selectable, isPriority)
+            return
         }
+
+        //Get at most 5 tracks
+        val selectable = list.tracks.subList(0, Math.min(TrackSearcher.MAX_RESULTS, list.tracks.size))
+
+        val oldSelection = videoSelectionCache.remove(context.member)
+        oldSelection?.deleteMessage()
+
+        val builder = localMessageBuilder()
+        builder.append(context.i18nFormat("playSelectVideo", TextUtils.escapeMarkdown(context.prefix)))
+
+        var i = 1
+        for (track in selectable) {
+            builder.append("\n**")
+                    .append(i.toString())
+                    .append(":** ")
+                    .append(TextUtils.escapeAndDefuse(track.info.title))
+                    .append(" (")
+                    .append(TextUtils.formatTime(track.info.length))
+                    .append(")")
+
+            i++
+        }
+
+        outMsg.edit(context.textChannel, builder.build()).subscribe()
+        videoSelectionCache.put(outMsg.messageId, context, selectable, isPriority)
     }
 
     override fun help(context: Context): String {
