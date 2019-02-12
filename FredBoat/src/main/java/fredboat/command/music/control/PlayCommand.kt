@@ -41,6 +41,8 @@ import fredboat.util.TextUtils
 import fredboat.util.extension.edit
 import fredboat.util.localMessageBuilder
 import fredboat.util.rest.TrackSearcher
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
@@ -128,49 +130,51 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
         val query = context.rawArgs.replace(TrackSearcher.PUNCTUATION_REGEX.toRegex(), "")
 
         context.replyMono(context.i18n("playSearching").replace("{q}", query))
-                .subscribe{ outMsg ->
-            val list: AudioPlaylist?
-            try {
-                list = trackSearcher.searchForTracks(query, searchProviders)
-            } catch (e: TrackSearcher.SearchingException) {
-                context.reply(context.i18n("playYoutubeSearchError"))
-                log.error("YouTube search exception", e)
-                return@subscribe
-            }
+                .subscribe { outMsg ->
+                    GlobalScope.launch {
+                        val list: AudioPlaylist?
+                        try {
+                            list = trackSearcher.searchForTracks(query, searchProviders)
+                        } catch (e: TrackSearcher.SearchingException) {
+                            context.reply(context.i18n("playYoutubeSearchError"))
+                            log.error("YouTube search exception", e)
+                            return@launch
+                        }
 
-            if (list == null || list.tracks.isEmpty()) {
-                outMsg.edit(
-                        context.textChannel,
-                        context.i18n("playSearchNoResults").replace("{q}", query)
-                ).subscribe()
+                        if (list.tracks.isEmpty()) {
+                            outMsg.edit(
+                                    context.textChannel,
+                                    context.i18n("playSearchNoResults").replace("{q}", query)
+                            ).subscribe()
 
-            } else {
-                //Get at most 5 tracks
-                val selectable = list.tracks.subList(0, Math.min(TrackSearcher.MAX_RESULTS, list.tracks.size))
+                        } else {
+                            //Get at most 5 tracks
+                            val selectable = list.tracks.subList(0, Math.min(TrackSearcher.MAX_RESULTS, list.tracks.size))
 
-                val oldSelection = videoSelectionCache.remove(context.member)
-                oldSelection?.deleteMessage()
+                            val oldSelection = videoSelectionCache.remove(context.member)
+                            oldSelection?.deleteMessage()
 
-                val builder = localMessageBuilder()
-                builder.append(context.i18nFormat("playSelectVideo", TextUtils.escapeMarkdown(context.prefix)))
+                            val builder = localMessageBuilder()
+                            builder.append(context.i18nFormat("playSelectVideo", TextUtils.escapeMarkdown(context.prefix)))
 
-                var i = 1
-                for (track in selectable) {
-                    builder.append("\n**")
-                            .append(i.toString())
-                            .append(":** ")
-                            .append(TextUtils.escapeAndDefuse(track.info.title))
-                            .append(" (")
-                            .append(TextUtils.formatTime(track.info.length))
-                            .append(")")
+                            var i = 1
+                            for (track in selectable) {
+                                builder.append("\n**")
+                                        .append(i.toString())
+                                        .append(":** ")
+                                        .append(TextUtils.escapeAndDefuse(track.info.title))
+                                        .append(" (")
+                                        .append(TextUtils.formatTime(track.info.length))
+                                        .append(")")
 
-                    i++
+                                i++
+                            }
+
+                            outMsg.edit(context.textChannel, builder.build()).subscribe()
+                            videoSelectionCache.put(outMsg.messageId, context, selectable, isPriority)
+                        }
+                    }
                 }
-
-                outMsg.edit(context.textChannel, builder.build()).subscribe()
-                videoSelectionCache.put(outMsg.messageId, context, selectable, isPriority)
-            }
-        }
     }
 
     override fun help(context: Context): String {
