@@ -35,7 +35,7 @@ import fredboat.audio.queue.*
 import fredboat.command.music.control.VoteSkipCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
-import fredboat.db.api.GuildConfigService
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.RepeatMode
 import fredboat.sentinel.Guild
 import fredboat.sentinel.InternalGuild
@@ -52,6 +52,7 @@ import lavalink.client.player.event.PlayerEventListenerAdapter
 import org.bson.types.ObjectId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
+import reactor.core.publisher.Mono
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.Consumer
@@ -61,7 +62,7 @@ class GuildPlayer(
         var guild: Guild,
         private val musicTextChannelProvider: MusicTextChannelProvider,
         audioPlayerManager: AudioPlayerManager,
-        private val guildConfigService: GuildConfigService,
+        private val guildSettingsRepository: GuildSettingsRepository,
         ratelimiter: Ratelimiter,
         youtubeAPI: YoutubeAPI
 ) : PlayerEventListenerAdapter() {
@@ -109,21 +110,17 @@ class GuildPlayer(
         get() = audioTrackProvider is AbstractTrackProvider && audioTrackProvider.isShuffle
         set(shuffle) = if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.isShuffle = shuffle
+            internalContext?.isPriority = false
         } else {
             throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
         }
 
-    private val isTrackAnnounceEnabled: Boolean
-        get() {
-            var enabled = false
-            try {
-                if (guild.selfPresent) {
-                    enabled = guildConfigService.fetchGuildConfig(guild.id).isTrackAnnounce
-                }
-            } catch (ignored: Exception) {
+    private fun getTrackAnnounceStatus(): Mono<Boolean> {
+            if (guild.selfPresent) {
+                 return guildSettingsRepository.fetch(guild.id).map { it.trackAnnounce }
             }
 
-            return enabled
+            return Mono.just(false)
         }
 
     val playingTrack: AudioTrackContext?
@@ -173,13 +170,16 @@ class GuildPlayer(
     }
 
     private fun announceTrack(atc: AudioTrackContext) {
-        if (repeatMode != RepeatMode.SINGLE && isTrackAnnounceEnabled && !isPaused) {
-            val activeTextChannel = activeTextChannel
-            activeTextChannel?.send(atc.i18nFormat(
-                    "trackAnnounce",
-                    atc.effectiveTitle.escapeAndDefuse(),
-                    atc.member.effectiveName.escapeAndDefuse()
-            ))?.subscribe()
+        val activeTextChannel = activeTextChannel
+
+        getTrackAnnounceStatus().subscribe {
+            if (it && !isPaused && repeatMode != RepeatMode.SINGLE) {
+                activeTextChannel?.send(atc.i18nFormat(
+                        "trackAnnounce",
+                        atc.effectiveTitle.escapeAndDefuse(),
+                        atc.member.effectiveName.escapeAndDefuse()
+                ))?.subscribe()
+            }
         }
     }
 
@@ -191,8 +191,9 @@ class GuildPlayer(
         activeTextChannel?.send("Something went wrong!\n${t.message}")?.subscribe()
     }
 
-    fun queue(identifier: String, context: CommandContext) {
+    fun queue(identifier: String, context: CommandContext, isPriority: Boolean = false) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
+        ic.isPriority = isPriority
 
         joinChannel(context.member)
 
@@ -205,14 +206,15 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(atc: AudioTrackContext) {
+    fun queue(atc: AudioTrackContext, isPriority: Boolean = false) {
         if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
         if (member != null) {
             joinChannel(member)
         }
-        audioTrackProvider.add(atc)
+
+        if (isPriority) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
         if (isPlaying) updateClients()
         play()
     }
@@ -229,6 +231,7 @@ class GuildPlayer(
     fun reshuffle() {
         if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.reshuffle()
+            internalContext?.isPriority = false
             updateClients()
         } else {
             throw UnsupportedOperationException("Can't reshuffle " + audioTrackProvider.javaClass)

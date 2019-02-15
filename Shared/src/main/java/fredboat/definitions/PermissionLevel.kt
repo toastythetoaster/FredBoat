@@ -1,4 +1,5 @@
 /*
+ *
  * MIT License
  *
  * Copyright (c) 2017-2018 Frederik Ar. Mikkelsen
@@ -22,55 +23,19 @@
  * SOFTWARE.
  */
 
-package fredboat.db.transfer;
+package fredboat.definitions
 
-/**
- * Created by napster on 20.03.18.
- * <p>
- * Transfer object for the {@link fredboat.db.entity.main.GuildConfig}
- */
-//todo move ""business"" logic to the backend
-public class GuildConfig implements TransferObject<String> {
+enum class PermissionLevel(val level: Int, val label: String) {
 
-    private String guildId = "";
-    private boolean trackAnnounce = false;
-    private boolean autoResume = false;
-    private String lang = "en_US";
+    // Warning: The order is important here, as comparison is based on ordinal, even if `level` is also defined
 
-    @Override
-    public void setId(String id) {
-        this.guildId = id;
-    }
+    BOT_OWNER(5, "Bot Owner"),
+    BOT_ADMIN(4, "Bot Admin"),
+    ADMIN(3, "Admin"),
+    DJ(2, "DJ"),
+    USER(1, "User"),
+    BASE(0, "Base");
 
-    @Override
-    public String getId() {
-        return this.guildId;
-    }
+    override fun toString() = label
 
-    public boolean isTrackAnnounce() {
-        return trackAnnounce;
-    }
-
-    public GuildConfig setTrackAnnounce(boolean trackAnnounce) {
-        this.trackAnnounce = trackAnnounce;
-        return this;
-    }
-
-    public boolean isAutoResume() {
-        return autoResume;
-    }
-
-    public GuildConfig setAutoResume(boolean autoplay) {
-        this.autoResume = autoplay;
-        return this;
-    }
-
-    public String getLang() {
-        return lang;
-    }
-
-    public GuildConfig setLang(String lang) {
-        this.lang = lang;
-        return this;
-    }
 }

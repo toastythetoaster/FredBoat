@@ -3,6 +3,7 @@ package fredboat.db.mongo
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.voiceChannel
 import fredboat.audio.queue.SplitAudioTrackContext
+import fredboat.db.transfer.*
 import lavalink.client.LavalinkUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -11,9 +12,12 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
+
 interface PlayerRepository : ReactiveCrudRepository<MongoPlayer, Long>
 interface ActivityRepository : ReactiveCrudRepository<Activity, Long>
-interface GuildSettingsRepository : ReactiveCrudRepository<GuildSettings, Long>
+interface InternalGuildSettingsRepository : ReactiveCrudRepository<GuildSettings, Long>
+interface InternalBlacklistRepository: ReactiveCrudRepository<BlacklistEntity, Long>
+interface InternalSearchResultRepository: ReactiveCrudRepository<SearchResult, SearchResultId>
 
 private val log: Logger = LoggerFactory.getLogger(PlayerRepository::class.java)
 

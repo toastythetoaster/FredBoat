@@ -1,5 +1,6 @@
 package fredboat.db.mongo
 
+import fredboat.db.transfer.MongoEntity
 import org.bson.types.ObjectId
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
@@ -7,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document(collection = "MongoPlayer")
 class MongoPlayer(
         @Id
-        val gid: Long,
+        override val id: Long,
         /** If the player was playing at the time of saving,
          * it may automatically be reloaded when we start the bot */
         val playing: Boolean,
@@ -24,7 +25,7 @@ class MongoPlayer(
         /** Channel to send event messages in */
         val textChannel: Long?,
         val queue: List<MongoTrack>
-)
+) : MongoEntity<Long>
 
 class MongoTrack(
         val id: ObjectId,

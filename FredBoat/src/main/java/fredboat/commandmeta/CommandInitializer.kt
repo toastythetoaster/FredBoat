@@ -45,7 +45,7 @@ import fredboat.command.music.seeking.SeekCommand
 import fredboat.command.util.*
 import fredboat.config.SentryConfiguration
 import fredboat.config.property.AppConfig
-import fredboat.db.mongo.GuildSettingsRepository
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.Module
 import fredboat.definitions.PermissionLevel
 import fredboat.definitions.SearchProvider
@@ -64,6 +64,7 @@ import java.util.function.Supplier
 @Service
 class CommandInitializer(
         cacheMetrics: CacheMetricsCollector,
+        caffeineCacheMetrics: io.prometheus.client.cache.caffeine.CacheMetricsCollector,
         weather: Weather,
         trackSearcher: TrackSearcher,
         videoSelectionCache: VideoSelectionCache,
@@ -130,23 +131,24 @@ class CommandInitializer(
         infoModule.registerCommand(MusicHelpCommand(MUSICHELP_COMM_NAME, "musichelp"))
         infoModule.registerCommand(PingCommand("ping"))
         infoModule.registerCommand(ShardsCommand("shards"))
-        infoModule.registerCommand(StatsCommand("stats", sentinel.selfUser, "uptime"))
+        infoModule.registerCommand(StatsCommand("stats", sentinel.selfUser))
         infoModule.registerCommand(TextCommand("https://github.com/Frederikam", "github"))
         infoModule.registerCommand(TextCommand(BotConstants.GITHUB_URL, "repo"))
         infoModule.registerCommand(SentinelsCommand("sentinels", "sentisneks", "slist"))
+        infoModule.registerCommand(UptimeCommand("uptime"))
 
 
         // Configurational stuff - always on
         val configModule = CommandRegistry(Module.CONFIG)
-        configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, "cfg"))
+        configModule.registerCommand(ConfigCommand(CONFIG_COMM_NAME, guildSettingsRepository, "cfg"))
         configModule.registerCommand(LanguageCommand(LANGUAGE_COMM_NAME, "lang"))
-        configModule.registerCommand(ModulesCommand("modules", "module", "mods"))
-        configModule.registerCommand(PrefixCommand(cacheMetrics, PREFIX_COMM_NAME, "pre"))
+        configModule.registerCommand(ModulesCommand("modules", guildSettingsRepository, "module", "mods"))
+        configModule.registerCommand(PrefixCommand(caffeineCacheMetrics, guildSettingsRepository, PREFIX_COMM_NAME, "pre"))
         configModule.registerCommand(ConfigWebInfoCommand("webinfo", repo = guildSettingsRepository, appConfig = appConfig))
         /* Perms */
-        configModule.registerCommand(PermissionsCommand(PermissionLevel.ADMIN, "admin", "admins"))
-        configModule.registerCommand(PermissionsCommand(PermissionLevel.DJ, "dj", "djs"))
-        configModule.registerCommand(PermissionsCommand(PermissionLevel.USER, "user", "users"))
+        configModule.registerCommand(PermissionsCommand(PermissionLevel.ADMIN, guildSettingsRepository, "admin", "admins"))
+        configModule.registerCommand(PermissionsCommand(PermissionLevel.DJ, guildSettingsRepository, "dj", "djs"))
+        configModule.registerCommand(PermissionsCommand(PermissionLevel.USER, guildSettingsRepository, "user", "users"))
 
 
         // Moderation Module - Anything related to managing Discord guilds
@@ -161,12 +163,12 @@ class CommandInitializer(
         val utilityModule = CommandRegistry(Module.UTIL)
         utilityModule.registerCommand(AvatarCommand("avatar", "ava"))
         utilityModule.registerCommand(BrainfuckCommand("brainfuck"))
-        utilityModule.registerCommand(MALCommand("mal"))
         utilityModule.registerCommand(MathCommand("math"))
         utilityModule.registerCommand(RoleInfoCommand("roleinfo"))
         utilityModule.registerCommand(ServerInfoCommand("serverinfo", "guildinfo"))
         utilityModule.registerCommand(UserInfoCommand("userinfo", "memberinfo"))
         utilityModule.registerCommand(WeatherCommand(weather, "weather"))
+        utilityModule.registerCommand(CalcShardCommand("calcshard", "cash", "cs"))
 
 
         // Fun Module - mostly ascii, memes, pictures, games
@@ -248,6 +250,9 @@ class CommandInitializer(
         musicModule.registerCommand(PlayCommand(playerLimiter, trackSearcher, videoSelectionCache,
                 listOf(SearchProvider.SOUNDCLOUD),
                 SOUNDCLOUD_COMM_NAME, "sc"))
+        musicModule.registerCommand(PlayCommand(playerLimiter, trackSearcher, videoSelectionCache,
+                listOf(SearchProvider.YOUTUBE, SearchProvider.SOUNDCLOUD),
+                "playnext", "playtop", "pn", isPriority = true))
         musicModule.registerCommand(PlaySplitCommand(playerLimiter, "split"))
         musicModule.registerCommand(RepeatCommand("repeat", "rep", "loop"))
         musicModule.registerCommand(ReshuffleCommand("reshuffle", "resh"))

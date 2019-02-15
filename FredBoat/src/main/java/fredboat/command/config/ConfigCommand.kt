@@ -30,15 +30,14 @@ import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
 import fredboat.commandmeta.abs.IConfigCommand
-import fredboat.db.transfer.GuildConfig
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.PermissionLevel
-import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.perms.PermsUtil
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.localMessageBuilder
 
-class ConfigCommand(name: String, vararg aliases: String) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
+class ConfigCommand(name: String, private val repo: GuildSettingsRepository, vararg aliases: String) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
         get() = PermissionLevel.BASE
@@ -52,15 +51,13 @@ class ConfigCommand(name: String, vararg aliases: String) : Command(name, *alias
     }
 
     private fun printConfig(context: CommandContext) {
-        val gc = Launcher.botController.guildConfigService.fetchGuildConfig(context.guild.id)
-
-        val mb = localMessageBuilder()
-                .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
-                .append("track_announce = ${gc.isTrackAnnounce}\n")
-                .append("auto_resume = ${gc.isAutoResume}\n")
-                .append("```") //opening ``` is part of the configNoArgs language string
-
-        context.reply(mb.build())
+        repo.fetch(context.guild.id).subscribe {
+            context.reply(localMessageBuilder()
+                    .append(context.i18nFormat("configNoArgs", context.guild.name)).append("\n")
+                    .append("track_announce = ${it.trackAnnounce}\n")
+                    .append("auto_resume = ${it.autoResume}\n")
+                    .append("```").build()) //opening ``` is part of the configNoArgs language string
+        }
     }
 
     private suspend fun setConfig(context: CommandContext) {
@@ -75,26 +72,28 @@ class ConfigCommand(name: String, vararg aliases: String) : Command(name, *alias
         }
 
         val key = context.args[0]
-        val `val` = context.args[1]
+        val value = context.args[1]
 
-        if (key == "track_announce") {
-            if (`val`.equals("true", ignoreCase = true) or `val`.equals("false", ignoreCase = true)) {
-                Launcher.botController.guildConfigService.transformGuildConfig(context.guild.id) { gc: GuildConfig ->
-                    gc.setTrackAnnounce(java.lang.Boolean.valueOf(`val`))
-                }
-                context.replyWithName("`track_announce` " + context.i18nFormat("configSetTo", `val`))
-            } else {
-                context.reply(context.i18nFormat("configMustBeBoolean", invoker.effectiveName.escapeAndDefuse()))
+        if (!(value.equals("true", ignoreCase = true) or value.equals("false", ignoreCase = true))) {
+            context.reply(context.i18nFormat("configMustBeBoolean", invoker.effectiveName.escapeAndDefuse()))
+            return
+        }
+
+        when (key) {
+            "track_announce" -> {
+                repo.fetch(context.guild.id)
+                        .doOnSuccess { it.trackAnnounce = value.toBoolean() }
+                        .let { repo.update(it) }
+                        .subscribe { context.replyWithName("`track_announce` " + context.i18nFormat("configSetTo", value)) }
             }
-        } else if (key == "auto_resume") {
-            if (`val`.equals("true", ignoreCase = true) or `val`.equals("false", ignoreCase = true)) {
-                Launcher.botController.guildConfigService.transformGuildConfig(
-                        context.guild.id) { gc -> gc.setAutoResume(java.lang.Boolean.valueOf(`val`)) }
-                context.replyWithName("`auto_resume` " + context.i18nFormat("configSetTo", `val`))
-            } else {
-                context.reply(context.i18nFormat("configMustBeBoolean", invoker.effectiveName.escapeAndDefuse()))
+            "auto_resume" -> {
+                repo.fetch(context.guild.id)
+                        .doOnSuccess { it.autoResume = value.toBoolean() }
+                        .let { repo.update(it) }
+                        .subscribe { context.replyWithName("`auto_resume` " + context.i18nFormat("configSetTo", value)) }
             }
-        } else context.reply(context.i18nFormat("configUnknownKey", invoker.effectiveName.escapeAndDefuse()))
+            else -> context.reply(context.i18nFormat("configUnknownKey", invoker.effectiveName.escapeAndDefuse()))
+        }
     }
 
     override fun help(context: Context): String {

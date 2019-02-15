@@ -27,6 +27,7 @@ package fredboat.command.music.control
 
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import fredboat.audio.player.*
+import fredboat.command.info.HelpCommand
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
@@ -40,16 +41,17 @@ import fredboat.util.TextUtils
 import fredboat.util.extension.edit
 import fredboat.util.localMessageBuilder
 import fredboat.util.rest.TrackSearcher
+import kotlinx.coroutines.reactive.awaitSingle
 import org.apache.commons.lang3.StringUtils
 import org.slf4j.LoggerFactory
 
 class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSearcher: TrackSearcher,
                   private val videoSelectionCache: VideoSelectionCache, private val searchProviders: List<SearchProvider>,
-                  name: String, vararg aliases: String
+                  name: String, vararg aliases: String, private val isPriority: Boolean = false
 ) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
-        get() = PermissionLevel.USER
+        get() = if (isPriority) PermissionLevel.DJ else PermissionLevel.USER
 
     override suspend fun invoke(context: CommandContext) {
         if (context.member.voiceChannel == null) {
@@ -63,7 +65,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
             val player = Launcher.botController.playerRegistry.awaitPlayer(context.guild)
 
             for (atc in context.msg.attachments) {
-                player.queue(atc, context)
+                player.queue(atc, context, isPriority)
             }
 
             player.setPause(false)
@@ -93,7 +95,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
         }
 
         val player = Launcher.botController.playerRegistry.awaitPlayer(context.guild)
-        player.queue(url, context)
+        player.queue(url, context, isPriority)
         player.setPause(false)
 
         context.deleteMessage()
@@ -101,8 +103,9 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
 
     private suspend fun handleNoArguments(context: CommandContext, player: GuildPlayer?) {
         if (player == null || player.isQueueEmpty) {
-            context.reply(context.i18n("playQueueEmpty"))
-        } else if (player.isPlaying) {
+            context.reply(context.i18n("playQueueEmpty")
+                    .replace(";;play", context.prefix + context.command.name))
+        } else if (player.isPlaying && !isPriority) {
             context.reply(context.i18n("playAlreadyPlaying"))
         } else if (player.humanUsersInCurrentVC.isEmpty() && context.guild.selfMember.voiceChannel != null) {
             context.reply(context.i18n("playVCEmpty"))
@@ -113,65 +116,65 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
                 player.play()
                 context.reply(context.i18n("playWillNowPlay"))
             }
+        } else if (isPriority) {
+            HelpCommand.sendFormattedCommandHelp(context)
         } else {
             player.play()
             context.reply(context.i18n("playWillNowPlay"))
         }
     }
 
-    private fun searchForVideos(context: CommandContext) {
+    private suspend fun searchForVideos(context: CommandContext) {
         //Now remove all punctuation
         val query = context.rawArgs.replace(TrackSearcher.PUNCTUATION_REGEX.toRegex(), "")
+        val outMsg = context.replyMono(context.i18n("playSearching").replace("{q}", query)).awaitSingle()
 
-        context.replyMono(context.i18n("playSearching").replace("{q}", query))
-                .subscribe{ outMsg ->
-            val list: AudioPlaylist?
-            try {
-                list = trackSearcher.searchForTracks(query, searchProviders)
-            } catch (e: TrackSearcher.SearchingException) {
-                context.reply(context.i18n("playYoutubeSearchError"))
-                log.error("YouTube search exception", e)
-                return@subscribe
-            }
-
-            if (list == null || list.tracks.isEmpty()) {
-                outMsg.edit(
-                        context.textChannel,
-                        context.i18n("playSearchNoResults").replace("{q}", query)
-                ).subscribe()
-
-            } else {
-                //Get at most 5 tracks
-                val selectable = list.tracks.subList(0, Math.min(TrackSearcher.MAX_RESULTS, list.tracks.size))
-
-                val oldSelection = videoSelectionCache.remove(context.member)
-                oldSelection?.deleteMessage()
-
-                val builder = localMessageBuilder()
-                builder.append(context.i18nFormat("playSelectVideo", TextUtils.escapeMarkdown(context.prefix)))
-
-                var i = 1
-                for (track in selectable) {
-                    builder.append("\n**")
-                            .append(i.toString())
-                            .append(":** ")
-                            .append(TextUtils.escapeAndDefuse(track.info.title))
-                            .append(" (")
-                            .append(TextUtils.formatTime(track.info.length))
-                            .append(")")
-
-                    i++
-                }
-
-                outMsg.edit(context.textChannel, builder.build()).subscribe()
-                videoSelectionCache.put(outMsg.messageId, context, selectable)
-            }
+        val list: AudioPlaylist?
+        try {
+            list = trackSearcher.searchForTracks(query, searchProviders)
+        } catch (e: TrackSearcher.SearchingException) {
+            context.reply(context.i18n("playYoutubeSearchError"))
+            log.error("YouTube search exception", e)
+            return
         }
+
+        if (list.tracks.isEmpty()) {
+            outMsg.edit(
+                    context.textChannel,
+                    context.i18n("playSearchNoResults").replace("{q}", query)
+            ).subscribe()
+            return
+        }
+
+        //Get at most 5 tracks
+        val selectable = list.tracks.subList(0, Math.min(TrackSearcher.MAX_RESULTS, list.tracks.size))
+
+        val oldSelection = videoSelectionCache.remove(context.member)
+        oldSelection?.deleteMessage()
+
+        val builder = localMessageBuilder()
+        builder.append(context.i18nFormat("playSelectVideo", TextUtils.escapeMarkdown(context.prefix)))
+
+        var i = 1
+        for (track in selectable) {
+            builder.append("\n**")
+                    .append(i.toString())
+                    .append(":** ")
+                    .append(TextUtils.escapeAndDefuse(track.info.title))
+                    .append(" (")
+                    .append(TextUtils.formatTime(track.info.length))
+                    .append(")")
+
+            i++
+        }
+
+        outMsg.edit(context.textChannel, builder.build()).subscribe()
+        videoSelectionCache.put(outMsg.messageId, context, selectable, isPriority)
     }
 
     override fun help(context: Context): String {
         val usage = "{0}{1} <url> OR {0}{1} <search-term>\n#"
-        return usage + context.i18nFormat("helpPlayCommand", BotConstants.DOCS_URL)
+        return usage + context.i18nFormat(if (!isPriority) "helpPlayCommand" else "helpPlayNextCommand", BotConstants.DOCS_URL)
     }
 
     companion object {

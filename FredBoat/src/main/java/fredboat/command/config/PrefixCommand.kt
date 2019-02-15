@@ -25,34 +25,34 @@
 
 package fredboat.command.config
 
-import com.google.common.cache.CacheBuilder
-import com.google.common.cache.CacheLoader
+import com.github.benmanes.caffeine.cache.Caffeine
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IConfigCommand
-import fredboat.db.transfer.Prefix
+import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
+import fredboat.main.getBotController
 import fredboat.messaging.internal.Context
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.Guild
-import fredboat.util.rest.CacheUtil
-import io.prometheus.client.guava.cache.CacheMetricsCollector
-import java.util.*
+import io.prometheus.client.cache.caffeine.CacheMetricsCollector
 import java.util.concurrent.TimeUnit
 
 /**
  * Created by napster on 19.10.17.
  */
-class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg aliases: String) : Command(name, *aliases), IConfigCommand {
+class PrefixCommand(cacheMetrics: CacheMetricsCollector,
+                    private val repo: GuildSettingsRepository,
+                    name: String, vararg aliases: String)
+    : Command(name, *aliases), IConfigCommand {
 
     init {
         cacheMetrics.addCache("customPrefixes", CUSTOM_PREFIXES)
     }
 
     companion object {
-        val botId = Launcher.botController.sentinel.selfUser.id
-        val CUSTOM_PREFIXES = CacheBuilder.newBuilder()
+        val CUSTOM_PREFIXES = Caffeine.newBuilder()
                 //it is fine to check the db for updates occasionally, as we currently dont have any use case where we change
                 //the value saved there through other means. in case we add such a thing (like a dashboard), consider lowering
                 //the refresh value to have the changes reflect faster in the bot, or consider implementing a FredBoat wide
@@ -60,17 +60,11 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
                 .recordStats()
                 .refreshAfterWrite(1, TimeUnit.MINUTES) //NOTE: never use refreshing without async reloading, because Guavas cache uses the thread calling it to do cleanup tasks (including refreshing)
                 .expireAfterAccess(1, TimeUnit.MINUTES) //evict inactive guilds
-                .concurrencyLevel(Launcher.botController.appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
-                .build(CacheLoader.asyncReloading(CacheLoader.from<Long, Optional<String>> {
-                    guildId -> Launcher.botController.prefixService.getPrefix(Prefix.GuildBotId(
-                        guildId!!,
-                        botId
-                ))
-                },
-                        Launcher.botController.executor))!!
+                //.concurrencyLevel(Launcher.botController.appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
+                .buildAsync<Long, String?> { key, _ -> getBotController().guildSettingsRepository.fetch(key).map { it.prefix }.toFuture() }
 
-        fun giefPrefix(guildId: Long) = CacheUtil.getUncheckedUnwrapped(CUSTOM_PREFIXES, guildId)
-                .orElse(Launcher.botController.appConfig.prefix)
+        fun giefPrefix(guildId: Long) = CUSTOM_PREFIXES.synchronous()[guildId]
+                ?: Launcher.botController.appConfig.prefix
 
         fun giefPrefix(guild: Guild) = giefPrefix(guild.id)
 
@@ -103,13 +97,14 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector, name: String, vararg al
             newPrefix = context.rawArgs
         }
 
-        Launcher.botController.prefixService.transformPrefix(context.guild, {
-            prefixEntity -> prefixEntity.setPrefix(newPrefix)
-        })
+        repo.fetch(context.guild.id)
+                .doOnSuccess { it.prefix = newPrefix }
+                .let { repo.update(it) }
+                .subscribe()
 
         //we could do a put instead of invalidate here and probably safe one lookup, but that undermines the database
         // as being the single source of truth for prefixes
-        CUSTOM_PREFIXES.invalidate(context.guild.id)
+        CUSTOM_PREFIXES.synchronous().invalidate(context.guild.id)
 
         showPrefix(context, giefPrefix(context.guild))
     }

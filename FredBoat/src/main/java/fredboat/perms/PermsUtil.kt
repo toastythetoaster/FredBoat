@@ -38,14 +38,14 @@ import javax.annotation.CheckReturnValue
 object PermsUtil {
 
     suspend fun getPerms(member: Member): PermissionLevel = when {
-        member.sentinel.applicationInfo.ownerId == member.id
-        -> PermissionLevel.BOT_OWNER // https://fred.moe/Q-EB.png
+        isBotOwner(member)
+        -> PermissionLevel.BOT_OWNER
         isBotAdmin(member)
         -> PermissionLevel.BOT_ADMIN
         member.hasPermission(Permission.ADMINISTRATOR).awaitSingle()
         -> PermissionLevel.ADMIN
         else -> {
-            val gp = Launcher.botController.guildPermsService.fetchGuildPermissions(member.guild)
+            val gp = Launcher.botController.guildSettingsRepository.fetch(member.guild.id).awaitSingle().permissions
 
             when {
                 checkList(gp.adminList, member) -> PermissionLevel.ADMIN
@@ -83,11 +83,14 @@ object PermsUtil {
                     context.reply("Sorry! That command is reserved for Fredboat administration. Please try something else.") //todo i18n
                 }
             } else {//regular user tried running command that requires a higher regular user permission level
-                context.replyWithName(context.i18nFormat("cmdPermsTooLow", minLevel, actual))
+                context.replyWithName(context.i18nFormat("cmdPermsTooLow", minLevel.label, actual.label))
             }
             return false
         }
     }
+
+    private fun isBotOwner(member: Member): Boolean = Launcher.botController.appConfig.ownerIds.contains(member.id) ||
+            member.sentinel.applicationInfo.ownerId == member.id // https://fred.moe/Q-EB.png
 
     /**
      * returns true if the member is or holds a role defined as admin in the configuration file
@@ -107,13 +110,11 @@ object PermsUtil {
     /**
      * Checks if [member] matches any of the IDs of [list], or if it has any of the roles of [list]
      */
-    fun checkList(list: List<String>, member: Member): Boolean {
+    fun checkList(list: List<Long>, member: Member): Boolean {
         for (id in list) {
-            if (id.isEmpty()) continue
+            if (id == member.id) return true
 
-            if (id == member.id.toString()) return true
-
-            val role = member.guild.getRole(id.toLong())
+            val role = member.guild.getRole(id)
             if (role != null && (role.isPublicRole || member.roles.contains(role)))
                 return true
         }
