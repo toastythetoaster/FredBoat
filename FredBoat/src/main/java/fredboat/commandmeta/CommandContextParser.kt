@@ -72,7 +72,7 @@ class CommandContextParser(
             input = mentionMatcher.group(3).trim { it <= ' ' }
             isMention = true
         } else {
-            val prefix = PrefixCommand.giefPrefix(event.guild)
+            val prefix = PrefixCommand.getPrefixSuspending(event.guild)
             val defaultPrefix = appConfig.prefix
             if (content.startsWith(prefix)) {
                 input = content.substring(prefix.length)

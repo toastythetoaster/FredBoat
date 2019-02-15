@@ -37,6 +37,7 @@ import fredboat.messaging.internal.Context
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.Guild
 import io.prometheus.client.cache.caffeine.CacheMetricsCollector
+import kotlinx.coroutines.future.await
 import java.util.concurrent.TimeUnit
 
 /**
@@ -63,10 +64,14 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector,
                 //.concurrencyLevel(Launcher.botController.appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
                 .buildAsync<Long, String?> { key, _ -> getBotController().guildSettingsRepository.fetch(key).map { it.prefix }.toFuture() }
 
+        // TODO: Remove blocking versions
         fun giefPrefix(guildId: Long) = CUSTOM_PREFIXES.synchronous()[guildId]
                 ?: Launcher.botController.appConfig.prefix
-
         fun giefPrefix(guild: Guild) = giefPrefix(guild.id)
+
+        suspend fun getPrefixSuspending(guildId: Long): String = CUSTOM_PREFIXES[guildId].await()
+                ?: Launcher.botController.appConfig.prefix
+        suspend fun getPrefixSuspending(guild: Guild) = getPrefixSuspending(guild.id)
 
         fun showPrefix(context: Context, prefix: String) {
             val p = if (prefix.isEmpty()) "No Prefix" else prefix
