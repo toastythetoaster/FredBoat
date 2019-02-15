@@ -25,53 +25,40 @@
 
 package fredboat.command.config
 
-import com.github.benmanes.caffeine.cache.Caffeine
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IConfigCommand
 import fredboat.db.api.GuildSettingsRepository
 import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
-import fredboat.main.getBotController
 import fredboat.messaging.internal.Context
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.Guild
-import io.prometheus.client.cache.caffeine.CacheMetricsCollector
-import kotlinx.coroutines.future.await
-import java.util.concurrent.TimeUnit
+import reactor.core.publisher.Mono
+import java.time.Duration
 
 /**
  * Created by napster on 19.10.17.
  */
-class PrefixCommand(cacheMetrics: CacheMetricsCollector,
-                    private val repo: GuildSettingsRepository,
+class PrefixCommand(private val repo: GuildSettingsRepository,
                     name: String, vararg aliases: String)
     : Command(name, *aliases), IConfigCommand {
 
     init {
-        cacheMetrics.addCache("customPrefixes", CUSTOM_PREFIXES)
+        staticRepo = repo
     }
 
+    // TODO: Remove blocking versions and static abuse
     companion object {
-        val CUSTOM_PREFIXES = Caffeine.newBuilder()
-                //it is fine to check the db for updates occasionally, as we currently dont have any use case where we change
-                //the value saved there through other means. in case we add such a thing (like a dashboard), consider lowering
-                //the refresh value to have the changes reflect faster in the bot, or consider implementing a FredBoat wide
-                //Listen/Notify system for changes to in memory cached values backed by the db
-                .recordStats()
-                .refreshAfterWrite(1, TimeUnit.MINUTES) //NOTE: never use refreshing without async reloading, because Guavas cache uses the thread calling it to do cleanup tasks (including refreshing)
-                .expireAfterAccess(1, TimeUnit.MINUTES) //evict inactive guilds
-                //.concurrencyLevel(Launcher.botController.appConfig.shardCount)  //each shard has a thread (main JDA thread) accessing this cache many times
-                .buildAsync<Long, String?> { key, _ -> getBotController().guildSettingsRepository.fetch(key).map { it.prefix }.toFuture() }
+        lateinit var staticRepo: GuildSettingsRepository
+        val defaultPrefix: String get() = Launcher.botController.appConfig.prefix
 
-        // TODO: Remove blocking versions
-        fun giefPrefix(guildId: Long) = CUSTOM_PREFIXES.synchronous()[guildId]
-                ?: Launcher.botController.appConfig.prefix
-        fun giefPrefix(guild: Guild) = giefPrefix(guild.id)
+        fun getPrefix(guildId: Long): Mono<String> = staticRepo.fetch(guildId)
+                .map { it.prefix ?: defaultPrefix }
+                .defaultIfEmpty(defaultPrefix)
+        fun getPrefix(guild: Guild) = getPrefix(guild.id)
 
-        suspend fun getPrefixSuspending(guildId: Long): String = CUSTOM_PREFIXES[guildId].await()
-                ?: Launcher.botController.appConfig.prefix
-        suspend fun getPrefixSuspending(guild: Guild) = getPrefixSuspending(guild.id)
+        fun giefPrefix(guild: Guild) = getPrefix(guild).block(Duration.ofSeconds(10))!!
 
         fun showPrefix(context: Context, prefix: String) {
             val p = if (prefix.isEmpty()) "No Prefix" else prefix
@@ -106,10 +93,6 @@ class PrefixCommand(cacheMetrics: CacheMetricsCollector,
                 .doOnSuccess { it.prefix = newPrefix }
                 .let { repo.update(it) }
                 .subscribe()
-
-        //we could do a put instead of invalidate here and probably safe one lookup, but that undermines the database
-        // as being the single source of truth for prefixes
-        CUSTOM_PREFIXES.synchronous().invalidate(context.guild.id)
 
         showPrefix(context, giefPrefix(context.guild))
     }
