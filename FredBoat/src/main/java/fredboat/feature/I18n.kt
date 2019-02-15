@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.*
 
+@Suppress("DeprecatedCallableAddReplaceWith")
 object I18n {
 
     private val log = LoggerFactory.getLogger(I18n::class.java)
@@ -46,14 +47,17 @@ object I18n {
         log.info("Loaded " + LANGS.size + " languages: " + LANGS)
     }
 
+    @Deprecated("Convert this to reactive at some point!")
     operator fun get(guild: Guild?): ResourceBundle {
         return if (guild == null) DEFAULT.props else get(guild.id)
     }
 
+    @Deprecated("Convert this to reactive at some point!")
     operator fun get(guild: Long): ResourceBundle {
         return getLocale(guild).props
     }
 
+    @Deprecated("Convert this to reactive at some point!")
     fun getLocale(guild: Guild): FredBoatLocale {
         return getLocale(guild.id)
     }
@@ -82,7 +86,7 @@ object I18n {
 
     class FredBoatLocale @Throws(MissingResourceException::class)
     internal constructor(private val language: Language) {
-        val props: ResourceBundle
+        val props: ResourceBundle = ResourceBundle.getBundle("lang." + language.code, language.locale)
 
         val code: String
             get() = language.code
@@ -92,10 +96,6 @@ object I18n {
 
         val englishName: String
             get() = language.englishName
-
-        init {
-            props = ResourceBundle.getBundle("lang." + language.code, language.locale)
-        }
 
         override fun toString(): String {
             return "[$code $nativeName]"
