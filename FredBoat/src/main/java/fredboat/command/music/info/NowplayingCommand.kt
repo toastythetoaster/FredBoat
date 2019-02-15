@@ -71,7 +71,8 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
             else -> getDefaultEmbed(atc, player, at)
         }
         if (embed.footer == null) embed.footer {
-            text = "Requested by ${atc.member.effectiveName}#${atc.member.discrim}" // TODO i18n
+            var user = atc.member.effectiveName
+            text = context.i18nFormat("npRequestedBy", user)
             iconUrl = atc.member.info.awaitSingle().iconUrl
         }
 
