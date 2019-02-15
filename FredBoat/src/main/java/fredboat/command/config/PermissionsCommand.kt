@@ -103,12 +103,12 @@ class PermissionsCommand(
         val settings = repo.fetch(context.guild.id).awaitSingle()
         val gp = settings.permissions
 
-        if (!gp.fromEnum(permissionLevel).contains(mentionableToId(selected))) {
+        if (!gp.getForEnum(permissionLevel).contains(mentionableToId(selected))) {
             context.replyWithName(context.i18nFormat("permsNotAdded", "`" + mentionableToName(selected) + "`", "`$permissionLevel`"))
             return
         }
 
-        val newList = gp.fromEnum(permissionLevel).toMutableList()
+        val newList = gp.getForEnum(permissionLevel).toMutableList()
         newList.remove(mentionableToId(selected))
 
         if (permissionLevel == PermissionLevel.ADMIN
@@ -121,7 +121,7 @@ class PermissionsCommand(
 
         context.replyWithName(context.i18nFormat("permsRemoved", mentionableToName(selected), permissionLevel))
 
-        gp.fromEnum(permissionLevel, newList)
+        gp.setForEnum(permissionLevel, newList)
         repo.update(settings).subscribe()
     }
 
@@ -138,17 +138,17 @@ class PermissionsCommand(
 
         val settings = repo.fetch(context.guild.id).awaitSingle()
         val gp = settings.permissions
-        if (gp.fromEnum(permissionLevel).contains(mentionableToId(selected))) {
+        if (gp.getForEnum(permissionLevel).contains(mentionableToId(selected))) {
             context.replyWithName(context.i18nFormat("permsAlreadyAdded", "`" + TextUtils.escapeMarkdown(mentionableToName(selected)) + "`", "`$permissionLevel`"))
             return
         }
 
-        val newList = gp.fromEnum(permissionLevel).toMutableList()
+        val newList = gp.getForEnum(permissionLevel).toMutableList()
         newList.add(mentionableToId(selected))
 
         context.replyWithName(context.i18nFormat("permsAdded", TextUtils.escapeMarkdown(mentionableToName(selected)), permissionLevel))
 
-        gp.fromEnum(permissionLevel, newList)
+        gp.setForEnum(permissionLevel, newList)
         repo.update(settings).subscribe()
     }
 
@@ -157,7 +157,7 @@ class PermissionsCommand(
         val invoker = context.member
         val settings = repo.fetch(context.guild.id).awaitSingle()
 
-        val mentionables = idsToMentionables(guild, settings.permissions.fromEnum(permissionLevel))
+        val mentionables = idsToMentionables(guild, settings.permissions.getForEnum(permissionLevel))
 
         var roleMentions = ""
         var memberMentions = ""

@@ -7,7 +7,7 @@ data class PermissionEntity(
         var djList: List<Long> = emptyList(),
         var userList: List<Long> = emptyList()
 ) {
-    fun fromEnum(level: PermissionLevel): List<Long> {
+    fun getForEnum(level: PermissionLevel): List<Long> {
         return when (level) {
             PermissionLevel.ADMIN -> adminList
             PermissionLevel.DJ -> djList
@@ -16,7 +16,7 @@ data class PermissionEntity(
         }
     }
 
-    fun fromEnum(level: PermissionLevel, newList: List<Long>) {
+    fun setForEnum(level: PermissionLevel, newList: List<Long>) {
         when (level) {
             PermissionLevel.ADMIN -> adminList = newList
             PermissionLevel.DJ -> djList = newList
