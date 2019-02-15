@@ -38,7 +38,11 @@ import fredboat.definitions.RepeatMode
 import fredboat.sentinel.Guild
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirstOrNull
+import kotlinx.coroutines.reactive.awaitSingle
+import kotlinx.coroutines.reactor.mono
 import lavalink.client.LavalinkUtil
 import lavalink.client.io.Link.State
 import org.slf4j.Logger
@@ -46,10 +50,8 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import reactor.core.publisher.Mono
-import reactor.core.publisher.toMono
 import java.io.IOException
 import java.time.Duration
-import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.function.BiConsumer
 import kotlin.concurrent.thread
@@ -74,7 +76,6 @@ class PlayerRegistry(
     private val registry = ConcurrentHashMap<Long, GuildPlayer>()
     private val iteratorLock = Any() //iterators, which are also used by stream(), need to be synced, despite it being a concurrent map
     private val monoCache = ConcurrentHashMap<Long, Mono<GuildPlayer>>()
-    private val recursionSafeguard = ThreadLocal<Mono<GuildPlayer>>()
 
     /**
      * @return a copied list of the the playing players of the registry. This may be an expensive operation depending on
@@ -151,47 +152,21 @@ class PlayerRegistry(
      * @return a [Mono] with a fully loaded [GuildPlayer]
      */
     @Suppress("RedundantLambdaArrow")
-    private fun createPlayer(guild: Guild): Mono<GuildPlayer> {
-        // Checks for recursion, and returns the mono getting dealt with
-        if (recursionSafeguard.get() != null) return recursionSafeguard.get().doOnSuccess {
-            if (guild != it.guild) {
-                throw IllegalStateException("Recursion safeguard held mono for wrong guild. That shouldn't happen!")
-            }
-        }
-
-        return monoCache.computeIfAbsent(guild.id) { _ ->
-            createPlayerMono(guild)
-        }.doOnSuccess {
-            registry[it.guildId] = it
-            it.player.link.releaseHeldEvents()
-        }.doFinally {
-            monoCache.remove(guild.id)
-        }
+    private fun createPlayer(guild: Guild): Mono<GuildPlayer> = monoCache.computeIfAbsent(guild.id) { _ ->
+        createPlayerMono(guild)
+    }.doOnSuccess {
+        registry[it.guildId] = it
+        it.player.link.releaseHeldEvents()
+    }.doFinally {
+        monoCache.remove(guild.id)
     }
 
     private fun createPlayerMono(guild: Guild): Mono<GuildPlayer> {
-        lateinit var player: GuildPlayer
-
-        val mono = playerRepo.findById(guild.id)
-                .map {
-                    // player repo may complete as empty.
-                    // The zip operator will cancel the other mono, if we return empty-handed.
-                    // We can deal with this by using Optional
-                    Optional.of(it)
-                }
-                .switchIfEmpty(Optional.empty<MongoPlayer>().toMono())
-                .map { mongo ->
-                    if (mongo.isEmpty) return@map player
-                    loadMongoData(player, mongo.get())
-                    player
-                }.cache() // Cache avoids loading the mongo data twice
-
         // GuildPlayer's constructor will indirectly call #createPlayer().
         // We can defer the construction to a different thread, to prevent an IllegalStateException, which
         // would be caused by accessing monoCache recursively
-        try {
-            recursionSafeguard.set(mono)
-            player = GuildPlayer(
+        val playerDeferred: Mono<GuildPlayer> = Mono.fromSupplier {
+            GuildPlayer(
                     sentinelLavalink,
                     guild,
                     musicTextChannelProvider,
@@ -200,11 +175,15 @@ class PlayerRegistry(
                     ratelimiter,
                     youtubeAPI
             )
-        } finally {
-            recursionSafeguard.remove()
         }
 
-        return mono
+        return GlobalScope.mono {
+            val mongo = playerRepo.findById(guild.id).awaitFirstOrNull()
+            val player = playerDeferred.awaitSingle()
+            if (mongo == null) return@mono player
+            loadMongoData(player, mongo)
+            player
+        }.cache()
     }
 
     /**
