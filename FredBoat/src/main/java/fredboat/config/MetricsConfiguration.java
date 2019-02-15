@@ -40,6 +40,7 @@ public class MetricsConfiguration {
         return new io.prometheus.client.guava.cache.CacheMetricsCollector().register();
     }
 
+    @Bean
     public io.prometheus.client.cache.caffeine.CacheMetricsCollector caffeineCacheMetrics() {
         return new io.prometheus.client.cache.caffeine.CacheMetricsCollector().register();
     }
