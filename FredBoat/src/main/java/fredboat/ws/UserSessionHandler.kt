@@ -27,10 +27,11 @@ class UserSessionHandler(
     private val sessions = ConcurrentHashMap<Long, MutableList<UserSession>>()
 
     override fun handle(rawSession: WebSocketSession): Mono<Void> {
-        val session = UserSession(rawSession, guildCache, gson)
+        lateinit var interceptMono: Mono<GuildSettings>
+        val session = UserSession(rawSession, guildCache, gson) { interceptMono.subscribe() }
         log.info("Established user connection for guild ${session.guildId}")
 
-        val interceptMono = repository.fetch(session.guildId)
+        interceptMono = repository.fetch(session.guildId)
                 .defaultIfEmpty(GuildSettings(session.guildId))
                 .doOnError { e ->
                     log.error("Exception while validating privacy setting", e)
@@ -49,7 +50,6 @@ class UserSessionHandler(
                 }
 
         return rawSession.send(session.sendStream)
-                .doOnSubscribe { interceptMono.subscribe() }
                 .and(session.receive().doOnNext { handleMessage(session, it) })
                 .doFinally {
                     afterConnectionClosed(session)

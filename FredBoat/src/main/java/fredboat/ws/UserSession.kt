@@ -13,7 +13,8 @@ import java.util.regex.Pattern
 class UserSession(
         val session: WebSocketSession,
         private val guildCache: GuildCache,
-        private val gson: Gson
+        private val gson: Gson,
+        onSubscribe: () -> Unit
 ) : WebSocketSession by session {
 
     companion object {
@@ -22,7 +23,7 @@ class UserSession(
 
     @Volatile
     private lateinit var sink: FluxSink<WebSocketMessage>
-    val sendStream: Flux<WebSocketMessage> = Flux.create { sink = it }
+    val sendStream: Flux<WebSocketMessage> = Flux.create { sink = it; onSubscribe() }
     var isOpen = true
     val guildId = expctedPath.matcher(handshakeInfo.uri.path).run { find(); group(1) }.toLong()
     val guild: Guild? get() = guildCache.getIfCached(guildId)
