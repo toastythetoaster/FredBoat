@@ -80,7 +80,7 @@ subprojects {
         caffeineVersion             = '2.6.2'
         bucket4jVersion             = '3.1.1'
         gsonVersion                 = '2.8.2'
-        amqpVersion                 = "2.0.4.RELEASE"
+        amqpVersion                 = "2.1.4.RELEASE"
         jacksonKotlinVersion        = "2.9.+"
 
         //logging / monitoring deps
