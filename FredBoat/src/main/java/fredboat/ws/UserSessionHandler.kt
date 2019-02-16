@@ -48,7 +48,7 @@ class UserSessionHandler(
                     session.sendJson(info)
                 }
 
-        return session.initSendStream()
+        return rawSession.send(session.sendStream)
                 .doOnSubscribe { interceptMono.subscribe() }
                 .and(session.receive().doOnNext { handleMessage(session, it) })
                 .doFinally {
@@ -63,6 +63,7 @@ class UserSessionHandler(
     operator fun get(guildId: Long): List<UserSession> = sessions[guildId] ?: emptyList()
 
     fun afterConnectionClosed(session: UserSession) {
+        session.isOpen = false
         val id = session.guildId
         log.info("Disconnected user for guild $id")
         val list = sessions[id] ?: return

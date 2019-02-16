@@ -8,7 +8,6 @@ import org.springframework.web.reactive.socket.WebSocketMessage
 import org.springframework.web.reactive.socket.WebSocketSession
 import reactor.core.publisher.Flux
 import reactor.core.publisher.FluxSink
-import reactor.core.publisher.Mono
 import java.util.regex.Pattern
 
 class UserSession(
@@ -23,6 +22,7 @@ class UserSession(
 
     @Volatile
     private lateinit var sink: FluxSink<WebSocketMessage>
+    val sendStream: Flux<WebSocketMessage> = Flux.create { sink = it }
     var isOpen = true
     val guildId = expctedPath.matcher(handshakeInfo.uri.path).run { find(); group(1) }.toLong()
     val guild: Guild? get() = guildCache.getIfCached(guildId)
@@ -35,11 +35,5 @@ class UserSession(
     }
     fun send(message: WebSocketMessage) {
         sink.next(message)
-    }
-
-    /** Grants us a hook to send messages with */
-    fun initSendStream(): Mono<Void> {
-        return session.send(Flux.create { sink = it })
-                .doFinally { isOpen = false }
     }
 }
