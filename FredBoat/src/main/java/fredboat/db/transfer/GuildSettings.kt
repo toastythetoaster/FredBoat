@@ -15,7 +15,7 @@ data class GuildSettings(
         var lang: String = "en_US",
         var prefix: String? = null,
         var modules: List<ModuleEntity> = Module.values().toList().map { ModuleEntity(it, true) },
-        var permissions: PermissionEntity = PermissionEntity()
+        var permissions: PermissionEntity = PermissionEntity(userList = listOf(id), djList = listOf(id))
 ) : MongoEntity<Long> {
 
     fun get(module: Module): ModuleEntity {
