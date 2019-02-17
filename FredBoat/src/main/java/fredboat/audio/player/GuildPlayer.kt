@@ -220,7 +220,7 @@ class GuildPlayer(
     }
 
     /** Add a bunch of tracks to the track provider */
-    fun loadAll(tracks: Collection<AudioTrackContext>, isPriority: Boolean) {
+    fun queueAll(tracks: Collection<AudioTrackContext>, isPriority: Boolean) {
         audioTrackProvider.addAll(tracks, isPriority)
     }
 

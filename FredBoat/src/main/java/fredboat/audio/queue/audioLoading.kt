@@ -234,7 +234,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 toAdd.add(AudioTrackContext(at, context.member, context.isPriority))
             }
 
-            loader.player.loadAll(toAdd, context.isPriority)
+            loader.player.queueAll(toAdd, context.isPriority)
             context.reply(context.i18nFormat("loadListSuccess", ap.tracks.size, ap.name))
             if (!loader.player.isPaused) {
                 loader.player.play()
