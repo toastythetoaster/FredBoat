@@ -50,9 +50,8 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 
-class AudioLoader(private val ratelimiter: Ratelimiter, internal val trackProvider: ITrackProvider,
-                  private val playerManager: AudioPlayerManager, internal val gplayer: GuildPlayer,
-                  internal val youtubeAPI: YoutubeAPI) {
+class AudioLoader(private val ratelimiter: Ratelimiter, private val playerManager: AudioPlayerManager,
+                  internal val player: GuildPlayer, internal val youtubeAPI: YoutubeAPI) {
     private val identifierQueue = ConcurrentLinkedQueue<IdentifierContext>()
     @Volatile
     private var isLoading = false
@@ -81,7 +80,7 @@ class AudioLoader(private val ratelimiter: Ratelimiter, internal val trackProvid
             if (context != null) {
                 isLoading = true
 
-                if (gplayer.trackCount >= QUEUE_TRACK_LIMIT) {
+                if (player.trackCount >= QUEUE_TRACK_LIMIT) {
                     context.replyWithName(context.i18nFormat("loadQueueTrackLimit", QUEUE_TRACK_LIMIT))
                     isLoading = false
                     return
@@ -195,7 +194,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             } else {
 
                 if (!context.isQuiet) {
-                    context.reply(if (loader.gplayer.isPlaying)
+                    context.reply(if (loader.player.isPlaying)
                         context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
                                 TextUtils.escapeAndDefuse(at.info.title))
                     else
@@ -208,10 +207,10 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 at.position = context.position
 
                 val atc = AudioTrackContext(at, context.member, context.isPriority)
-                if (context.isPriority) loader.trackProvider.addFirst(atc) else loader.trackProvider.add(atc)
+                loader.player.queue(atc)
 
-                if (!loader.gplayer.isPaused) {
-                    loader.gplayer.play()
+                if (!loader.player.isPaused) {
+                    loader.player.play()
                 }
             }
         } catch (th: Throwable) {
@@ -234,10 +233,11 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             for (at in ap.tracks) {
                 toAdd.add(AudioTrackContext(at, context.member, context.isPriority))
             }
-            if (context.isPriority) loader.trackProvider.addAllFirst(toAdd) else loader.trackProvider.addAll(toAdd)
+
+            loader.player.loadAll(toAdd, context.isPriority)
             context.reply(context.i18nFormat("loadListSuccess", ap.tracks.size, ap.name))
-            if (!loader.gplayer.isPaused) {
-                loader.gplayer.play()
+            if (!loader.player.isPaused) {
+                loader.player.play()
             }
         } catch (th: Throwable) {
             loader.handleThrowable(context, th)
@@ -313,7 +313,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             val atc = SplitAudioTrackContext(newAt, context.member, startPos, endPos, pair.right)
 
             list.add(atc)
-            loader.gplayer.queue(atc)
+            loader.player.queue(atc)
         }
 
         var mb = localMessageBuilder()

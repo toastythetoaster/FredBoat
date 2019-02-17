@@ -68,7 +68,7 @@ class GuildPlayer(
 ) : PlayerEventListenerAdapter() {
 
     val audioTrackProvider: ITrackProvider = SimpleTrackProvider()
-    private val audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager, this, youtubeAPI)
+    private val audioLoader = AudioLoader(ratelimiter, audioPlayerManager, this, youtubeAPI)
     val guildId = guild.id
     val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
     var internalContext: AudioTrackContext? = null
