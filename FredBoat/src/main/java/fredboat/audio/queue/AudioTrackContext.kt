@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 open class AudioTrackContext(val track: AudioTrack, val member: Member, priority: Boolean = false) : Comparable<AudioTrackContext> {
     val added: Long = System.currentTimeMillis()
-    var rand: Int = 0
+    var rand: Int = if (!priority) 0 else Integer.MIN_VALUE
     var isPriority: Boolean = priority
     val trackId: ObjectId // used to identify this track even when the track gets cloned and the rand reranded
 
