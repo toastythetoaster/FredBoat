@@ -206,7 +206,7 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(atc: AudioTrackContext, isPriority: Boolean = false) {
+    fun queue(atc: AudioTrackContext) {
         if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
@@ -214,14 +214,14 @@ class GuildPlayer(
             joinChannel(member)
         }
 
-        if (isPriority) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
+        audioTrackProvider.add(atc)
         if (isPlaying) updateClients()
         play()
     }
 
     /** Add a bunch of tracks to the track provider */
-    fun loadAll(tracks: Collection<AudioTrackContext>) {
-        audioTrackProvider.addAll(tracks)
+    fun loadAll(tracks: Collection<AudioTrackContext>, isPriority: Boolean) {
+        audioTrackProvider.addAll(tracks, isPriority)
     }
 
     override fun toString(): String {
