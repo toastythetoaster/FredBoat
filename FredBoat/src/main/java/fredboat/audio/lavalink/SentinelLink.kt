@@ -47,7 +47,8 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
         perms.assertHas(VOICE_SPEAK, "We do not have permission to speak in $channel")
 
         // Do nothing if we are already connected to that channel
-        if (skipIfSameChannel && super.getChannel() == channel.id.toString()) return
+        val alreadyInChannel = channel.members.any { it.isUs } && super.getChannel() == channel.id.toString()
+        if (skipIfSameChannel && alreadyInChannel) return
 
         if (channel.userLimit > 1 // Is there a user limit?
                 && channel.userLimit <= channel.members.size // Is that limit reached?
