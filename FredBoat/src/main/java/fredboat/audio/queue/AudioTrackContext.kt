@@ -28,18 +28,31 @@ package fredboat.audio.queue
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioTrack
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.player.GuildPlayer
-import fredboat.feature.I18n
 import fredboat.main.Launcher
+import fredboat.messaging.internal.NullableContext
+import fredboat.sentinel.Guild
 import fredboat.sentinel.Member
 import fredboat.sentinel.TextChannel
+import fredboat.sentinel.User
 import org.bson.types.ObjectId
 import java.util.concurrent.ThreadLocalRandom
 
-open class AudioTrackContext(val track: AudioTrack, val member: Member, priority: Boolean = false) : Comparable<AudioTrackContext> {
-    val added: Long = System.currentTimeMillis()
+open class AudioTrackContext(
+        val track: AudioTrack,
+        override val member: Member,
+        priority: Boolean = false
+) : NullableContext(), Comparable<AudioTrackContext> {
+
+    val trackId: ObjectId // used to identify this track even when the track gets cloned and the rand reranded
     var rand: Int = if (!priority) 0 else Integer.MIN_VALUE
     var isPriority: Boolean = priority
-    val trackId: ObjectId // used to identify this track even when the track gets cloned and the rand reranded
+    val added: Long = System.currentTimeMillis()
+
+    override val guild: Guild
+        get() = member.guild
+
+    override val user: User
+        get() = member.user
 
     val userId: Long
         get() = member.id
@@ -57,7 +70,7 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member, priority
         get() = 0
 
     //return the currently active text channel of the associated guildplayer
-    val textChannel: TextChannel?
+    override val textChannel: TextChannel?
         get() {
             val guildPlayer = Launcher.botController.playerRegistry.getExisting(guildId)
             return guildPlayer?.activeTextChannel
@@ -110,13 +123,4 @@ open class AudioTrackContext(val track: AudioTrack, val member: Member, priority
         result = 31 * result + trackId.hashCode()
         return result
     }
-
-    fun i18n(key: String) = I18n.get(guildId).getString(key)!!
-    fun i18nFormat(key: String, vararg values: Any): String {
-        var str = i18n(key)
-        values.forEachIndexed { i, v -> str = str.replace("{$i}", v.toString()) }
-        return str
-    }
-
-
 }
