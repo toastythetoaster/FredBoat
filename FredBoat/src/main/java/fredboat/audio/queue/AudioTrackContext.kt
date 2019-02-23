@@ -54,11 +54,11 @@ open class AudioTrackContext(
     override val user: User
         get() = member.user
 
-    val userId: Long
-        get() = member.id
-
     val guildId: Long
         get() = member.guild.id
+
+    val userId: Long
+        get() = member.id
 
     open val effectiveDuration: Long
         get() = track.duration

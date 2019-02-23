@@ -110,6 +110,12 @@ public class Metrics {
             .labelNames("class") // use the simple name of the command class
             .register();
 
+    // QueueLimiter
+    public static final Counter queuePrevented = Counter.build()
+            .name("fredboat_queue_attempts_prevented")
+            .help("Total queue attempts that have been prevented")
+            .labelNames("limit")
+            .register();
 
     //music stuff
 

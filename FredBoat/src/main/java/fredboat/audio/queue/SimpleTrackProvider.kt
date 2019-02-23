@@ -187,6 +187,10 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         return queue.size
     }
 
+    override fun size(userId: Long): Int {
+        return queue.filter { it.userId == userId }.size
+    }
+
     override fun add(track: AudioTrackContext) {
         shouldUpdateShuffledQueue = true
 

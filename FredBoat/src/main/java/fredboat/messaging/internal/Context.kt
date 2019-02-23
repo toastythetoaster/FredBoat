@@ -33,7 +33,6 @@ import fredboat.perms.IPermissionSet
 import fredboat.perms.PermissionSet
 import fredboat.perms.PermsUtil
 import fredboat.sentinel.*
-import fredboat.util.TextUtils
 import kotlinx.coroutines.reactive.awaitSingle
 import reactor.core.publisher.Mono
 import javax.annotation.CheckReturnValue
@@ -59,60 +58,13 @@ abstract class Context : NullableContext() {
     //                         Convenience reply methods
     // ********************************************************************************
 
-
-    fun replyMono(message: String): Mono<SendMessageResponse> = textChannel.send(message)
-
-    fun reply(message: String) {
-        textChannel.send(message).subscribe()
-    }
-
-    fun replyMono(message: Embed): Mono<SendMessageResponse> = textChannel.send(message)
-
-    fun reply(message: Embed) {
-        textChannel.send(message).subscribe()
-    }
-
-    fun replyWithNameMono(message: String): Mono<SendMessageResponse> {
-        return replyMono(TextUtils.prefaceWithName(member, message))
-    }
-
-    fun replyWithName(message: String) {
-        reply(TextUtils.prefaceWithName(member, message))
-    }
-
-    fun replyWithMentionMono(message: String): Mono<SendMessageResponse> {
-        return replyMono(TextUtils.prefaceWithMention(member, message))
-    }
-
-    fun replyWithMention(message: String) {
-        reply(TextUtils.prefaceWithMention(member, message))
-    }
-
-    fun replyImageMono(url: String, message: String = ""): Mono<SendMessageResponse> {
-        val embed = embedImage(url)
-        embed.description = message
-        return textChannel.send(embed)
-    }
-
-    fun replyImage(url: String, message: String = "") {
-        replyImageMono(url, message).subscribe()
-    }
-
-    fun sendTyping() {
-        textChannel.sendTyping()
-    }
-
-    /* Private messages */
-    /**
-     * Privately DM the invoker
-     */
-    fun replyPrivateMono(message: String) = user.sendPrivate(message)
-    /**
-     * Privately DM the invoker
-     */
-    fun replyPrivate(message: String) {
-        user.sendPrivate(message).subscribe()
-    }
+    // We can be sure that nothing can be null in this context override the Mono methods for null safe access
+    override fun replyMono(message: String): Mono<SendMessageResponse> = super.replyMono(message)!!
+    override fun replyMono(embed: Embed): Mono<SendMessageResponse> = super.replyMono(embed)!!
+    override fun replyWithNameMono(message: String): Mono<SendMessageResponse> = super.replyWithNameMono(message)!!
+    override fun replyWithMentionMono(message: String): Mono<SendMessageResponse> = super.replyWithMentionMono(message)!!
+    override fun replyImageMono(url: String, message: String): Mono<SendMessageResponse> = super.replyImageMono(url, message)!!
+    override fun replyPrivateMono(message: String) = super.replyPrivateMono(message)!!
 
     /**
      * Checks whether we have the provided permissions for the channel of this context

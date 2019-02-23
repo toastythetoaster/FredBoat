@@ -33,6 +33,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.trackCount
+import fredboat.audio.queue.limiter.*
 import fredboat.audio.source.PlaylistImportSourceManager
 import fredboat.audio.source.PlaylistImporter
 import fredboat.audio.source.SpotifyPlaylistSourceManager
@@ -42,9 +43,10 @@ import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.localMessageBuilder
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.reactor.mono
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -175,10 +177,6 @@ class AudioLoader(private val ratelimiter: Ratelimiter, private val playerManage
 
 private class ResultHandler(val loader: AudioLoader, val context: IdentifierContext) : AudioLoadResultHandler {
 
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(ResultHandler::class.java)
-    }
-
     override fun loadFailed(fe: FriendlyException) {
         Metrics.trackLoadsFailed.inc()
         loader.handleThrowable(context, fe)
@@ -192,22 +190,20 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             if (context.isSplit) {
                 loadSplit(at, context)
             } else {
-
-                if (!context.isQuiet) {
-                    context.reply(if (loader.player.isPlaying)
-                        context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
-                                TextUtils.escapeAndDefuse(at.info.title))
-                    else
-                        context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
-                    )
-                } else {
-                    log.info("Quietly loaded " + at.identifier)
-                }
-
                 at.position = context.position
-
                 val atc = AudioTrackContext(at, context.member, context.isPriority)
-                loader.player.queue(atc)
+                GlobalScope.mono { loader.player.queueLimited(atc) }.subscribe {
+                    if (it.canQueue) {
+                        context.reply(if (loader.player.isPlaying)
+                            context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
+                                    TextUtils.escapeAndDefuse(at.info.title))
+                        else
+                            context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
+                        )
+                    } else {
+                        context.replyWithMention(it.errorMessage)
+                    }
+                }
 
                 if (!loader.player.isPaused) {
                     loader.player.play()
@@ -229,16 +225,33 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 return
             }
 
-            val toAdd = ArrayList<AudioTrackContext>()
+            val toAdd = ArrayList<AudioPlaylistContext>()
             for (at in ap.tracks) {
-                toAdd.add(AudioTrackContext(at, context.member, context.isPriority))
+                toAdd.add(AudioPlaylistContext(at, context.member, context.isPriority))
             }
 
-            loader.player.queueAll(toAdd, context.isPriority)
-            context.reply(context.i18nFormat("loadListSuccess", ap.tracks.size, ap.name))
-            if (!loader.player.isPaused) {
-                loader.player.play()
+            GlobalScope.mono { loader.player.queueLimited(toAdd, context.isPriority) }.subscribe {
+                if (it.isPlaylistDisabledError) {
+                    context.replyWithMention(context.i18n(it.playlistDisabledError))
+                    return@subscribe
+                }
+
+                val mb = localMessageBuilder().append(context.i18nFormat(
+                        "loadListSuccess",
+                        it.successful.map { s -> s.atc }.size, ap.name))
+
+                // TODO: Better way to display these messages since its a failure of a system if we have to add every limiter case aswell
+                if (it.isTrackLimitExceededError) {
+                    mb.append(context.i18nFormat(it.trackLimitExceededError, it.trackLimitExceededErrorCount))
+                }
+
+                if (it.successful.isNotEmpty()) {
+                    if (!loader.player.isPaused) {
+                        loader.player.play()
+                    }
+                }
             }
+
         } catch (th: Throwable) {
             loader.handleThrowable(context, th)
         }
@@ -313,25 +326,26 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             val atc = SplitAudioTrackContext(newAt, context.member, startPos, endPos, pair.right)
 
             list.add(atc)
-            loader.player.queue(atc)
         }
 
-        var mb = localMessageBuilder()
-                .append(ic.i18n("loadFollowingTracksAdded")).append("\n")
-        for (atc in list) {
-            mb.append("`[")
-                    .append(TextUtils.formatTime(atc.effectiveDuration))
-                    .append("]` ")
-                    .append(atc.effectiveTitle.escapeAndDefuse())
-                    .append("\n")
-        }
+        GlobalScope.mono { loader.player.queueLimited(list, context.isPriority) }.subscribe {
+            var mb = localMessageBuilder().append(ic.i18n("loadFollowingTracksAdded")).append("\n")
 
-        //This is pretty spammy .. let's use a shorter one
-        if (mb.length > 800) {
-            mb = localMessageBuilder()
-                    .append(ic.i18nFormat("loadPlaylistTooMany", list.size))
-        }
+            for (atc in it.filter { status ->  status.canQueue }.map { status -> status.atc }) {
+                mb.append("`[")
+                        .append(TextUtils.formatTime(atc.effectiveDuration))
+                        .append("]` ")
+                        .append(atc.effectiveTitle.escapeAndDefuse())
+                        .append("\n")
+            }
 
-        context.reply(mb.build())
+            //This is pretty spammy .. let's use a shorter one
+            if (mb.length > 800) {
+                mb = localMessageBuilder()
+                        .append(ic.i18nFormat("loadPlaylistTooMany", list.size))
+            }
+
+            context.reply(mb.build())
+        }
     }
 }

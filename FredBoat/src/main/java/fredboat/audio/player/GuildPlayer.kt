@@ -32,6 +32,8 @@ import com.sedmelluq.discord.lavaplayer.track.TrackMarker
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.lavalink.SentinelLink
 import fredboat.audio.queue.*
+import fredboat.audio.queue.limiter.QueueLimitStatus
+import fredboat.audio.queue.limiter.QueueLimiter
 import fredboat.command.music.control.VoteSkipCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
@@ -56,6 +58,7 @@ import reactor.core.publisher.Mono
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.Consumer
+import javax.annotation.CheckReturnValue
 
 class GuildPlayer(
         val lavalink: SentinelLavalink,
@@ -69,6 +72,7 @@ class GuildPlayer(
 
     val audioTrackProvider: ITrackProvider = SimpleTrackProvider()
     private val audioLoader = AudioLoader(ratelimiter, audioPlayerManager, this, youtubeAPI)
+    private val queueLimiter = QueueLimiter(guildSettingsRepository)
     val guildId = guild.id
     val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
     var internalContext: AudioTrackContext? = null
@@ -191,7 +195,7 @@ class GuildPlayer(
         activeTextChannel?.send("Something went wrong!\n${t.message}")?.subscribe()
     }
 
-    fun queue(identifier: String, context: CommandContext, isPriority: Boolean = false) {
+    fun queueAsync(identifier: String, context: CommandContext, isPriority: Boolean = false) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
         ic.isPriority = isPriority
 
@@ -200,7 +204,7 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(ic: IdentifierContext) {
+    fun queueAsync(ic: IdentifierContext) {
         joinChannel(ic.member)
 
         audioLoader.loadAsync(ic)
@@ -223,6 +227,26 @@ class GuildPlayer(
     fun queueAll(tracks: Collection<AudioTrackContext>, isPriority: Boolean) {
         audioTrackProvider.addAll(tracks, isPriority)
     }
+
+    @CheckReturnValue
+    suspend fun queueLimited(atc: AudioTrackContext): QueueLimitStatus {
+        val status = queueLimiter.isQueueLimited(atc, this)
+
+        // only queue if track was not limited
+        if (status.canQueue) {
+            queue(atc)
+        }
+
+        return status
+    }
+
+    suspend fun queueLimited(tracks: List<AudioPlaylistContext>, isPriority: Boolean): List<QueueLimitStatus> {
+        val states = queueLimiter.isQueueLimited(tracks, this)
+
+        audioTrackProvider.addAll(states.filter { it.canQueue }.map { it.atc }, isPriority)
+        return states
+    }
+
 
     override fun toString(): String {
         return "[GP:$guildId]"

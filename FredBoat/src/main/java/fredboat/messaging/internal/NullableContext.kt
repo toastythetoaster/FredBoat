@@ -3,17 +3,14 @@ package fredboat.messaging.internal
 import com.fredboat.sentinel.entities.Embed
 import com.fredboat.sentinel.entities.SendMessageResponse
 import com.fredboat.sentinel.entities.embed
-import com.fredboat.sentinel.entities.passed
-import fredboat.command.config.PrefixCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.feature.I18n
-import fredboat.perms.IPermissionSet
-import fredboat.perms.PermissionSet
-import fredboat.perms.PermsUtil
-import fredboat.sentinel.*
+import fredboat.sentinel.Guild
+import fredboat.sentinel.Member
+import fredboat.sentinel.TextChannel
+import fredboat.sentinel.User
 import fredboat.shared.constant.BotConstants
 import fredboat.util.TextUtils
-import kotlinx.coroutines.reactive.awaitSingle
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Mono
@@ -38,6 +35,50 @@ abstract class NullableContext {
     // ********************************************************************************
 
     private var i18n: ResourceBundle? = null
+
+
+    // ********************************************************************************
+    //                         Convenience reply methods
+    // ********************************************************************************
+
+    open fun replyMono(message: String): Mono<SendMessageResponse>? = textChannel?.send(message)
+    fun reply(message: String) {
+        replyMono(message)?.subscribe()
+    }
+
+    open fun replyMono(embed: Embed): Mono<SendMessageResponse>? = textChannel?.send(embed)
+    fun reply(message: Embed) {
+        replyMono(message)?.subscribe()
+    }
+
+    open fun replyWithNameMono(message: String): Mono<SendMessageResponse>? = replyMono(TextUtils.prefaceWithName(member, message))
+    fun replyWithName(message: String) {
+        replyWithNameMono(message)?.subscribe()
+    }
+
+    open fun replyWithMentionMono(message: String): Mono<SendMessageResponse>? = replyMono(TextUtils.prefaceWithMention(member, message))
+    fun replyWithMention(message: String) {
+        replyWithMentionMono(message)?.subscribe()
+    }
+
+    open fun replyImageMono(url: String, message: String = ""): Mono<SendMessageResponse>? {
+        val embed = embedImage(url)
+        embed.description = message
+        return textChannel?.send(embed)
+    }
+
+    fun replyImage(url: String, message: String = "") {
+        replyImageMono(url, message)?.subscribe()
+    }
+
+    fun sendTyping() {
+        textChannel?.sendTyping()
+    }
+
+    open fun replyPrivateMono(message: String) = user?.sendPrivate(message)
+    fun replyPrivate(message: String) {
+        replyPrivateMono(message)?.subscribe()
+    }
 
     /**
      * Return a single translated string.
@@ -79,7 +120,7 @@ abstract class NullableContext {
 
     }
 
-    private fun getI18n(): ResourceBundle {
+    fun getI18n(): ResourceBundle {
         var result = i18n
         if (result == null) {
             result = I18n.get(guild)
@@ -88,7 +129,7 @@ abstract class NullableContext {
         return result
     }
 
-    protected fun embedImage(url: String): Embed = embed {
+    private fun embedImage(url: String): Embed = embed {
         color = BotConstants.FREDBOAT_COLOR.rgb
         image = url
     }

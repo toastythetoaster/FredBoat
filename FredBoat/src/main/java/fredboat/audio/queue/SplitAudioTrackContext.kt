@@ -36,7 +36,7 @@ class SplitAudioTrackContext(
         override val startPosition: Long,
         val endPosition: Long,
         override val effectiveTitle: String
-) : AudioTrackContext(at, member) {
+) : AudioPlaylistContext(at, member) {
 
     override val effectiveDuration: Long
         get() = endPosition - startPosition
