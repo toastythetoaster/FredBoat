@@ -235,11 +235,6 @@ public class Metrics {
     // ##                           Various
     // ################################################################################
 
-    public static final Counter databaseExceptionsCreated = Counter.build()
-            .name("fredboat_db_exceptions_created_total")
-            .help("Total database exceptions created")
-            .register();
-
     public static final Histogram guildLifespan = Histogram.build()
             .name("fredboat_guild_lifespan_seconds")
             .help("How long were we part of a guild when leaving it")
