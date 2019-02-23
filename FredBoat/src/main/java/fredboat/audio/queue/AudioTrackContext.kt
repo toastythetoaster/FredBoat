@@ -44,7 +44,7 @@ open class AudioTrackContext(
 ) : NullableContext(), Comparable<AudioTrackContext> {
 
     val trackId: ObjectId // used to identify this track even when the track gets cloned and the rand reranded
-    var rand: Int = if (!priority) 0 else Integer.MIN_VALUE
+    var rand: Int
     var isPriority: Boolean = priority
     val added: Long = System.currentTimeMillis()
 
@@ -83,7 +83,7 @@ open class AudioTrackContext(
     }
 
     init {
-        this.rand = ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE)
+        this.rand = if (!priority) ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE) else Integer.MIN_VALUE
         this.trackId = ObjectId()
     }//It's ok to set a non-existing channelId, since inside the AudioTrackContext, the channel needs to be looked up
     // every time. See the getTextChannel() below for doing that.
