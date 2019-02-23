@@ -237,12 +237,11 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 }
 
                 val mb = localMessageBuilder().append(context.i18nFormat(
-                        "loadListSuccess",
-                        it.successful.map { s -> s.atc }.size, ap.name))
+                        "loadListSuccess", it.successful.map { s -> s.atc }.size, ap.name))
 
-                // TODO: Better way to display these messages since its a failure of a system if we have to add every limiter case aswell
-                if (it.isTrackLimitExceededError) {
-                    mb.append(context.i18nFormat(it.trackLimitExceededError, it.trackLimitExceededErrorCount))
+                // TODO: maybe better way, this is to general
+                if (it.errored.isNotEmpty()) {
+                    mb.append("\n").append(context.i18nFormat("loadPlaylistGeneralError", "`${it.errored.size}`"))
                 }
 
                 if (it.successful.isNotEmpty()) {
