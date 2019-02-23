@@ -2,8 +2,8 @@ package fredboat.audio.queue.limiter
 
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.queue.AudioTrackContext
-import fredboat.db.api.GuildSettingsRepository
-import fredboat.messaging.internal.Context
+import fredboat.definitions.PermissionLevel
+import fredboat.perms.PermsUtil
 import kotlinx.coroutines.reactive.awaitSingle
 import reactor.core.publisher.Mono
 
@@ -17,9 +17,8 @@ class QueueLimit(
     suspend fun isAllowed(atc: AudioTrackContext, player: GuildPlayer, preemptive: Int): QueueLimitStatus {
 
         // DJ and above are not affected by Limits
-        // TODO: Uncomment
-/*        if (PermsUtil.checkPerms(PermissionLevel.DJ, atc.member))
-            return QueueLimitStatus(true, atc)*/
+        if (PermsUtil.checkPerms(PermissionLevel.DJ, atc.member))
+            return QueueLimitStatus(true, atc)
 
         // Dynamic execution of the limit
         return limit(atc, player, preemptive).awaitSingle()
