@@ -249,6 +249,7 @@ class CommandInitializer(
         musicModule.registerCommand(PlayCommand(playerLimiter, trackSearcher, videoSelectionCache,
                 listOf(SearchProvider.SOUNDCLOUD),
                 SOUNDCLOUD_COMM_NAME, "sc"))
+        musicModule.registerCommand(ReplayCommand("replay", "rp"))
         musicModule.registerCommand(PlayCommand(playerLimiter, trackSearcher, videoSelectionCache,
                 listOf(SearchProvider.YOUTUBE, SearchProvider.SOUNDCLOUD),
                 "playnext", "playtop", "pn", isPriority = true))
@@ -273,7 +274,7 @@ class CommandInitializer(
 
         /* Seeking */
         musicModule.registerCommand(ForwardCommand("forward", "fwd"))
-        musicModule.registerCommand(RestartCommand("restart", "replay"))
+        musicModule.registerCommand(RestartCommand("restart"))
         musicModule.registerCommand(RewindCommand("rewind", "rew"))
         musicModule.registerCommand(SeekCommand("seek"))
         initialized = true
