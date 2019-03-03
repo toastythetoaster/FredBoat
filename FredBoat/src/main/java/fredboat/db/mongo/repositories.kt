@@ -3,7 +3,10 @@ package fredboat.db.mongo
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.voiceChannel
 import fredboat.audio.queue.SplitAudioTrackContext
-import fredboat.db.transfer.*
+import fredboat.db.transfer.BlacklistEntity
+import fredboat.db.transfer.GuildSettings
+import fredboat.db.transfer.SearchResult
+import fredboat.db.transfer.SearchResultId
 import lavalink.client.LavalinkUtil
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -42,6 +45,7 @@ private fun GuildPlayer.toMongo() = MongoPlayer(
         isPlaying,
         isPaused,
         isShuffle,
+        roundRobin,
         repeatMode.ordinal.toByte(),
         volume,
         playingTrack?.track?.position,

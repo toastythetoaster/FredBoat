@@ -14,6 +14,7 @@ class MongoPlayer(
         val playing: Boolean,
         val paused: Boolean,
         val shuffled: Boolean,
+        val roundRobin: Boolean,
         /** [fredboat.definitions.RepeatMode] ordinal */
         val repeat: Byte,
         /** 0-1 */
