@@ -1,8 +1,8 @@
 package fredboat.audio.queue.limiter
 
 import fredboat.audio.player.GuildPlayer
+import fredboat.audio.player.getUserTrackCount
 import fredboat.audio.player.trackCount
-import fredboat.audio.player.userTackCount
 import fredboat.audio.queue.AudioPlaylistContext
 import fredboat.audio.queue.AudioTrackContext
 import fredboat.db.api.GuildSettingsRepository
@@ -21,7 +21,7 @@ class QueueLimiter(repository: GuildSettingsRepository) {
         }))
 
         queueLimits.add(QueueLimit("UserTrackLimit", { atc, player, preemptive ->
-            repository.fetch(atc.guildId).map { QueueLimitStatus(it.userMaxTrackCount == null || it.userMaxTrackCount!! > player.userTackCount(atc.userId) + preemptive, atc) }
+            repository.fetch(atc.guildId).map { QueueLimitStatus(it.userMaxTrackCount == null || it.userMaxTrackCount!! > player.getUserTrackCount(atc.userId) + preemptive, atc) }
         }, QueueLimiterEnum.USER_TRACK_LIMIT_EXCEEDED, { context, status ->
             repository.fetch(context.guild.id).map { context.i18nFormat(status.i18n, it.userMaxTrackCount ?: "UNLIMITED") }
         }))

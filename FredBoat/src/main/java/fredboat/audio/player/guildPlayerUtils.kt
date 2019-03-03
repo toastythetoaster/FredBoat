@@ -69,7 +69,7 @@ val GuildPlayer.trackCountInHistory: Int
 val GuildPlayer.isHistoryQueueEmpty: Boolean
     get() = historyQueue.isEmpty()
 
-fun GuildPlayer.userTackCount(userId: Long): Int {
+fun GuildPlayer.getUserTrackCount(userId: Long): Int {
     var trackCount = audioTrackProvider.size(userId)
     if (player.playingTrack != null && internalContext?.userId == userId) trackCount++
     return trackCount
