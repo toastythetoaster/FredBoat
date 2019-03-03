@@ -32,10 +32,7 @@ import com.sedmelluq.discord.lavaplayer.track.TrackMarker
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.lavalink.SentinelLink
 import fredboat.audio.queue.*
-import fredboat.audio.queue.tbd.IQueueHandler
-import fredboat.audio.queue.tbd.IRepeatableQueueHandler
-import fredboat.audio.queue.tbd.IShufflableQueueHandler
-import fredboat.audio.queue.tbd.RepeatableQueueHandler
+import fredboat.audio.queue.tbd.*
 import fredboat.command.music.control.VoteSkipCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
@@ -108,6 +105,14 @@ class GuildPlayer(
             queueHandler.repeat = repeatMode
         } else {
             throw UnsupportedOperationException("Can't repeat " + queueHandler.javaClass)
+        }
+
+    var roundRobin : Boolean
+        get() = queueHandler is IRoundRobinQueueHandler && queueHandler.roundRobin
+        set(value) = if (queueHandler is IRoundRobinQueueHandler) {
+            queueHandler.roundRobin = value
+        } else {
+            throw UnsupportedOperationException("Can't round robin " + queueHandler.javaClass)
         }
 
     var isShuffle: Boolean
