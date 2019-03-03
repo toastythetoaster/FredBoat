@@ -32,6 +32,10 @@ import com.sedmelluq.discord.lavaplayer.track.TrackMarker
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.lavalink.SentinelLink
 import fredboat.audio.queue.*
+import fredboat.audio.queue.tbd.IQueueHandler
+import fredboat.audio.queue.tbd.IRepeatableQueueHandler
+import fredboat.audio.queue.tbd.IShufflableQueueHandler
+import fredboat.audio.queue.tbd.RepeatableQueueHandler
 import fredboat.command.music.control.VoteSkipCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
@@ -67,8 +71,8 @@ class GuildPlayer(
         youtubeAPI: YoutubeAPI
 ) : PlayerEventListenerAdapter() {
 
-    val audioTrackProvider: ITrackProvider = SimpleTrackProvider()
-    private val audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager, this, youtubeAPI)
+    val queueHandler: IQueueHandler = RepeatableQueueHandler(this)
+    private val audioLoader = AudioLoader(ratelimiter, queueHandler, audioPlayerManager, this, youtubeAPI)
     val guildId = guild.id
     val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
     var internalContext: AudioTrackContext? = null
@@ -96,23 +100,23 @@ class GuildPlayer(
         }
 
     var repeatMode: RepeatMode
-        get() = if (audioTrackProvider is AbstractTrackProvider)
-            audioTrackProvider.repeatMode
+        get() = if (queueHandler is IRepeatableQueueHandler)
+            queueHandler.repeat
         else
             RepeatMode.OFF
-        set(repeatMode) = if (audioTrackProvider is AbstractTrackProvider) {
-            audioTrackProvider.repeatMode = repeatMode
+        set(repeatMode) = if (queueHandler is IRepeatableQueueHandler) {
+            queueHandler.repeat = repeatMode
         } else {
-            throw UnsupportedOperationException("Can't repeat " + audioTrackProvider.javaClass)
+            throw UnsupportedOperationException("Can't repeat " + queueHandler.javaClass)
         }
 
     var isShuffle: Boolean
-        get() = audioTrackProvider is AbstractTrackProvider && audioTrackProvider.isShuffle
-        set(shuffle) = if (audioTrackProvider is AbstractTrackProvider) {
-            audioTrackProvider.isShuffle = shuffle
+        get() = queueHandler is IShufflableQueueHandler && queueHandler.shuffle
+        set(shuffle) = if (queueHandler is IShufflableQueueHandler) {
+            queueHandler.shuffle = shuffle
             internalContext?.isPriority = false
         } else {
-            throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
+            throw UnsupportedOperationException("Can't shuffle " + queueHandler.javaClass)
         }
 
     private fun getTrackAnnounceStatus(): Mono<Boolean> {
@@ -126,7 +130,7 @@ class GuildPlayer(
     val playingTrack: AudioTrackContext?
         get() {
             return if (player.playingTrack == null && internalContext == null) {
-                audioTrackProvider.peek()
+                queueHandler.peek()
             } else internalContext
         }
 
@@ -141,7 +145,7 @@ class GuildPlayer(
                 list.add(atc)
             }
 
-            list.addAll(audioTrackProvider.asList)
+            list.addAll(queueHandler.queue.toList())
             return list
         }
 
@@ -206,7 +210,7 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(atc: AudioTrackContext, isPriority: Boolean = false) {
+    fun queue(atc: AudioTrackContext) {
         if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
@@ -214,14 +218,14 @@ class GuildPlayer(
             joinChannel(member)
         }
 
-        if (isPriority) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
+        queueHandler.add(atc)
         if (isPlaying) updateClients()
         play()
     }
 
     /** Add a bunch of tracks to the track provider */
     fun loadAll(tracks: Collection<AudioTrackContext>) {
-        audioTrackProvider.addAll(tracks)
+        queueHandler.addAll(tracks)
     }
 
     override fun toString(): String {
@@ -229,12 +233,12 @@ class GuildPlayer(
     }
 
     fun reshuffle() {
-        if (audioTrackProvider is AbstractTrackProvider) {
-            audioTrackProvider.reshuffle()
+        if (queueHandler is IShufflableQueueHandler) {
+            queueHandler.reshuffle()
             internalContext?.isPriority = false
             updateClients()
         } else {
-            throw UnsupportedOperationException("Can't reshuffle " + audioTrackProvider.javaClass)
+            throw UnsupportedOperationException("Can't reshuffle " + queueHandler.javaClass)
         }
     }
 
@@ -263,7 +267,7 @@ class GuildPlayer(
     }
 
     fun destroy() {
-        audioTrackProvider.clear()
+        queueHandler.clear()
         stop()
         player.removeListener(this)
         player.link.destroy()
@@ -332,7 +336,7 @@ class GuildPlayer(
     fun stop() {
         log.trace("stop()")
 
-        audioTrackProvider.clear()
+        queueHandler.clear()
         stopTrack()
     }
 
@@ -342,7 +346,7 @@ class GuildPlayer(
     fun skip() {
         log.trace("skip()")
 
-        audioTrackProvider.skipped()
+        queueHandler.onSkipped()
         stopTrack()
     }
 
@@ -367,7 +371,7 @@ class GuildPlayer(
         } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
             if (onErrorHook != null)
                 onErrorHook!!.accept(MessagingException("Track `" + TextUtils.escapeAndDefuse(track.info.title) + "` failed to load. Skipping..."))
-            audioTrackProvider.skipped()
+            queueHandler.onSkipped()
             loadAndPlay()
         } else {
             log.warn("Track " + track.identifier + " ended with unexpected reason: " + endReason)
@@ -378,7 +382,7 @@ class GuildPlayer(
     private fun loadAndPlay() {
         log.trace("loadAndPlay()")
 
-        val atc = audioTrackProvider.provideAudioTrack()
+        val atc = queueHandler.take()
         lastLoadedTrack = atc
         atc?.let { playTrack(it) }
         updateClients()

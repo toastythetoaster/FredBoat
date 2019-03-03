@@ -33,6 +33,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.trackCount
+import fredboat.audio.queue.tbd.IQueueHandler
 import fredboat.audio.source.PlaylistImportSourceManager
 import fredboat.audio.source.PlaylistImporter
 import fredboat.audio.source.SpotifyPlaylistSourceManager
@@ -50,7 +51,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 
-class AudioLoader(private val ratelimiter: Ratelimiter, internal val trackProvider: ITrackProvider,
+class AudioLoader(private val ratelimiter: Ratelimiter, internal val queueHandler: IQueueHandler,
                   private val playerManager: AudioPlayerManager, internal val gplayer: GuildPlayer,
                   internal val youtubeAPI: YoutubeAPI) {
     private val identifierQueue = ConcurrentLinkedQueue<IdentifierContext>()
@@ -208,7 +209,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 at.position = context.position
 
                 val atc = AudioTrackContext(at, context.member, context.isPriority)
-                if (context.isPriority) loader.trackProvider.addFirst(atc) else loader.trackProvider.add(atc)
+                loader.queueHandler.add(atc)
 
                 if (!loader.gplayer.isPaused) {
                     loader.gplayer.play()
@@ -234,7 +235,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             for (at in ap.tracks) {
                 toAdd.add(AudioTrackContext(at, context.member, context.isPriority))
             }
-            if (context.isPriority) loader.trackProvider.addAllFirst(toAdd) else loader.trackProvider.addAll(toAdd)
+            loader.queueHandler.addAll(toAdd)
             context.reply(context.i18nFormat("loadListSuccess", ap.tracks.size, ap.name))
             if (!loader.gplayer.isPaused) {
                 loader.gplayer.play()
