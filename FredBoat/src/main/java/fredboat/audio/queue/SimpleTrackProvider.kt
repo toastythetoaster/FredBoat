@@ -188,7 +188,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
     }
 
     override fun getCountByUser(userId: Long): Int {
-        return queue.filter { it.userId == userId }.size
+        return queue.count { it.userId == userId }
     }
 
     override fun add(track: AudioTrackContext) {
