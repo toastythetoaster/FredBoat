@@ -17,7 +17,7 @@ open class RoundRobinQueueHandler(private val player: GuildPlayer) : ShufflableQ
             _roundRobinQueue = value
         }
 
-    private var _roundRobin: Boolean = true
+    private var _roundRobin: Boolean = false
     override var roundRobin: Boolean
         get() = _roundRobin
         set(value) {
