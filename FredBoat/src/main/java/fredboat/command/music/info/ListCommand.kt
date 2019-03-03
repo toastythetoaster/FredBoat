@@ -82,6 +82,10 @@ class ListCommand(name: String, vararg aliases: String) : JCommand(name, *aliase
             if (player.repeatMode == RepeatMode.OFF)
                 mb.append("\n")
         }
+
+        if (player.isRoundRobin)
+            mb.append(context.i18n("listShowRoundRobin")).append("\n")
+
         if (player.repeatMode == RepeatMode.SINGLE) {
             mb.append(context.i18n("listShowRepeatSingle"))
             mb.append("\n")
