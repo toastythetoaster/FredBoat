@@ -187,7 +187,7 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         return queue.size
     }
 
-    override fun size(userId: Long): Int {
+    override fun getCountByUser(userId: Long): Int {
         return queue.filter { it.userId == userId }.size
     }
 

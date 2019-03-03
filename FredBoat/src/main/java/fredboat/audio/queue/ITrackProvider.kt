@@ -72,7 +72,7 @@ interface ITrackProvider {
     /**
      * @return amount of tracks in the queue filtered by userId
      */
-    fun size(userId: Long): Int
+    fun getCountByUser(userId: Long): Int
 
     /**
      * @param track add a track to the queue
