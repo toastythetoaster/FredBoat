@@ -256,8 +256,7 @@ class GuildPlayer(
             }
         }
 
-        audioTrackProvider.removeAllById(toRemove)
-
+        if (toRemove.size > 0) queueHandler.removeById(toRemove)
         if (skipCurrentTrack) skip()
     }
 
