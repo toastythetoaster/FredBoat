@@ -107,7 +107,7 @@ class GuildPlayer(
             throw UnsupportedOperationException("Can't repeat " + queueHandler.javaClass)
         }
 
-    var roundRobin : Boolean
+    var isRoundRobin : Boolean
         get() = queueHandler is IRoundRobinQueueHandler && queueHandler.roundRobin
         set(value) = if (queueHandler is IRoundRobinQueueHandler) {
             queueHandler.roundRobin = value

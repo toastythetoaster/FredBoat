@@ -45,7 +45,7 @@ private fun GuildPlayer.toMongo() = MongoPlayer(
         isPlaying,
         isPaused,
         isShuffle,
-        roundRobin,
+        isRoundRobin,
         repeatMode.ordinal.toByte(),
         volume,
         playingTrack?.track?.position,
