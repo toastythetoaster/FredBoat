@@ -272,7 +272,7 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
     }
 
     override suspend fun invoke(context: CommandContext) {
-        if (context.memberLevel() >= PermissionLevel.BOT_ADMIN &&
+        if (context.memberLevel() < PermissionLevel.BOT_ADMIN &&
                 getBotController().appConfig.distribution != DistributionEnum.DEVELOPMENT) {
             if (this is UnbanCommand || this is SoftbanCommand) {
                 context.reply("The unban and softban commands have been temporarily disabled. We have made significant" +
