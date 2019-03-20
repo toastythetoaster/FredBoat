@@ -46,6 +46,7 @@ import fredboat.sentinel.VoiceChannel
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import lavalink.client.io.Link.State.CONNECTED
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import org.slf4j.LoggerFactory
@@ -218,8 +219,15 @@ class GuildPlayer(
                     Permission.VOICE_MOVE_OTHERS.uiName))
         }
 
+        val link = lavalink.getLink(guild)
+
+        if (link.state == CONNECTED && currentVoiceChannel?.members?.contains(guild.selfMember) == false) {
+            log.warn("Link is ${link.state} but we are not in its channel. Assuming our session expired...")
+            link.onDisconnected()
+        }
+
         try {
-            lavalink.getLink(guild).connect(targetChannel)
+            link.connect(targetChannel)
             log.info("Connected to voice channel $targetChannel")
         } catch (e: Exception) {
             log.error("Failed to join voice channel {}", targetChannel, e)
