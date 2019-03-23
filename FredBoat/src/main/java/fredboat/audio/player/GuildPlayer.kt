@@ -385,14 +385,15 @@ class GuildPlayer(
     }
 
     private fun updateHistoryQueue() {
-        if (lastLoadedTrack == null) {
+        val lastTrack = lastLoadedTrack
+        if (lastTrack == null) {
             log.warn("No lastLoadedTrack in $this after track end")
             return
         }
         if (historyQueue.size == MAX_HISTORY_SIZE) {
             historyQueue.poll()
         }
-        historyQueue.add(lastLoadedTrack)
+        historyQueue.add(lastTrack)
     }
 
     /**
