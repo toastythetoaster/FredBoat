@@ -96,4 +96,8 @@ public interface Credentials {
     // ********************************************************************************
 
     String getCarbonKey();
+
+    String getWastebinUser();
+
+    String getWastebinPass();
 }
