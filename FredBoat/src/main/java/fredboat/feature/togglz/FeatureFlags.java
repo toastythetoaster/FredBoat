@@ -41,6 +41,9 @@ public enum FeatureFlags implements Feature {
     @Label("Force soundcloud search instead of youtube")
     FORCE_SOUNDCLOUD_SEARCH,
 
+    @Label("Disable the use of the Youtube API with ;;nowplaying")
+    DISABLE_NOWPLAYING_WITH_YTAPI
+
     ;
 
     public boolean isActive() {
