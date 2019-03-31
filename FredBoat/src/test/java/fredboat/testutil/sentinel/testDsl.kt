@@ -70,7 +70,7 @@ class CommandTester(private val commandContextParser: CommandContextParser, temp
     }
 }
 
-fun assertReply(testMsg: String = "Assert outgoing message to equal: »{}«", assertion: (String) -> Boolean) {
+fun assertReply(testMsg: String = "Assert outgoing message to equal. Message: »{}«", assertion: (String) -> Boolean) {
     val message = SentinelState.poll(SendMessageRequest::class.java)
             ?: throw TimeoutException("Command failed to send message")
     Assert.assertTrue(testMsg.replace("{}", message.toString()), assertion(message.message))
