@@ -114,6 +114,7 @@ local.properties
 /config/*.yml
 
 ### Custom ###
+postgres-data/
 lib/
 dist/*
 build/

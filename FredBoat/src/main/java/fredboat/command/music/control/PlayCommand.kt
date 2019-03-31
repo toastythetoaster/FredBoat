@@ -79,7 +79,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
             return
         }
 
-        if (TextUtils.isSplitSelect(context.rawArgs)) {
+        if (TextUtils.isSplitSelect(context.rawArgs) && videoSelectionCache[context.member] != null) {
             SelectCommand.select(context, videoSelectionCache)
             return
         }

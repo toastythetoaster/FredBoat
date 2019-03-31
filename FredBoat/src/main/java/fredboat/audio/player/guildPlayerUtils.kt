@@ -1,5 +1,6 @@
 package fredboat.audio.player
 
+import com.fredboat.sentinel.entities.ShardStatus
 import com.google.common.collect.Lists
 import fredboat.audio.queue.AudioTrackContext
 import fredboat.commandmeta.MessagingException
@@ -54,7 +55,7 @@ val GuildPlayer.voiceChannel: VoiceChannel?
  * @return Users who are not bots
  */
 val GuildPlayer.humanUsersInCurrentVC: List<Member>
-    get() = getHumanUsersInVC(voiceChannel)
+    get() = voiceChannel.getHumanUsersInVC()
 
 val GuildPlayer.isQueueEmpty: Boolean
     get() {
@@ -112,8 +113,15 @@ fun GuildPlayer.joinChannel(targetChannel: VoiceChannel?) {
                 Permission.VOICE_MOVE_OTHERS.uiName))
     }
 
+    val link = lavalink.getLink(guild)
+
+    if (link.state == ShardStatus.CONNECTED && guild.selfMember.voiceChannel?.members?.contains(guild.selfMember) == false) {
+        log.warn("Link is ${link.state} but we are not in its channel. Assuming our session expired...")
+        link.onDisconnected()
+    }
+
     try {
-        lavalink.getLink(guild).connect(targetChannel)
+        link.connect(targetChannel)
         log.info("Connected to voice channel $targetChannel")
     } catch (e: Exception) {
         log.error("Failed to join voice channel {}", targetChannel, e)
@@ -164,9 +172,9 @@ fun GuildPlayer.getTrackIdsInRange(start: Int, end: Int): List<ObjectId> = getTr
         .map { it.trackId }
         .toList()
 
-fun GuildPlayer.getHumanUsersInVC(vc: VoiceChannel?): List<Member> {
-    vc ?: return emptyList()
-    return vc.members.stream()
+fun VoiceChannel?.getHumanUsersInVC(): List<Member> {
+    this ?: return emptyList()
+    return this.members.stream()
             .filter { !it.isBot }
             .toList()
 }

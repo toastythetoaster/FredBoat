@@ -53,6 +53,6 @@ class UnsubCommand(
     }
 
     override fun help(context: Context): String {
-        return "{0}{1} [code]\n#Unsubscribed from this guild."
+        return "{0}{1} [code]\n#Unsubscribe from this guild."
     }
 }

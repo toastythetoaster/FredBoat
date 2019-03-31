@@ -108,6 +108,10 @@ class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig
 
     override fun getCarbonKey() = ""
 
+    override fun getWastebinUser() = ""
+
+    override fun getWastebinPass() = ""
+
     override fun getWebInfoBaseUrl() = ""
 
     override fun getQuarterdeck() = object : BackendConfig.Quarterdeck {
