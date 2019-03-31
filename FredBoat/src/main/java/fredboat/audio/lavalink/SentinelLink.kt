@@ -33,7 +33,7 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
 
     public override fun queueAudioDisconnect() =
             lavalink.sentinel.sendAndForget(routingKey, AudioQueueRequest(QUEUE_DISCONNECT, guildId.toLong()))
-    
+
     fun connect(channel: VoiceChannel, skipIfSameChannel: Boolean = true) {
         if (channel.guild.id != guild)
             throw IllegalArgumentException("The provided VoiceChannel is not a part of the Guild that this AudioManager " +
