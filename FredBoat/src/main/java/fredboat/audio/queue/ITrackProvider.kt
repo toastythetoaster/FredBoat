@@ -82,7 +82,7 @@ interface ITrackProvider {
     /**
      * @param tracks add several tracks to the queue
      */
-    fun addAll(tracks: Collection<AudioTrackContext>, isPriority: Boolean)
+    fun addAll(tracks: Collection<AudioTrackContext>)
 
     /**
      * empty the queue

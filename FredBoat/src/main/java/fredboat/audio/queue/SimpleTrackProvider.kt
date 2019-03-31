@@ -200,13 +200,10 @@ class SimpleTrackProvider : AbstractTrackProvider() {
             queue.addFirst(track)
     }
 
-    override fun addAll(tracks: Collection<AudioTrackContext>, isPriority: Boolean) {
+    override fun addAll(tracks: Collection<AudioTrackContext>) {
         shouldUpdateShuffledQueue = true
 
-        if (!isPriority)
-            queue.addAll(tracks)
-        else
-            tracks.reversed().forEach { queue.addFirst(it) }
+        if (tracks.all { it.isPriority }) queue.addAllFirst(tracks) else queue.addAll(tracks)
     }
 
     override fun clear() {
@@ -253,3 +250,8 @@ class SimpleTrackProvider : AbstractTrackProvider() {
         return true
     }
 }
+
+fun ConcurrentLinkedDeque<AudioTrackContext>.addAllFirst(tracks: Collection<AudioTrackContext>) {
+    tracks.reversed().forEach { addFirst(it) }
+}
+

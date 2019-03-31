@@ -224,8 +224,8 @@ class GuildPlayer(
     }
 
     /** Add a bunch of tracks to the track provider */
-    fun queueAll(tracks: Collection<AudioTrackContext>, isPriority: Boolean) {
-        audioTrackProvider.addAll(tracks, isPriority)
+    fun queueAll(tracks: Collection<AudioTrackContext>) {
+        audioTrackProvider.addAll(tracks)
     }
 
     @CheckReturnValue
@@ -243,7 +243,7 @@ class GuildPlayer(
     suspend fun queueLimited(tracks: List<AudioPlaylistContext>, isPriority: Boolean): List<QueueLimitStatus> {
         val states = queueLimiter.isQueueLimited(tracks, this)
 
-        audioTrackProvider.addAll(states.filter { it.canQueue }.map { it.atc }, isPriority)
+        audioTrackProvider.addAll(states.filter { it.canQueue }.map { it.atc })
         return states
     }
 
