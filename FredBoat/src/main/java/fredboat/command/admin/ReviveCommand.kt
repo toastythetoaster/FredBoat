@@ -61,7 +61,8 @@ class ReviveCommand(name: String, vararg aliases: String) : Command(name, *alias
             return
         }
 
-        context.sentinel.send<String>(context.routingKey, ReviveShardRequest(shardId)).awaitFirst()
+        val routingKey = context.sentinel.tracker.getKey(shardId)
+        context.sentinel.send<String>(routingKey, ReviveShardRequest(shardId)).awaitFirst()
         context.replyWithName("Queued shard revive for shard $shardId")
         // TODO Launcher.getBotController().getShardManager().restart(shardId); // If not found it will just function like #start()
     }

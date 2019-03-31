@@ -39,7 +39,9 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
 
             sentinel.getAllSentinelInfo(includeShards = true)
                     .doOnComplete {
-                        sink.success(Counts(guilds, roles, textChannels, voiceChannels, categories, emotes, shards))
+                        val result = Counts(guilds, roles, textChannels, voiceChannels, categories, emotes, shards)
+                        cachedCounts = result
+                        sink.success(result)
                     }
                     .doOnError { sink.error(it) }
                     .subscribe {
@@ -63,8 +65,11 @@ class SentinelCountingService(private val sentinel: Sentinel, appConfig: AppConf
         return Mono.create { sink ->
             val set = LongOpenHashSet(estimatedUsers)
             sentinel.getFullSentinelUserList()
-                    .doOnComplete { sink.success(set.size) }
-                    .doOnError { sink.error(it) }
+                    .doOnComplete {
+                        val sum = set.size
+                        cachedUserCount = sum
+                        sink.success(sum)
+                    }.doOnError { sink.error(it) }
                     .subscribe { set.add(it) }
         }
     }
