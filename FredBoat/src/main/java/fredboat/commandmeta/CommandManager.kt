@@ -83,7 +83,7 @@ class CommandManager(private val patronageChecker: PatronageChecker, private val
         if (guild.id == BotConstants.FREDBOAT_HANGOUT_ID && DiscordUtil.isOfficialBot(selfUser.id)) {
             if (channel.id != 174821093633294338L // #spam_and_music
                     && channel.id != 217526705298866177L // #staff
-                    && invoker.roles.any { it.id == BotConstants.FBH_MODERATOR_ROLE_ID }
+                    && invoker.roles.none { it.id == BotConstants.FBH_MODERATOR_ROLE_ID }
                     && !PermsUtil.checkPerms(PermissionLevel.ADMIN, invoker)) {
                 context.deleteMessage()
                 val response = context.replyWithNameMono(
