@@ -38,6 +38,7 @@ import fredboat.perms.PermsUtil
 import fredboat.util.TextUtils
 import fredboat.util.localMessageBuilder
 import org.apache.commons.lang3.StringUtils
+import reactor.core.publisher.Mono
 import java.util.function.Predicate
 
 private typealias Validator = Predicate<String>
@@ -122,7 +123,9 @@ class ConfigCommand(name: String, private val repo: GuildSettingsRepository, var
             context.replyWithName(context.i18n("configValueTypeInvalid"))
         }
 
-        config.update(repo, context, value)
+        config.update(repo, context, value).subscribe {
+            context.replyWithName("`$name` ${context.i18nFormat("configSetTo", value)}")
+        }
     }
 
     override fun help(context: Context): String {
@@ -137,11 +140,10 @@ private data class ConfigOption(
         val getter: (GuildSettings) -> String,
         val setter: (GuildSettings, String) -> Unit
 ) {
-    fun update(repo: GuildSettingsRepository, context: CommandContext, value: String) {
-        repo.fetch(context.guild.id)
+    fun update(repo: GuildSettingsRepository, context: CommandContext, value: String): Mono<GuildSettings> {
+        return repo.fetch(context.guild.id)
                 .doOnSuccess { setter(it, value) }
                 .let { repo.update(it) }
-                .subscribe { context.replyWithName("`$name` ${context.i18nFormat("configSetTo", value)}") }
     }
 
     override fun toString(): String {
