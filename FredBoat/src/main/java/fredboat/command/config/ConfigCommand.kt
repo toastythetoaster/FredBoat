@@ -38,7 +38,6 @@ import fredboat.perms.PermsUtil
 import fredboat.util.TextUtils
 import fredboat.util.localMessageBuilder
 import org.apache.commons.lang3.StringUtils
-import reactor.core.publisher.Mono
 import java.util.function.Predicate
 
 private typealias Validator = Predicate<String>
@@ -162,11 +161,9 @@ private data class ConfigOption(
         val getter: (GuildSettings) -> String,
         val setter: (GuildSettings, String) -> Unit
 ) {
-    fun update(repo: GuildSettingsRepository, context: CommandContext, value: String): Mono<GuildSettings> {
-        return repo.fetch(context.guild.id)
-                .doOnSuccess { setter(it, value) }
-                .let { repo.update(it) }
-    }
+    fun update(repo: GuildSettingsRepository, context: CommandContext, value: String) = repo.fetch(context.guild.id)
+            .doOnSuccess { setter(it, value) }
+            .let { repo.update(it) }
 
     override fun toString(): String {
         return name
