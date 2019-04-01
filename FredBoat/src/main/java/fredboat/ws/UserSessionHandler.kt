@@ -11,6 +11,7 @@ import org.springframework.web.reactive.socket.WebSocketHandler
 import org.springframework.web.reactive.socket.WebSocketMessage
 import org.springframework.web.reactive.socket.WebSocketSession
 import reactor.core.publisher.Mono
+import java.lang.Exception
 import java.util.concurrent.ConcurrentHashMap
 
 @Controller
@@ -71,13 +72,19 @@ class UserSessionHandler(
         else list.remove(session)
     }
 
-    final inline fun sendLazy(guildId: Long, producer: () -> Any) {
+    final fun sendLazy(guildId: Long, producer: () -> Any) {
         val sessions = this[guildId]
         if (sessions.isEmpty()) return
 
-        val msg = sessions.first().textMessage(gson.toJson(producer()))
+        val msg = gson.toJson(producer())
         sessions.forEach {
-            if (it.isOpen) it.send(msg)
+            log.info("Sending message to ${it.session.id}. Open: ${it.isOpen}")
+            //if (it.isOpen) it.send(it.textMessage(msg))
+            try {
+                it.send(it.textMessage(msg))
+            } catch(e: Exception) {
+                log.error("Error sending WS message")
+            }
         }
     }
 

@@ -89,7 +89,7 @@ A FredBoat command must extend the abstract class
 
 ### Permissions
 FredBoat runs its own simplified permission system that takes care of properly interacting with the user.
-Existing permission levels are defined in [PermissionLevel.java](Shared/src/main/java/fredboat/definitions/PermissionLevel.java), 
+Existing permission levels are defined in [PermissionLevel.kt](Shared/src/main/java/fredboat/definitions/PermissionLevel.kt), 
 and by implementing [ICommandRestricted.kt](FredBoat/src/main/java/fredboat/commandmeta/abs/ICommandRestricted.kt ).
 You gain access to a method to provide the minimum required permissions for your command.
 
@@ -182,8 +182,10 @@ Obtaining a well functioning and productive setup of the IDE may be an intimidat
 
 Add the `fredboat.yaml` file to the FredBoat root directory (symlinking recommended).
 
-To run the FredBoat bot in IntelliJ IDEA, find the little green play button in the main class `FredBoat.java` and start it from there:
+To run the FredBoat bot in IntelliJ IDEA, find the little green play button in the main class `fredboat.main.Launcher.kt` and start it from there:
 <details><summary>Click me</summary>
+
+(Screenshot is from the old main class)
 
 [![Running from IDEA](https://fred.moe/ETs.png)](https://fred.moe/ETs.png)
 </details>

@@ -37,12 +37,14 @@ import fredboat.audio.queue.AudioTrackContext
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IMusicCommand
+import fredboat.feature.togglz.FeatureFlags
 import fredboat.main.BotController
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.util.TextUtils
 import fredboat.util.extension.toDecimalString
 import fredboat.util.rest.YoutubeAPI
+import fredboat.util.rest.YoutubeVideo
 import kotlinx.coroutines.reactive.awaitSingle
 import org.json.XML
 import java.awt.Color
@@ -63,7 +65,8 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
         val at = atc!!.track
 
         val embed = when {
-            at is YoutubeAudioTrack && hasYtKeys -> getYoutubeEmbed(atc, player, at)
+            at is YoutubeAudioTrack && hasYtKeys && !FeatureFlags.DISABLE_NOWPLAYING_WITH_YTAPI.isActive ->
+                getYoutubeEmbed(atc, player, at)
             at is SoundCloudAudioTrack -> getSoundcloudEmbed(atc, player, at)
             at is BandcampAudioTrack -> getBandcampResponse(atc, player, at)
             at is TwitchStreamAudioTrack -> getTwitchEmbed(atc, at)
@@ -73,7 +76,7 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
             else -> getDefaultEmbed(atc, player, at)
         }
         if (embed.footer == null) embed.footer {
-            text = "Requested by ${atc.member.effectiveName}#${atc.member.discrim}" // TODO i18n
+            text = context.i18nFormat("npRequestedBy", atc.member.effectiveName)
             iconUrl = atc.member.info.awaitSingle().iconUrl
         }
 
@@ -81,7 +84,12 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
     }
 
     private fun getYoutubeEmbed(atc: AudioTrackContext, player: GuildPlayer, at: YoutubeAudioTrack) = embed {
-        val yv = youtubeAPI.getVideoFromID(at.identifier, true)
+        val yv: YoutubeVideo
+        try {
+            yv = youtubeAPI.getVideoFromID(at.identifier, true)
+        } catch (e: Exception) {
+            return getDefaultEmbed(atc, player, at)
+        }
 
         title = atc.effectiveTitle
         url = "https://www.youtube.com/watch?v=" + at.identifier
@@ -91,7 +99,7 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
             url = yv.channelUrl
             iconUrl = yv.channelThumbUrl
         }
-        color = Color(205, 32, 31).rgb
+        color = YOUTUBE_RED
 
         field {
             title = "Time"
@@ -177,6 +185,7 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
             "[LIVE]" else
             "[${TextUtils.formatTime(atc.getEffectivePosition(player))}/${TextUtils.formatTime(atc.effectiveDuration)}]"
         description = atc.i18nFormat("npLoadedDefault", desc, at.sourceManager.sourceName)
+        if (at is YoutubeAudioTrack) color = YOUTUBE_RED
     }
 
     override fun help(context: Context): String {
@@ -184,6 +193,8 @@ class NowplayingCommand(private val youtubeAPI: YoutubeAPI, name: String, vararg
     }
 
     companion object {
+
+        private val YOUTUBE_RED = Color(205, 32, 31).rgb
 
         private const val GR_PLACEHOLDER_IMG = "https://cdn.discordapp.com/attachments/240116420946427905/" +
                 "373019550725177344/gr-logo-placeholder.png"
