@@ -55,29 +55,51 @@ class ConfigCommand(name: String, private val repo: GuildSettingsRepository, var
         val nullableIntPredicate = Predicate<String> { (it.toIntOrNull() != null && it.toInt() > -1) || StringUtils.equalsAnyIgnoreCase(it, "none", "unlimited") }
         val nullableLongPredicate = Predicate<String> { StringUtils.equalsAnyIgnoreCase(it, "none", "unlimited") || TextUtils.parseTimeString(it) != 0L }
 
-        configOptions.add(ConfigOption("track_announce", booleanPredicate,
-                { it.trackAnnounce.toString() }, { gs, value -> gs.trackAnnounce = value.toBoolean() }))
+        configOptions.add(ConfigOption(
+                "track_announce",
+                booleanPredicate,
+                { it.trackAnnounce.toString() },
+                { gs, value -> gs.trackAnnounce = value.toBoolean() }))
 
-        configOptions.add(ConfigOption("auto_resume", booleanPredicate,
-                { it.trackAnnounce.toString() }, { gs, value -> gs.trackAnnounce = value.toBoolean() }))
+        configOptions.add(ConfigOption(
+                "auto_resume",
+                booleanPredicate,
+                { it.trackAnnounce.toString() },
+                { gs, value -> gs.trackAnnounce = value.toBoolean() }))
 
-        configOptions.add(ConfigOption("allow_playlist", booleanPredicate,
-                { it.allowPlaylist.toString() }, { gs, v -> gs.allowPlaylist = v.toBoolean() }))
+        configOptions.add(ConfigOption(
+                "allow_playlist",
+                booleanPredicate,
+                { it.allowPlaylist.toString() },
+                { gs, v -> gs.allowPlaylist = v.toBoolean() }))
 
-        configOptions.add(ConfigOption("max_tracks", nullableIntPredicate,
-                { it.maxTrackCount?.toString() ?: "UNLIMITED" }, { gs, v ->
-            gs.maxTrackCount = if (v.equals("unlimited", true)) null else v.toInt()
-        }))
+        configOptions.add(ConfigOption(
+                "max_tracks",
+                nullableIntPredicate,
+                { it.maxTrackCount?.toString() ?: "UNLIMITED" },
+                { gs, v -> gs.maxTrackCount = if (v.equals("unlimited", true)) null else v.toInt() }))
 
-        configOptions.add(ConfigOption("max_user_tracks", nullableIntPredicate,
-                { it.userMaxTrackCount?.toString() ?: "UNLIMITED" }, { gs, v ->
-            gs.userMaxTrackCount = if (StringUtils.equalsAnyIgnoreCase(v, "none", "unlimited")) null else v.toInt()
-        }))
+        configOptions.add(ConfigOption(
+                "max_user_tracks",
+                nullableIntPredicate,
+                { it.userMaxTrackCount?.toString() ?: "UNLIMITED" },
+                { gs, v ->
+                    gs.userMaxTrackCount = if (StringUtils.equalsAnyIgnoreCase(v, "none", "unlimited"))
+                        null
+                    else
+                        v.toInt()
+                }))
 
-        configOptions.add(ConfigOption("max_track_length", nullableLongPredicate,
-                { if (it.maxTrackLength != null) TextUtils.formatTime(it.maxTrackLength!!) else "UNLIMITED" }, { gs, v ->
-            gs.maxTrackLength = if (StringUtils.equalsAnyIgnoreCase(v, "none", "unlimited")) null else TextUtils.parseTimeString(v)
-        }))
+        configOptions.add(ConfigOption(
+                "max_track_length",
+                nullableLongPredicate,
+                { if (it.maxTrackLength != null) TextUtils.formatTime(it.maxTrackLength!!) else "UNLIMITED" },
+                { gs, v ->
+                    gs.maxTrackLength = if (StringUtils.equalsAnyIgnoreCase(v, "none", "unlimited"))
+                        null
+                    else
+                        TextUtils.parseTimeString(v)
+                }))
     }
 
     override suspend fun invoke(context: CommandContext) {
