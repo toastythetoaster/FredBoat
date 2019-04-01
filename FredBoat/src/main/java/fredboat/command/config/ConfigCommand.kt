@@ -40,6 +40,8 @@ import fredboat.util.localMessageBuilder
 import org.apache.commons.lang3.StringUtils
 import java.util.function.Predicate
 
+private typealias Validator = Predicate<String>
+
 class ConfigCommand(name: String, private val repo: GuildSettingsRepository, vararg aliases: String) : Command(name, *aliases), IConfigCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
@@ -116,7 +118,7 @@ class ConfigCommand(name: String, private val repo: GuildSettingsRepository, var
             return
         }
 
-        if (!config.valueFormat.test(value)) {
+        if (!config.validator.test(value)) {
             context.replyWithName(context.i18n("configValueTypeInvalid"))
         }
 
@@ -131,7 +133,7 @@ class ConfigCommand(name: String, private val repo: GuildSettingsRepository, var
 
 private data class ConfigOption(
         val name: String,
-        val valueFormat: Predicate<String>,
+        val validator: Validator,
         val getter: (GuildSettings) -> String,
         val setter: (GuildSettings, String) -> Unit
 ) {
