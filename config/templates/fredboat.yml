@@ -106,7 +106,7 @@ credentials:
   googleApiKeys:
     - "PutYourGoogleAPIKeyHere"
 
-  # The preferred way of setting the token is described in ./common.sh
+  # The preferred way of setting the token is described in ./common.yml
   #discordBotToken: ""
 
 

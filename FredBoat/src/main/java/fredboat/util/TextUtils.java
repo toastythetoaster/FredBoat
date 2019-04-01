@@ -31,6 +31,7 @@ import com.google.common.collect.Streams;
 import fredboat.commandmeta.MessagingException;
 import fredboat.feature.metrics.Metrics;
 import fredboat.main.BotController;
+import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import fredboat.sentinel.Member;
 import fredboat.sentinel.User;
@@ -142,15 +143,24 @@ public class TextUtils {
         context.replyWithMention(SORRY + "\n" + BotConstants.hangoutInvite);
     }
 
-    private static CompletionStage<String> postToHasteBasedService(String baseUrl, String body) {
-        return BotController.Companion.getHTTP().post(baseUrl, body, "text/plain")
-                .enqueue()
+    private static CompletionStage<String> postToHasteBasedService(String baseUrl, String body,
+                                                                   Optional<String> user, Optional<String> pass) {
+
+        var request = BotController.Companion.getHTTP().post(baseUrl, body, "text/plain");
+
+        if (user.isPresent() && pass.isPresent()) {
+            request = request.basicAuth(user.get(), pass.get());
+        }
+
+        return request.enqueue()
                 .asJson()
                 .thenApply(json -> json.getString("key"));
     }
 
     private static CompletionStage<String> postToWastebin(String body) {
-        return postToHasteBasedService("https://wastebin.party/documents", body);
+        var creds = Launcher.Companion.getBotController().getCredentials();
+        return postToHasteBasedService("https://wastebin.party/documents", body,
+                Optional.of(creds.getWastebinUser()), Optional.of(creds.getWastebinPass()));
     }
 
     /**
