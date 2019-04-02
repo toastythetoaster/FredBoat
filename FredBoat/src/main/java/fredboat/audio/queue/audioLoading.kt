@@ -33,7 +33,10 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.trackCount
-import fredboat.audio.queue.limiter.*
+import fredboat.audio.queue.limiter.errored
+import fredboat.audio.queue.limiter.isPlaylistDisabledError
+import fredboat.audio.queue.limiter.playlistDisabledError
+import fredboat.audio.queue.limiter.successful
 import fredboat.audio.source.PlaylistImportSourceManager
 import fredboat.audio.source.PlaylistImporter
 import fredboat.audio.source.SpotifyPlaylistSourceManager
@@ -194,11 +197,11 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 val atc = AudioTrackContext(at, context.member, context.isPriority)
                 GlobalScope.mono { loader.player.queueLimited(atc) }.subscribe {
                     if (it.canQueue) {
-                        context.reply(if (loader.player.isPlaying)
+                        context.reply(if (loader.player.trackCount == 1)
+                            context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
+                        else
                             context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
                                     TextUtils.escapeAndDefuse(at.info.title))
-                        else
-                            context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
                         )
                     } else {
                         context.replyWithMention(it.errorMessage)
