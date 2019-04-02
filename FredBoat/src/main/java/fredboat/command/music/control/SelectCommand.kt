@@ -116,6 +116,7 @@ class SelectCommand(private val videoSelectionCache: VideoSelectionCache, name: 
                         outputMsgBuilder.append(msg)
 
                         player.queueLimited(AudioTrackContext(selectedTracks[i]!!, invoker, selection.isPriority))
+                        player.play()
                     }
 
                     videoSelectionCache.remove(invoker)

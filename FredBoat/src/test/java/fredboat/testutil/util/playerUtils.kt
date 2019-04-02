@@ -36,6 +36,7 @@ fun Guild.queue(
     }
 
     player.queue(AudioTrackContext(track, member))
+    player.play()
     return player
 }
 

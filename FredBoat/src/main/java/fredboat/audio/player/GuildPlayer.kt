@@ -229,7 +229,6 @@ class GuildPlayer(
 
         queueHandler.add(atc)
         if (isPlaying) updateClients()
-        play()
     }
 
     /** Add a bunch of tracks to the track provider */
@@ -249,10 +248,10 @@ class GuildPlayer(
         return status
     }
 
-    suspend fun queueLimited(tracks: List<AudioPlaylistContext>, isPriority: Boolean): List<QueueLimitStatus> {
+    suspend fun queueLimited(tracks: List<AudioPlaylistContext>): List<QueueLimitStatus> {
         val states = queueLimiter.isQueueLimited(tracks, this)
 
-        audioTrackProvider.addAll(states.filter { it.canQueue }.map { it.atc })
+        queueAll(states.filter { it.canQueue }.map { it.atc })
         return states
     }
 

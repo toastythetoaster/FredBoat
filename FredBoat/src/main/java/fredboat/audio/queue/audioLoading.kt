@@ -199,19 +199,16 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 val atc = AudioTrackContext(at, context.member, context.isPriority)
                 GlobalScope.mono { loader.player.queueLimited(atc) }.subscribe {
                     if (it.canQueue) {
-                        context.reply(if (loader.player.trackCount == 1)
+                        context.reply(if (!loader.player.isPlaying)
                             context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
                         else
                             context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
                                     TextUtils.escapeAndDefuse(at.info.title))
                         )
+                        loader.player.play()
                     } else {
                         context.replyWithMention(it.errorMessage)
                     }
-                }
-                //FIXME THIS NEEDS TO BE TAKEN A LOOK AT AFTER MERGE
-                if (!loader.player.isPaused) {
-                    loader.player.play()
                 }
             }
         } catch (th: Throwable) {
@@ -235,7 +232,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 toAdd.add(AudioPlaylistContext(at, context.member, context.isPriority))
             }
 
-            GlobalScope.mono { loader.player.queueLimited(toAdd, context.isPriority) }.subscribe {
+            GlobalScope.mono { loader.player.queueLimited(toAdd) }.subscribe {
                 if (it.isPlaylistDisabledError) {
                     context.replyWithMention(context.i18n(it.playlistDisabledError))
                     return@subscribe
@@ -250,9 +247,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 }
 
                 if (it.successful.isNotEmpty()) {
-                    if (!loader.player.isPaused) {
-                        loader.player.play()
-                    }
+                    loader.player.play()
                 }
             }
         } catch (th: Throwable) {
@@ -331,10 +326,10 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             list.add(atc)
         }
 
-        GlobalScope.mono { loader.player.queueLimited(list, context.isPriority) }.subscribe {
+        GlobalScope.mono { loader.player.queueLimited(list) }.subscribe {
             var mb = localMessageBuilder().append(ic.i18n("loadFollowingTracksAdded")).append("\n")
 
-            for (atc in it.filter { status ->  status.canQueue }.map { status -> status.atc }) {
+            for (atc in it.filter { status -> status.canQueue }.map { status -> status.atc }) {
                 mb.append("`[")
                         .append(TextUtils.formatTime(atc.effectiveDuration))
                         .append("]` ")
@@ -349,6 +344,10 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             }
 
             context.reply(mb.build())
+
+            if (it.any { status -> status.canQueue }) {
+                loader.player.play()
+            }
         }
     }
 }
