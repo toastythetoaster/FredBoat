@@ -18,7 +18,7 @@ import fredboat.sentinel.Member
 import fredboat.util.TextUtils
 import java.util.*
 
-class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
+class VoteSkipCommand(name: String, vararg aliases: String, private val isUnvote: Boolean = false) : Command(name, *aliases), IMusicCommand, ICommandRestricted {
 
     override val minimumPerms: PermissionLevel
         get() = PermissionLevel.USER
@@ -45,7 +45,8 @@ class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *ali
         }
 
         if (!context.hasArguments()) {
-            val response = addVoteWithResponse(context)
+            val response = if (isUnvote) removeVoteWithResponse(context) else addVoteWithResponse(context)
+
             val actualMinSkip = if (player.humanUsersInCurrentVC.size < 3) 1.0f else MIN_SKIP_PERCENTAGE
 
             val skipPercentage = getSkipPercentage(context.guild, player)
@@ -96,6 +97,23 @@ class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *ali
             voters.add(user.id)
             guildSkipVotes[context.guild.id] = voters
             context.i18n("voteSkipAdded")
+        }
+    }
+
+    private fun removeVoteWithResponse(context: CommandContext): String {
+        val user = context.user
+        var voters: MutableSet<Long>? = guildSkipVotes[context.guild.id]?.toMutableSet()
+
+        if (voters == null) {
+            voters = HashSet()
+            return context.i18n("voteSkipNotFound")
+        }
+        return if (voters.contains(user.id)) {
+            voters.remove(user.id)
+            guildSkipVotes[context.guild.id] = voters
+            context.i18n("voteSkipRemoved")
+        } else {
+            context.i18n("voteSkipNotFound")
         }
     }
 
@@ -151,7 +169,11 @@ class VoteSkipCommand(name: String, vararg aliases: String) : Command(name, *ali
     }
 
     override fun help(context: Context): String {
-        return "{0}{1} OR {0}{1} list\n#" + context.i18n("helpVoteSkip")
+        return if (isUnvote) {
+            "{0}{1}\n#" + context.i18n("helpUnvoteSkip")
+        } else {
+            "{0}{1} OR {0}{1} list\n#" + context.i18n("helpVoteSkip")
+        }
     }
 
     companion object {

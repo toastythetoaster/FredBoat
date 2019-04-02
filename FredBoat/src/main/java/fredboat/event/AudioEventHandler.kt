@@ -61,7 +61,7 @@ class AudioEventHandler(
             return
         }
 
-        if (player.getHumanUsersInVC(currentVc).isEmpty() && !player.isPaused) {
+        if (currentVc.getHumanUsersInVC().isEmpty() && !player.isPaused) {
             player.pause()
             player.activeTextChannel?.send(I18n.get(channelLeft.guild).getString("eventUsersLeftVC"))?.subscribe()
         }
