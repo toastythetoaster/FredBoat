@@ -33,6 +33,10 @@ import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack
 import fredboat.audio.player.GuildPlayer
 import fredboat.audio.player.trackCount
+import fredboat.audio.queue.limiter.errored
+import fredboat.audio.queue.limiter.isPlaylistDisabledError
+import fredboat.audio.queue.limiter.playlistDisabledError
+import fredboat.audio.queue.limiter.successful
 import fredboat.audio.queue.tbd.IQueueHandler
 import fredboat.audio.source.PlaylistImportSourceManager
 import fredboat.audio.source.PlaylistImporter
@@ -43,16 +47,17 @@ import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.localMessageBuilder
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.reactor.mono
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 
 class AudioLoader(private val ratelimiter: Ratelimiter, internal val queueHandler: IQueueHandler,
-                  private val playerManager: AudioPlayerManager, internal val gplayer: GuildPlayer,
+                  private val playerManager: AudioPlayerManager, internal val player: GuildPlayer,
                   internal val youtubeAPI: YoutubeAPI) {
     private val identifierQueue = ConcurrentLinkedQueue<IdentifierContext>()
     @Volatile
@@ -82,7 +87,7 @@ class AudioLoader(private val ratelimiter: Ratelimiter, internal val queueHandle
             if (context != null) {
                 isLoading = true
 
-                if (gplayer.trackCount >= QUEUE_TRACK_LIMIT) {
+                if (player.trackCount >= QUEUE_TRACK_LIMIT) {
                     context.replyWithName(context.i18nFormat("loadQueueTrackLimit", QUEUE_TRACK_LIMIT))
                     isLoading = false
                     return
@@ -177,10 +182,6 @@ class AudioLoader(private val ratelimiter: Ratelimiter, internal val queueHandle
 
 private class ResultHandler(val loader: AudioLoader, val context: IdentifierContext) : AudioLoadResultHandler {
 
-    companion object {
-        private val log: Logger = LoggerFactory.getLogger(ResultHandler::class.java)
-    }
-
     override fun loadFailed(fe: FriendlyException) {
         Metrics.trackLoadsFailed.inc()
         loader.handleThrowable(context, fe)
@@ -194,25 +195,23 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             if (context.isSplit) {
                 loadSplit(at, context)
             } else {
-
-                if (!context.isQuiet) {
-                    context.reply(if (loader.gplayer.isPlaying)
-                        context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
-                                TextUtils.escapeAndDefuse(at.info.title))
-                    else
-                        context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
-                    )
-                } else {
-                    log.info("Quietly loaded " + at.identifier)
-                }
-
                 at.position = context.position
-
                 val atc = AudioTrackContext(at, context.member, context.isPriority)
-                loader.queueHandler.add(atc)
-
-                if (!loader.gplayer.isPaused) {
-                    loader.gplayer.play()
+                GlobalScope.mono { loader.player.queueLimited(atc) }.subscribe {
+                    if (it.canQueue) {
+                        context.reply(if (loader.player.trackCount == 1)
+                            context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
+                        else
+                            context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
+                                    TextUtils.escapeAndDefuse(at.info.title))
+                        )
+                    } else {
+                        context.replyWithMention(it.errorMessage)
+                    }
+                }
+                //FIXME THIS NEEDS TO BE TAKEN A LOOK AT AFTER MERGE
+                if (!loader.player.isPaused) {
+                    loader.player.play()
                 }
             }
         } catch (th: Throwable) {
@@ -231,14 +230,30 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 return
             }
 
-            val toAdd = ArrayList<AudioTrackContext>()
+            val toAdd = ArrayList<AudioPlaylistContext>()
             for (at in ap.tracks) {
-                toAdd.add(AudioTrackContext(at, context.member, context.isPriority))
+                toAdd.add(AudioPlaylistContext(at, context.member, context.isPriority))
             }
-            loader.queueHandler.addAll(toAdd)
-            context.reply(context.i18nFormat("loadListSuccess", ap.tracks.size, ap.name))
-            if (!loader.gplayer.isPaused) {
-                loader.gplayer.play()
+
+            GlobalScope.mono { loader.player.queueLimited(toAdd, context.isPriority) }.subscribe {
+                if (it.isPlaylistDisabledError) {
+                    context.replyWithMention(context.i18n(it.playlistDisabledError))
+                    return@subscribe
+                }
+
+                val mb = localMessageBuilder().append(context.i18nFormat(
+                        "loadListSuccess", it.successful.map { s -> s.atc }.size, ap.name))
+
+                // TODO: maybe better way, this is to general
+                if (it.errored.isNotEmpty()) {
+                    mb.append("\n").append(context.i18nFormat("loadPlaylistGeneralError", "`${it.errored.size}`"))
+                }
+
+                if (it.successful.isNotEmpty()) {
+                    if (!loader.player.isPaused) {
+                        loader.player.play()
+                    }
+                }
             }
         } catch (th: Throwable) {
             loader.handleThrowable(context, th)
@@ -314,25 +329,26 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             val atc = SplitAudioTrackContext(newAt, context.member, startPos, endPos, pair.right)
 
             list.add(atc)
-            loader.gplayer.queue(atc)
         }
 
-        var mb = localMessageBuilder()
-                .append(ic.i18n("loadFollowingTracksAdded")).append("\n")
-        for (atc in list) {
-            mb.append("`[")
-                    .append(TextUtils.formatTime(atc.effectiveDuration))
-                    .append("]` ")
-                    .append(atc.effectiveTitle.escapeAndDefuse())
-                    .append("\n")
-        }
+        GlobalScope.mono { loader.player.queueLimited(list, context.isPriority) }.subscribe {
+            var mb = localMessageBuilder().append(ic.i18n("loadFollowingTracksAdded")).append("\n")
 
-        //This is pretty spammy .. let's use a shorter one
-        if (mb.length > 800) {
-            mb = localMessageBuilder()
-                    .append(ic.i18nFormat("loadPlaylistTooMany", list.size))
-        }
+            for (atc in it.filter { status ->  status.canQueue }.map { status -> status.atc }) {
+                mb.append("`[")
+                        .append(TextUtils.formatTime(atc.effectiveDuration))
+                        .append("]` ")
+                        .append(atc.effectiveTitle.escapeAndDefuse())
+                        .append("\n")
+            }
 
-        context.reply(mb.build())
+            //This is pretty spammy .. let's use a shorter one
+            if (mb.length > 800) {
+                mb = localMessageBuilder()
+                        .append(ic.i18nFormat("loadPlaylistTooMany", list.size))
+            }
+
+            context.reply(mb.build())
+        }
     }
 }

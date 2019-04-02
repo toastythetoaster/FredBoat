@@ -56,7 +56,7 @@ class PlaySplitCommand(private val playerLimiter: PlayerLimiter, name: String, v
         ic.isSplit = true
 
         val player = playerRegistry.awaitPlayer(context.guild)
-        player.queue(ic)
+        player.queueAsync(ic)
         player.setPause(false)
 
         context.deleteMessage()

@@ -65,7 +65,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
             val player = Launcher.botController.playerRegistry.awaitPlayer(context.guild)
 
             for (atc in context.msg.attachments) {
-                player.queue(atc, context, isPriority)
+                player.queueAsync(atc, context, isPriority)
             }
 
             player.setPause(false)
@@ -95,7 +95,7 @@ class PlayCommand(private val playerLimiter: PlayerLimiter, private val trackSea
         }
 
         val player = Launcher.botController.playerRegistry.awaitPlayer(context.guild)
-        player.queue(url, context, isPriority)
+        player.queueAsync(url, context, isPriority)
         player.setPause(false)
 
         context.deleteMessage()

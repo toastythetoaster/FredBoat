@@ -58,13 +58,15 @@ object I18n {
     }
 
     @Deprecated("Convert this to reactive at some point!")
-    fun getLocale(guild: Guild): FredBoatLocale {
-        return getLocale(guild.id)
+    fun getLocale(guild: Guild?): FredBoatLocale {
+        return getLocale(guild?.id)
     }
 
     @Deprecated("Convert this to reactive at some point!")
-    fun getLocale(guild: Long): FredBoatLocale {
+    fun getLocale(guild: Long?): FredBoatLocale {
         return try {
+            if (guild == null) return DEFAULT
+
             LANGS.getOrDefault(getBotController().guildSettingsRepository.fetch(guild).block(Duration.ofSeconds(5))?.lang, DEFAULT)
         } catch (e: Exception) {
             log.error("Error when reading entity", e)

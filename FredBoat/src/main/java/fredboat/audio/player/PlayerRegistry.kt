@@ -229,7 +229,7 @@ class PlayerRegistry(
         val channel = mongo.textChannel?.let { guild.getTextChannel(it) }
         if (channel != null) musicTextChannelProvider.setMusicChannel(channel)
 
-        player.loadAll(queue)
+        player.queueAll(queue) // no Priority on reload
     }
 
     private fun beforeShutdown() {
