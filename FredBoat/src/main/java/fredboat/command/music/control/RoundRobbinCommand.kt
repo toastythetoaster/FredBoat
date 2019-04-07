@@ -1,5 +1,6 @@
 package fredboat.command.music.control
 
+import fredboat.commandmeta.CommandInitializer
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.ICommandRestricted
@@ -16,7 +17,10 @@ class RoundRobbinCommand(name: String, vararg aliases: String) : Command(name, *
         val player = getBotController().playerRegistry.awaitPlayer(context.guild)
         player.isRoundRobin = !player.isRoundRobin
 
-        context.reply(if (player.isRoundRobin) "roundRobinOn" else "roundRobinOff")
+        context.reply(if (player.isRoundRobin)
+            context.i18nFormat("roundRobinOn", "`${context.prefix}${CommandInitializer.HELP_COMM_NAME} ${context.trigger}`")
+        else
+            context.i18n("roundRobinOff"))
     }
 
     override fun help(context: Context): String {
