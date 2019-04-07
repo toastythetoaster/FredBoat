@@ -24,6 +24,6 @@ class RoundRobbinCommand(name: String, vararg aliases: String) : Command(name, *
     }
 
     override fun help(context: Context): String {
-        return "{0}{1}\n# " + context.i18n("helpRoundRobinCommand")
+        return "{0}{1}\n#" + context.i18n("helpRoundRobinCommand")
     }
 }
