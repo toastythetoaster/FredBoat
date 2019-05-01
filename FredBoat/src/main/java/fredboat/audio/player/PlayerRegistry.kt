@@ -193,6 +193,7 @@ class PlayerRegistry(
         val guild = player.guild
         player.setPause(mongo.paused)
         player.isShuffle = mongo.shuffled
+        player.isRoundRobin = mongo.roundRobin
         player.repeatMode = RepeatMode.values()[mongo.repeat.toInt()]
 
         if (appConfig.distribution.volumeSupported()) {

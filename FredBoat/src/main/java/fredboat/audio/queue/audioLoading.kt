@@ -37,6 +37,7 @@ import fredboat.audio.queue.limiter.errored
 import fredboat.audio.queue.limiter.isPlaylistDisabledError
 import fredboat.audio.queue.limiter.playlistDisabledError
 import fredboat.audio.queue.limiter.successful
+import fredboat.audio.queue.handlers.IQueueHandler
 import fredboat.audio.source.PlaylistImportSourceManager
 import fredboat.audio.source.PlaylistImporter
 import fredboat.audio.source.SpotifyPlaylistSourceManager
@@ -55,8 +56,9 @@ import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.regex.Pattern
 
-class AudioLoader(private val ratelimiter: Ratelimiter, private val playerManager: AudioPlayerManager,
-                  internal val player: GuildPlayer, internal val youtubeAPI: YoutubeAPI) {
+class AudioLoader(private val ratelimiter: Ratelimiter, internal val queueHandler: IQueueHandler,
+                  private val playerManager: AudioPlayerManager, internal val player: GuildPlayer,
+                  internal val youtubeAPI: YoutubeAPI) {
     private val identifierQueue = ConcurrentLinkedQueue<IdentifierContext>()
     @Volatile
     private var isLoading = false
@@ -197,19 +199,16 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 val atc = AudioTrackContext(at, context.member, context.isPriority)
                 GlobalScope.mono { loader.player.queueLimited(atc) }.subscribe {
                     if (it.canQueue) {
-                        context.reply(if (loader.player.trackCount == 1)
+                        context.reply(if (!loader.player.isPlaying)
                             context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
                         else
                             context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
                                     TextUtils.escapeAndDefuse(at.info.title))
                         )
+                        loader.player.play()
                     } else {
                         context.replyWithMention(it.errorMessage)
                     }
-                }
-
-                if (!loader.player.isPaused) {
-                    loader.player.play()
                 }
             }
         } catch (th: Throwable) {
@@ -248,12 +247,9 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 }
 
                 if (it.successful.isNotEmpty()) {
-                    if (!loader.player.isPaused) {
-                        loader.player.play()
-                    }
+                    loader.player.play()
                 }
             }
-
         } catch (th: Throwable) {
             loader.handleThrowable(context, th)
         }
@@ -333,7 +329,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
         GlobalScope.mono { loader.player.queueLimited(list) }.subscribe {
             var mb = localMessageBuilder().append(ic.i18n("loadFollowingTracksAdded")).append("\n")
 
-            for (atc in it.filter { status ->  status.canQueue }.map { status -> status.atc }) {
+            for (atc in it.filter { status -> status.canQueue }.map { status -> status.atc }) {
                 mb.append("`[")
                         .append(TextUtils.formatTime(atc.effectiveDuration))
                         .append("]` ")
@@ -348,6 +344,10 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             }
 
             context.reply(mb.build())
+
+            if (it.any { status -> status.canQueue }) {
+                loader.player.play()
+            }
         }
     }
 }

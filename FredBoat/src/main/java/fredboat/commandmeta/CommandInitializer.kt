@@ -260,6 +260,7 @@ class CommandInitializer(
         musicModule.registerCommand(SelectCommand(videoSelectionCache, "select",
                 *buildNumericalSelectAliases("sel")))
         musicModule.registerCommand(ShuffleCommand("shuffle", "sh", "random"))
+        musicModule.registerCommand(RoundRobbinCommand("roundrobin", "rr"))
         musicModule.registerCommand(SkipCommand(SKIP_COMM_NAME, "sk", "s"))
         musicModule.registerCommand(StopCommand("stop", "st"))
         musicModule.registerCommand(UnpauseCommand("unpause", "unp", "resume"))

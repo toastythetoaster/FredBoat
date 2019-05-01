@@ -34,6 +34,7 @@ import fredboat.audio.lavalink.SentinelLink
 import fredboat.audio.queue.*
 import fredboat.audio.queue.limiter.QueueLimitStatus
 import fredboat.audio.queue.limiter.QueueLimiter
+import fredboat.audio.queue.handlers.*
 import fredboat.command.music.control.VoteSkipCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
@@ -70,8 +71,8 @@ class GuildPlayer(
         youtubeAPI: YoutubeAPI
 ) : PlayerEventListenerAdapter() {
 
-    val audioTrackProvider: ITrackProvider = SimpleTrackProvider()
-    private val audioLoader = AudioLoader(ratelimiter, audioPlayerManager, this, youtubeAPI)
+    val queueHandler: IQueueHandler = RepeatableQueueHandler(this)
+    private val audioLoader = AudioLoader(ratelimiter, queueHandler, audioPlayerManager, this, youtubeAPI)
     private val queueLimiter = QueueLimiter(guildSettingsRepository)
     val guildId = guild.id
     val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
@@ -100,23 +101,31 @@ class GuildPlayer(
         }
 
     var repeatMode: RepeatMode
-        get() = if (audioTrackProvider is AbstractTrackProvider)
-            audioTrackProvider.repeatMode
+        get() = if (queueHandler is IRepeatableQueueHandler)
+            queueHandler.repeat
         else
             RepeatMode.OFF
-        set(repeatMode) = if (audioTrackProvider is AbstractTrackProvider) {
-            audioTrackProvider.repeatMode = repeatMode
+        set(repeatMode) = if (queueHandler is IRepeatableQueueHandler) {
+            queueHandler.repeat = repeatMode
         } else {
-            throw UnsupportedOperationException("Can't repeat " + audioTrackProvider.javaClass)
+            throw UnsupportedOperationException("Can't repeat " + queueHandler.javaClass)
+        }
+
+    var isRoundRobin : Boolean
+        get() = queueHandler is IRoundRobinQueueHandler && queueHandler.roundRobin
+        set(value) = if (queueHandler is IRoundRobinQueueHandler) {
+            queueHandler.roundRobin = value
+        } else {
+            throw UnsupportedOperationException("Can't round robin " + queueHandler.javaClass)
         }
 
     var isShuffle: Boolean
-        get() = audioTrackProvider is AbstractTrackProvider && audioTrackProvider.isShuffle
-        set(shuffle) = if (audioTrackProvider is AbstractTrackProvider) {
-            audioTrackProvider.isShuffle = shuffle
+        get() = queueHandler is IShufflableQueueHandler && queueHandler.shuffle
+        set(shuffle) = if (queueHandler is IShufflableQueueHandler) {
+            queueHandler.shuffle = shuffle
             internalContext?.isPriority = false
         } else {
-            throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
+            throw UnsupportedOperationException("Can't shuffle " + queueHandler.javaClass)
         }
 
     private fun getTrackAnnounceStatus(): Mono<Boolean> {
@@ -130,7 +139,7 @@ class GuildPlayer(
     val playingTrack: AudioTrackContext?
         get() {
             return if (player.playingTrack == null && internalContext == null) {
-                audioTrackProvider.peek()
+                queueHandler.peek()
             } else internalContext
         }
 
@@ -145,7 +154,7 @@ class GuildPlayer(
                 list.add(atc)
             }
 
-            list.addAll(audioTrackProvider.asList)
+            list.addAll(queueHandler.queue.toList())
             return list
         }
 
@@ -218,14 +227,13 @@ class GuildPlayer(
             joinChannel(member)
         }
 
-        audioTrackProvider.add(atc)
+        queueHandler.add(atc)
         if (isPlaying) updateClients()
-        play()
     }
 
     /** Add a bunch of tracks to the track provider */
     fun queueAll(tracks: Collection<AudioTrackContext>) {
-        audioTrackProvider.addAll(tracks)
+        queueHandler.addAll(tracks)
     }
 
     @CheckReturnValue
@@ -243,7 +251,7 @@ class GuildPlayer(
     suspend fun queueLimited(tracks: List<AudioPlaylistContext>): List<QueueLimitStatus> {
         val states = queueLimiter.isQueueLimited(tracks, this)
 
-        audioTrackProvider.addAll(states.filter { it.canQueue }.map { it.atc })
+        queueAll(states.filter { it.canQueue }.map { it.atc })
         return states
     }
 
@@ -253,12 +261,12 @@ class GuildPlayer(
     }
 
     fun reshuffle() {
-        if (audioTrackProvider is AbstractTrackProvider) {
-            audioTrackProvider.reshuffle()
+        if (queueHandler is IShufflableQueueHandler) {
+            queueHandler.reshuffle()
             internalContext?.isPriority = false
             updateClients()
         } else {
-            throw UnsupportedOperationException("Can't reshuffle " + audioTrackProvider.javaClass)
+            throw UnsupportedOperationException("Can't reshuffle " + queueHandler.javaClass)
         }
     }
 
@@ -276,8 +284,7 @@ class GuildPlayer(
             }
         }
 
-        audioTrackProvider.removeAllById(toRemove)
-
+        if (toRemove.size > 0) queueHandler.removeById(toRemove)
         if (skipCurrentTrack) skip()
     }
 
@@ -287,7 +294,7 @@ class GuildPlayer(
     }
 
     fun destroy() {
-        audioTrackProvider.clear()
+        queueHandler.clear()
         stop()
         player.removeListener(this)
         player.link.destroy()
@@ -356,7 +363,7 @@ class GuildPlayer(
     fun stop() {
         log.trace("stop()")
 
-        audioTrackProvider.clear()
+        queueHandler.clear()
         stopTrack()
     }
 
@@ -366,7 +373,7 @@ class GuildPlayer(
     fun skip() {
         log.trace("skip()")
 
-        audioTrackProvider.skipped()
+        queueHandler.onSkipped()
         stopTrack()
     }
 
@@ -391,7 +398,7 @@ class GuildPlayer(
         } else if (endReason == AudioTrackEndReason.LOAD_FAILED) {
             if (onErrorHook != null)
                 onErrorHook!!.accept(MessagingException("Track `" + TextUtils.escapeAndDefuse(track.info.title) + "` failed to load. Skipping..."))
-            audioTrackProvider.skipped()
+            queueHandler.onSkipped()
             loadAndPlay()
         } else {
             log.warn("Track " + track.identifier + " ended with unexpected reason: " + endReason)
@@ -402,7 +409,7 @@ class GuildPlayer(
     private fun loadAndPlay() {
         log.trace("loadAndPlay()")
 
-        val atc = audioTrackProvider.provideAudioTrack()
+        val atc = queueHandler.take()
         lastLoadedTrack = atc
         atc?.let { playTrack(it) }
         updateClients()

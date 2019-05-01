@@ -3,6 +3,7 @@ package fredboat.audio.player
 import com.fredboat.sentinel.entities.ShardStatus
 import com.google.common.collect.Lists
 import fredboat.audio.queue.AudioTrackContext
+import fredboat.audio.queue.handlers.IQueueHandler
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.definitions.PermissionLevel
@@ -23,7 +24,7 @@ private val log: Logger = LoggerFactory.getLogger(GuildPlayer::class.java)
 
 val GuildPlayer.trackCount: Int
     get() {
-        var trackCount = audioTrackProvider.size()
+        var trackCount = queueHandler.size
         if (player.playingTrack != null) trackCount++
         return trackCount
     }
@@ -31,7 +32,7 @@ val GuildPlayer.trackCount: Int
 /** Live streams are considered to have a length of 0 */
 val GuildPlayer.totalRemainingMusicTimeMillis: Long
     get() {
-        var millis = audioTrackProvider.durationMillis
+        var millis = queueHandler.totalDuration
 
         val currentTrack = if (player.playingTrack != null) internalContext else null
         if (currentTrack != null && !currentTrack.track.info.isStream) {
@@ -42,7 +43,7 @@ val GuildPlayer.totalRemainingMusicTimeMillis: Long
 
 val GuildPlayer.streamsCount: Long
     get() {
-        var streams = audioTrackProvider.streamsCount().toLong()
+        var streams = queueHandler.streamCount.toLong()
         val atc = if (player.playingTrack != null) internalContext else null
         if (atc != null && atc.track.info.isStream) streams++
         return streams
@@ -61,7 +62,7 @@ val GuildPlayer.isQueueEmpty: Boolean
     get() {
         log.trace("isQueueEmpty()")
 
-        return player.playingTrack == null && audioTrackProvider.isEmpty
+        return player.playingTrack == null && queueHandler.isEmpty
     }
 
 val GuildPlayer.trackCountInHistory: Int
@@ -71,7 +72,7 @@ val GuildPlayer.isHistoryQueueEmpty: Boolean
     get() = historyQueue.isEmpty()
 
 fun GuildPlayer.getUserTrackCount(userId: Long): Int {
-    var trackCount = audioTrackProvider.getCountByUser(userId)
+    var trackCount = queueHandler.queue.filter { it.userId == userId }.size
     if (player.playingTrack != null && internalContext?.userId == userId) trackCount++
     return trackCount
 }
@@ -163,7 +164,7 @@ fun GuildPlayer.getTracksInRange(start: Int, end: Int): List<AudioTrackContext> 
         //nothing to do here, args are fine to pass on
     }
 
-    result.addAll(audioTrackProvider.getTracksInRange(start_, end_))
+    result.addAll((queueHandler as IQueueHandler).getInRange(start_, end_))
     return result
 }
 
@@ -198,7 +199,7 @@ private suspend fun GuildPlayer.canMemberSkipTracks(member: Member, trackIds: Co
             currentTrackSkippable = false
         }
 
-        return if (currentTrackSkippable && audioTrackProvider.isUserTrackOwner(userId, trackIds)) { //check ownership of the queued tracks
+        return if (currentTrackSkippable && queueHandler.isUserTrackOwner(userId, trackIds)) { //check ownership of the queued tracks
             ImmutablePair(true, null)
         } else {
             ImmutablePair(false, I18n.get(guild).getString("skipDeniedTooManyTracks"))
