@@ -1,4 +1,4 @@
-package fredboat.audio.queue.tbd
+package fredboat.audio.queue.handlers
 
 import com.google.common.collect.Iterators
 import fredboat.audio.player.GuildPlayer

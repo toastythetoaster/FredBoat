@@ -3,7 +3,7 @@ package fredboat.audio.player
 import com.fredboat.sentinel.entities.ShardStatus
 import com.google.common.collect.Lists
 import fredboat.audio.queue.AudioTrackContext
-import fredboat.audio.queue.tbd.IQueueHandler
+import fredboat.audio.queue.handlers.IQueueHandler
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.definitions.PermissionLevel

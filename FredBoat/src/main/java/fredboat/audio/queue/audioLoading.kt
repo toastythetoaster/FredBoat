@@ -37,7 +37,7 @@ import fredboat.audio.queue.limiter.errored
 import fredboat.audio.queue.limiter.isPlaylistDisabledError
 import fredboat.audio.queue.limiter.playlistDisabledError
 import fredboat.audio.queue.limiter.successful
-import fredboat.audio.queue.tbd.IQueueHandler
+import fredboat.audio.queue.handlers.IQueueHandler
 import fredboat.audio.source.PlaylistImportSourceManager
 import fredboat.audio.source.PlaylistImporter
 import fredboat.audio.source.SpotifyPlaylistSourceManager
