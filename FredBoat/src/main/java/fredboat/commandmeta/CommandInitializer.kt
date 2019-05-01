@@ -231,6 +231,7 @@ class CommandInitializer(
         funModule.registerCommand(RandomImageCommand("https://imgur.com/a/mnhzS", "wombat"))
         funModule.registerCommand(RandomImageCommand("https://imgur.com/a/hfL80", "capybara"))
         funModule.registerCommand(RandomImageCommand("https://imgur.com/a/WvjQA", "quokka"))
+        funModule.registerCommand(RandomImageCommand("https://imgur.com/a/BL2MW", "otter"))
 
         // Music Module
 
@@ -264,6 +265,7 @@ class CommandInitializer(
         musicModule.registerCommand(UnpauseCommand("unpause", "unp", "resume"))
         musicModule.registerCommand(VolumeCommand("volume", "vol"))
         musicModule.registerCommand(VoteSkipCommand("voteskip", "vsk", "v"))
+        musicModule.registerCommand(VoteSkipCommand("unvoteskip", "unv", isUnvote = true))
 
         /* Info */
         musicModule.registerCommand(ExportCommand("export", "ex"))

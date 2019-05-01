@@ -53,6 +53,8 @@ class CredentialsProperties : Credentials {
     private var openWeatherKey = ""
     private var sentryDsn = ""
     private var carbonKey = ""
+    private var wastebinUser = ""
+    private var wastebinPass = ""
     private var dikeUrl = ""
 
     override fun getBotToken(): String {
@@ -89,6 +91,8 @@ class CredentialsProperties : Credentials {
     override fun getOpenWeatherKey() = openWeatherKey
     override fun getSentryDsn() = sentryDsn
     override fun getCarbonKey() = carbonKey
+    override fun getWastebinUser() = wastebinUser
+    override fun getWastebinPass() = wastebinPass
 
     fun setDiscordBotToken(discordBotToken: String) {
         this.discordBotToken = discordBotToken
@@ -131,6 +135,14 @@ class CredentialsProperties : Credentials {
 
     fun setCarbonKey(carbonKey: String) {
         this.carbonKey = carbonKey
+    }
+
+    fun setWastebinUser(wastebinUser: String) {
+        this.wastebinUser = wastebinUser
+    }
+
+    fun setWastebinPass(wastebinPass: String) {
+        this.wastebinPass = wastebinPass
     }
 
     fun setDikeUrl(dikeUrl: String) {

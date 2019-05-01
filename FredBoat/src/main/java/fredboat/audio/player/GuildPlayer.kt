@@ -32,6 +32,8 @@ import com.sedmelluq.discord.lavaplayer.track.TrackMarker
 import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.audio.lavalink.SentinelLink
 import fredboat.audio.queue.*
+import fredboat.audio.queue.limiter.QueueLimitStatus
+import fredboat.audio.queue.limiter.QueueLimiter
 import fredboat.command.music.control.VoteSkipCommand
 import fredboat.commandmeta.MessagingException
 import fredboat.commandmeta.abs.CommandContext
@@ -56,6 +58,7 @@ import reactor.core.publisher.Mono
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.function.Consumer
+import javax.annotation.CheckReturnValue
 
 class GuildPlayer(
         val lavalink: SentinelLavalink,
@@ -68,7 +71,8 @@ class GuildPlayer(
 ) : PlayerEventListenerAdapter() {
 
     val audioTrackProvider: ITrackProvider = SimpleTrackProvider()
-    private val audioLoader = AudioLoader(ratelimiter, audioTrackProvider, audioPlayerManager, this, youtubeAPI)
+    private val audioLoader = AudioLoader(ratelimiter, audioPlayerManager, this, youtubeAPI)
+    private val queueLimiter = QueueLimiter(guildSettingsRepository)
     val guildId = guild.id
     val player: LavalinkPlayer = lavalink.getLink(guild.id.toString()).player
     var internalContext: AudioTrackContext? = null
@@ -191,7 +195,7 @@ class GuildPlayer(
         activeTextChannel?.send("Something went wrong!\n${t.message}")?.subscribe()
     }
 
-    fun queue(identifier: String, context: CommandContext, isPriority: Boolean = false) {
+    fun queueAsync(identifier: String, context: CommandContext, isPriority: Boolean = false) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
         ic.isPriority = isPriority
 
@@ -200,13 +204,13 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(ic: IdentifierContext) {
+    fun queueAsync(ic: IdentifierContext) {
         joinChannel(ic.member)
 
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(atc: AudioTrackContext, isPriority: Boolean = false) {
+    fun queue(atc: AudioTrackContext) {
         if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
@@ -214,15 +218,35 @@ class GuildPlayer(
             joinChannel(member)
         }
 
-        if (isPriority) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
+        audioTrackProvider.add(atc)
         if (isPlaying) updateClients()
         play()
     }
 
     /** Add a bunch of tracks to the track provider */
-    fun loadAll(tracks: Collection<AudioTrackContext>, isPriority: Boolean) {
-        if (isPriority) audioTrackProvider.addAllFirst(tracks) else audioTrackProvider.addAll(tracks)
+    fun queueAll(tracks: Collection<AudioTrackContext>) {
+        audioTrackProvider.addAll(tracks)
     }
+
+    @CheckReturnValue
+    suspend fun queueLimited(atc: AudioTrackContext): QueueLimitStatus {
+        val status = queueLimiter.isQueueLimited(atc, this)
+
+        // only queue if track was not limited
+        if (status.canQueue) {
+            queue(atc)
+        }
+
+        return status
+    }
+
+    suspend fun queueLimited(tracks: List<AudioPlaylistContext>): List<QueueLimitStatus> {
+        val states = queueLimiter.isQueueLimited(tracks, this)
+
+        audioTrackProvider.addAll(states.filter { it.canQueue }.map { it.atc })
+        return states
+    }
+
 
     override fun toString(): String {
         return "[GP:$guildId]"
@@ -385,14 +409,15 @@ class GuildPlayer(
     }
 
     private fun updateHistoryQueue() {
-        if (lastLoadedTrack == null) {
+        val lastTrack = lastLoadedTrack
+        if (lastTrack == null) {
             log.warn("No lastLoadedTrack in $this after track end")
             return
         }
         if (historyQueue.size == MAX_HISTORY_SIZE) {
             historyQueue.poll()
         }
-        historyQueue.add(lastLoadedTrack)
+        historyQueue.add(lastTrack)
     }
 
     /**
