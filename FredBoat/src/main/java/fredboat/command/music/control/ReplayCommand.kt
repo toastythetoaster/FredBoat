@@ -36,7 +36,7 @@ class ReplayCommand(name: String, vararg aliases: String) : Command(name, *alias
             player.skip()
         }
 
-        player.loadAll(toQueue, true)
+        player.queueAll(toQueue)
         context.reply(context.i18nFormat("replayWillNowReplay", "**${last.effectiveTitle.escapeAndDefuse()}**"))
     }
 
