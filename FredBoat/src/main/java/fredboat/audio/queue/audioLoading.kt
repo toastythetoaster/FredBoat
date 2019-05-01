@@ -233,7 +233,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
                 toAdd.add(AudioPlaylistContext(at, context.member, context.isPriority))
             }
 
-            GlobalScope.mono { loader.player.queueLimited(toAdd, context.isPriority) }.subscribe {
+            GlobalScope.mono { loader.player.queueLimited(toAdd) }.subscribe {
                 if (it.isPlaylistDisabledError) {
                     context.replyWithMention(context.i18n(it.playlistDisabledError))
                     return@subscribe
@@ -330,7 +330,7 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
             list.add(atc)
         }
 
-        GlobalScope.mono { loader.player.queueLimited(list, context.isPriority) }.subscribe {
+        GlobalScope.mono { loader.player.queueLimited(list) }.subscribe {
             var mb = localMessageBuilder().append(ic.i18n("loadFollowingTracksAdded")).append("\n")
 
             for (atc in it.filter { status ->  status.canQueue }.map { status -> status.atc }) {

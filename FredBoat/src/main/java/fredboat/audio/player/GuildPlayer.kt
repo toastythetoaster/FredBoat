@@ -240,7 +240,7 @@ class GuildPlayer(
         return status
     }
 
-    suspend fun queueLimited(tracks: List<AudioPlaylistContext>, isPriority: Boolean): List<QueueLimitStatus> {
+    suspend fun queueLimited(tracks: List<AudioPlaylistContext>): List<QueueLimitStatus> {
         val states = queueLimiter.isQueueLimited(tracks, this)
 
         audioTrackProvider.addAll(states.filter { it.canQueue }.map { it.atc })
