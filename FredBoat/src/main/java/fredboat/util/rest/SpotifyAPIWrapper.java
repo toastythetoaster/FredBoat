@@ -110,14 +110,13 @@ public class SpotifyAPIWrapper {
     /**
      * Returns some data on a spotify playlist, currently it's name and tracks total.
      *
-     * @param userId     Spotify user id of the owner of the requested playlist
      * @param playlistId Spotify playlist identifier
      * @return an array containing information about the requested spotify playlist
      */
-    public PlaylistInfo getPlaylistDataBlocking(String userId, String playlistId) throws IOException, JSONException {
+    public PlaylistInfo getPlaylistDataBlocking(String playlistId) throws IOException, JSONException {
         refreshTokenIfNecessary();
 
-        JSONObject jsonPlaylist = BotController.Companion.getHTTP().get(URL_SPOTIFY_API + "/v1/users/" + userId + "/playlists/" + playlistId)
+        JSONObject jsonPlaylist = BotController.Companion.getHTTP().get(URL_SPOTIFY_API + "/v1/playlists/" + playlistId)
                 .auth("Bearer " + accessToken)
                 .asJson();
 
@@ -129,11 +128,10 @@ public class SpotifyAPIWrapper {
     }
 
     /**
-     * @param userId     Spotify user id of the owner of the requested playlist
      * @param playlistId Spotify playlist identifier
      * @return a string for each track on the requested playlist, containing track and artist names
      */
-    public List<String> getPlaylistTracksSearchTermsBlocking(String userId, String playlistId) throws IOException, JSONException {
+    public List<String> getPlaylistTracksSearchTermsBlocking(String playlistId) throws IOException, JSONException {
         refreshTokenIfNecessary();
 
         //strings on this list will contain name of the track + names of the artists
@@ -163,7 +161,7 @@ public class SpotifyAPIWrapper {
             }
 
             //request a page of tracks
-            jsonPage = BotController.Companion.getHTTP().get(URL_SPOTIFY_API + "/v1/users/" + userId + "/playlists/" + playlistId + "/tracks",
+            jsonPage = BotController.Companion.getHTTP().get(URL_SPOTIFY_API + "/v1/playlists/" + playlistId + "/tracks",
                     Http.Params.of(
                             "offset", offset,
                             "limit", limit
