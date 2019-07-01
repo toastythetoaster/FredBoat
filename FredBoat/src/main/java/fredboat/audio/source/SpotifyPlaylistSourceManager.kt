@@ -58,6 +58,22 @@ import java.util.regex.Pattern
  */
 class SpotifyPlaylistSourceManager(private val trackSearcher: TrackSearcher, private val spotifyAPIWrapper: SpotifyAPIWrapper) : AudioSourceManager, PlaylistImporter {
 
+     companion object {
+
+        var CACHE_DURATION = TimeUnit.DAYS.toMillis(30)// 1 month;
+
+        private val log = LoggerFactory.getLogger(SpotifyPlaylistSourceManager::class.java)
+
+        //https://regex101.com/r/AEWyxi/3
+        private val PLAYLIST_PATTERN = Pattern.compile("https?://.*\\.spotify\\.com(.*)/playlist/([^?/\\s]*)")
+
+        //Take care when deciding on upping the core pool size: The threads may hog database connections when loading an uncached playlist.
+        // Upping the threads will also fire search requests more aggressively against Youtube which is probably better avoided.
+        var loader = Executors.newScheduledThreadPool(1)
+
+        private val searchProviders = Arrays.asList(SearchProvider.YOUTUBE, SearchProvider.SOUNDCLOUD)
+    }
+
     override fun getSourceName(): String {
         return "spotify_playlist_import"
     }
@@ -196,22 +212,5 @@ class SpotifyPlaylistSourceManager(private val trackSearcher: TrackSearcher, pri
             log.warn("Could not retrieve playlist $spotifyListId", e)
             throw FriendlyException("Couldn't load playlist. Either Spotify is down or the playlist does not exist.", FriendlyException.Severity.COMMON, e)
         }
-
-    }
-
-    companion object {
-
-        var CACHE_DURATION = TimeUnit.DAYS.toMillis(30)// 1 month;
-
-        private val log = LoggerFactory.getLogger(SpotifyPlaylistSourceManager::class.java)
-
-        //https://regex101.com/r/AEWyxi/3
-        private val PLAYLIST_PATTERN = Pattern.compile("https?://.*\\.spotify\\.com(.*)/playlist/([^?/\\s]*)")
-
-        //Take care when deciding on upping the core pool size: The threads may hog database connections when loading an uncached playlist.
-        // Upping the threads will also fire search requests more aggressively against Youtube which is probably better avoided.
-        var loader = Executors.newScheduledThreadPool(1)
-
-        private val searchProviders = Arrays.asList(SearchProvider.YOUTUBE, SearchProvider.SOUNDCLOUD)
     }
 }
