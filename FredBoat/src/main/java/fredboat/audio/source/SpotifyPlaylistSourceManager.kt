@@ -170,12 +170,10 @@ class SpotifyPlaylistSourceManager(private val trackSearcher: TrackSearcher, pri
         return false
     }
 
-    @Throws(IOException::class)
     override fun encodeTrack(track: AudioTrack, output: DataOutput) {
         throw UnsupportedOperationException("This source manager is only for loading playlists")
     }
 
-    @Throws(IOException::class)
     override fun decodeTrack(trackInfo: AudioTrackInfo, input: DataInput): AudioTrack {
         throw UnsupportedOperationException("This source manager is only for loading playlists")
     }
