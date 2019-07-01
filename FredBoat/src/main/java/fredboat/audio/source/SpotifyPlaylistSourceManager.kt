@@ -166,9 +166,7 @@ class SpotifyPlaylistSourceManager(private val trackSearcher: TrackSearcher, pri
 
     }
 
-    override fun isTrackEncodable(track: AudioTrack): Boolean {
-        return false
-    }
+    override fun isTrackEncodable(track: AudioTrack): Boolean = false
 
     override fun encodeTrack(track: AudioTrack, output: DataOutput) {
         throw UnsupportedOperationException("This source manager is only for loading playlists")
