@@ -47,11 +47,13 @@ import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
 import lavalink.client.io.Link.State.CONNECTED
+import lavalink.client.io.filters.Filters
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import org.slf4j.LoggerFactory
 import java.util.*
 import java.util.function.Consumer
+import javax.annotation.CheckReturnValue
 import kotlin.streams.toList
 
 class GuildPlayer(
@@ -71,8 +73,12 @@ class GuildPlayer(
 
     companion object {
         private val log = LoggerFactory.getLogger(GuildPlayer::class.java)
-
     }
+
+
+    val filters: Filters
+        @CheckReturnValue
+        get() = player.filters
 
     val trackCount: Int
         get() {

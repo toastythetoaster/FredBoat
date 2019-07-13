@@ -2,10 +2,9 @@ package fredboat.commandmeta.abs
 
 import fredboat.definitions.Module
 import fredboat.messaging.internal.Context
-import java.util.*
 
 abstract class Command protected constructor(val name: String, vararg aliases: String) {
-    val aliases: List<String> = Arrays.asList(*aliases)
+    val aliases: List<String> = listOf(*aliases)
     var module: Module? = null
 
     abstract suspend operator fun invoke(context: CommandContext)

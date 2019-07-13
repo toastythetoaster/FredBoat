@@ -25,6 +25,7 @@
 
 package fredboat.commandmeta.abs
 
+import fredboat.command.info.HelpCommand
 import fredboat.definitions.Module
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
@@ -79,6 +80,13 @@ class CommandContext(
     }
 
     fun hasArguments(): Boolean {
-        return args.isNotEmpty() && !rawArgs.isEmpty()
+        return args.isNotEmpty() && rawArgs.isNotEmpty()
+    }
+
+    /**
+     * Sends help text for the invoked command
+     */
+    fun sendHelpAsync() {
+        HelpCommand.sendFormattedCommandHelp(this)
     }
 }
