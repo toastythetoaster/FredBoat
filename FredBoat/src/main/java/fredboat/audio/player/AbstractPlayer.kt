@@ -104,10 +104,8 @@ abstract class AbstractPlayer internal constructor(
         }
 
     var volume: Float
-        get() = player.volume.toFloat() / 100
-        set(vol) {
-            player.volume = (vol * 100).toInt()
-        }
+        get() = player.filters.volume
+        set(vol) = player.filters.setVolume(vol).commit()
 
     val isPlaying: Boolean
         get() = player.playingTrack != null && !player.isPaused
