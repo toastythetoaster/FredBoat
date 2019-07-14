@@ -30,12 +30,12 @@ import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.bandcamp.BandcampAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.beam.BeamAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.twitch.TwitchStreamAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
-import fredboat.audio.source.HttpSourceManager;
 import fredboat.audio.source.PlaylistImportSourceManager;
 import fredboat.audio.source.SpotifyPlaylistSourceManager;
 import fredboat.config.property.AppConfig;
@@ -63,8 +63,8 @@ import java.util.Set;
  * request (either returns with success or throws a failure)
  * - the paste service AudioPlayerManager should not contain the paste playlist importer to avoid recursion / users
  * abusing fredboat into paste file chains
- *
- *
+ * <p>
+ * <p>
  * We manage the lifecycles of these Beans ourselves. See {@link fredboat.event.MusicPersistenceHandler}
  */
 @Configuration
@@ -132,7 +132,7 @@ public class AudioPlayerManagerConfiguration {
                                                                           BeamAudioSourceManager beamAudioSourceManager,
                                                                           SpotifyPlaylistSourceManager spotifyPlaylistSourceManager,
                                                                           LocalAudioSourceManager localAudioSourceManager,
-                                                                          HttpSourceManager httpSourceManager) {
+                                                                          HttpAudioSourceManager httpSourceManager) {
         ArrayList<AudioSourceManager> audioSourceManagers = new ArrayList<>();
 
         if (audioSourcesConfig.isYouTubeEnabled()) {
@@ -253,7 +253,7 @@ public class AudioPlayerManagerConfiguration {
 
     @Bean(destroyMethod = "")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public HttpSourceManager httpSourceManager() {
-        return new HttpSourceManager();
+    public HttpAudioSourceManager httpAudioSourceManager() {
+        return new HttpAudioSourceManager();
     }
 }
