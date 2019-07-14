@@ -35,7 +35,7 @@ class TimescaleCommand(name: String, vararg aliases: String) : Command(name, *al
         for (i in 0..min(2, context.args.size)) {
             var v = context.args[i].toIntOrNull()
             if (v == null) {
-                printTimescale(context)
+                context.sendHelpAsync()
                 return
             }
             v = max(range.first, min(range.last, v))
