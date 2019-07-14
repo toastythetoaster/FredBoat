@@ -32,7 +32,7 @@ class TimescaleCommand(name: String, vararg aliases: String) : Command(name, *al
         var pitch = timescale.pitch
         var rate = timescale.rate
 
-        for (i in 0..min(2, context.args.size)) {
+        for (i in 0 until min(3, context.args.size)) {
             var v = context.args[i].toIntOrNull()
             if (v == null) {
                 context.sendHelpAsync()
