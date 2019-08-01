@@ -64,7 +64,7 @@ subprojects {
         kotlinVersion               = kotlinVersion
 
         //audio deps
-        lavaplayerVersion           = '1.3.9'
+        lavaplayerVersion           = '1.3.19'
         lavalinkVersion             = '9f6c9c50'
 
         //utility deps
