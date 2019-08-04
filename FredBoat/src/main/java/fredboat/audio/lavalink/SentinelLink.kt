@@ -86,8 +86,8 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
                 queueAudioConnect(vc.toLong())
             } else {
                 log.warn("{}: Got WS close code $code twice within $MIN_RETRY_INTERVAL ms, disconnecting " +
-                        " to prevent bouncing and getting stuck...", guild)
-                queueAudioDisconnect()
+                        "to prevent bouncing and getting stuck...", guild)
+                disconnect()
             }
         }
     }
