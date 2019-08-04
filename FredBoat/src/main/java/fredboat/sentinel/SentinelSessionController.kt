@@ -100,9 +100,12 @@ class SentinelSessionController(
         val response = rabbit.convertSendAndReceive(SentinelExchanges.REQUESTS, next.routingKey, request)
         log.debug("Sentinel responded with $response")
         val timeTaken = System.currentTimeMillis() - started
-        log.info("Started ${next.shardId} from ${next.routingKey}, took ${timeTaken}ms")
 
-        if (response == null) throw RuntimeException("Failed to get ${next.routingKey} to start shard ${next.shardId}")
+        if (response == null) {
+            throw RuntimeException("Failed to get ${next.routingKey} to start shard ${next.shardId}")
+        } else {
+            log.info("Started ${next.shardId} from ${next.routingKey}, took ${timeTaken}ms")
+        }
 
         sleep(IDENTIFY_DELAY)
         queued.remove(next.shardId)
