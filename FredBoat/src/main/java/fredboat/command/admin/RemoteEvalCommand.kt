@@ -10,8 +10,8 @@ import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
 import fredboat.util.MessageBuilder
 import fredboat.util.extension.edit
-import kotlinx.coroutines.experimental.delay
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.reactive.awaitSingle
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 

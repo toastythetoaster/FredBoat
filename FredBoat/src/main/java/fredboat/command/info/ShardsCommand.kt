@@ -37,7 +37,7 @@ import fredboat.messaging.internal.Context
 import fredboat.sentinel.Sentinel
 import fredboat.sentinel.Sentinel.NamedSentinelInfoResponse
 import fredboat.util.extension.asCodeBlock
-import kotlinx.coroutines.experimental.reactive.awaitLast
+import kotlinx.coroutines.reactive.awaitLast
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong

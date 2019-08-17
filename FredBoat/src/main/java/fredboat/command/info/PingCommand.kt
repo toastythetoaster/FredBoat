@@ -6,7 +6,7 @@ import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IInfoCommand
 import fredboat.messaging.internal.Context
-import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirst
 import kotlin.math.roundToInt
 
 /**

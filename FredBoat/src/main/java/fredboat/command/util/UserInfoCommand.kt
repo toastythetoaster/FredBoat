@@ -36,7 +36,7 @@ import fredboat.perms.PermsUtil
 import fredboat.sentinel.Member
 import fredboat.util.ArgumentUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import java.time.Instant
 import java.time.OffsetDateTime
 import java.time.ZoneId
@@ -74,7 +74,7 @@ class UserInfoCommand(name: String, vararg aliases: String) : Command(name, *ali
             field(context.i18n("userinfoJoinDate"), joinTimestamp, true)
             field(context.i18n("userinfoCreationTime"), target.user.creationTime.format(dtf), true)
             field(context.i18n("userinfoBlacklisted"), Launcher.botController.ratelimiter.isBlacklisted(target.user.id).toString(), true)
-            field("Permission Level", PermsUtil.getPerms(target).getName(), true) //todo i18n
+            field("Permission Level", PermsUtil.getPerms(target).label, true) //todo i18n
         })
     }
 

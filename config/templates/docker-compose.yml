@@ -69,6 +69,8 @@ services:
     volumes:
     - ./lavalink.yml:/opt/Lavalink/application.yaml
     - ./lavalink_logs:/opt/Lavalink/logs
+    # Need a bigger memory size or any other custom JVM args? Edit the line below accordingly
+    entrypoint: java -Xmx128m -jar Lavalink.jar
 
   ################################################################################
   ##                               Sentinel

@@ -31,6 +31,7 @@ import com.google.common.collect.Streams;
 import fredboat.commandmeta.MessagingException;
 import fredboat.feature.metrics.Metrics;
 import fredboat.main.BotController;
+import fredboat.main.Launcher;
 import fredboat.messaging.internal.Context;
 import fredboat.sentinel.Member;
 import fredboat.sentinel.User;
@@ -61,7 +62,7 @@ public class TextUtils {
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("^(\\d?\\d)(?::([0-5]?\\d))?(?::([0-5]?\\d))?$");
 
     private static final Collection<Character> BACKTICK = Collections.singleton('`');
-    private static final List<Character> MARKDOWN_CHARS = Arrays.asList('*', '`', '~', '_');
+    private static final List<Character> MARKDOWN_CHARS = Arrays.asList('*', '`', '~', '_', '|');
 
     public static final CharMatcher SPLIT_SELECT_SEPARATOR =
             CharMatcher.whitespace().or(CharMatcher.is(','))
@@ -142,19 +143,24 @@ public class TextUtils {
         context.replyWithMention(SORRY + "\n" + BotConstants.hangoutInvite);
     }
 
-    private static CompletionStage<String> postToHasteBasedService(String baseUrl, String body) {
-        return BotController.Companion.getHTTP().post(baseUrl, body, "text/plain")
-                .enqueue()
+    private static CompletionStage<String> postToHasteBasedService(String baseUrl, String body,
+                                                                   Optional<String> user, Optional<String> pass) {
+
+        var request = BotController.Companion.getHTTP().post(baseUrl, body, "text/plain");
+
+        if (user.isPresent() && pass.isPresent()) {
+            request = request.basicAuth(user.get(), pass.get());
+        }
+
+        return request.enqueue()
                 .asJson()
                 .thenApply(json -> json.getString("key"));
     }
 
-    private static CompletionStage<String> postToHastebin(String body) {
-        return postToHasteBasedService("https://hastebin.com/documents", body);
-    }
-
     private static CompletionStage<String> postToWastebin(String body) {
-        return postToHasteBasedService("https://wastebin.party/documents", body);
+        var creds = Launcher.Companion.getBotController().getCredentials();
+        return postToHasteBasedService("https://wastebin.party/documents", body,
+                Optional.of(creds.getWastebinUser()), Optional.of(creds.getWastebinPass()));
     }
 
     /**
@@ -167,23 +173,14 @@ public class TextUtils {
      * Optional return type
      */
     public static CompletionStage<Optional<String>> postToPasteService(String body) {
-        return postToHastebin(body)
-                .thenApply(key -> Optional.of("https://hastebin.com/" + key))
+        return postToWastebin(body)
+                .thenApply(key -> Optional.of("https://wastebin.party/" + key))
                 .exceptionally(t -> {
-                    log.info("Could not post to hastebin", t);
+                    log.error("Could not post to wastebin", t);
                     return Optional.empty();
                 })
                 .thenCompose(url -> {
-                    if (!url.isPresent()) {
-                        return postToWastebin(body)
-                                .thenApply(key -> Optional.of("https://wastebin.party/" + key))
-                                .exceptionally(t -> {
-                                    log.error("Could not post to wastebin either", t);
-                                    return Optional.empty();
-                                });
-                    } else {
-                        return CompletableFuture.completedFuture(url);
-                    }
+                    return CompletableFuture.completedFuture(url);
                 });
     }
 

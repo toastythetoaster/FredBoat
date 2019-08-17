@@ -40,10 +40,10 @@ import fredboat.definitions.PermissionLevel
 import fredboat.messaging.internal.Context
 import fredboat.perms.PermsUtil
 import fredboat.util.TextUtils
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.*
 import kotlin.streams.toList
-
-
 
 /**
  * Created by napster on 22.03.17.
@@ -114,8 +114,10 @@ class CommandsCommand(name: String, vararg aliases: String) : Command(name, *ali
                 //do not show BOT_ADMIN or BOT_OWNER commands to users lower than that
                 .filter { command ->
                     if (command is ICommandRestricted) {
-                        return@filter ((command as ICommandRestricted).minimumPerms.level >= PermissionLevel.BOT_ADMIN.level)
-                            && invokerPermissionLevel.level >= PermissionLevel.BOT_ADMIN.level
+                        val isUserAdmin = invokerPermissionLevel.level >= PermissionLevel.BOT_ADMIN.level
+                        val isAdminCommand = command.minimumPerms.level >= PermissionLevel.BOT_ADMIN.level
+
+                        return@filter isUserAdmin || !isAdminCommand
                     }
                     true
                 }
@@ -172,5 +174,6 @@ class CommandsCommand(name: String, vararg aliases: String) : Command(name, *ali
 
     companion object {
         private const val ALL = "all"
+        private val log: Logger = LoggerFactory.getLogger(CommandsCommand::class.java)
     }
 }

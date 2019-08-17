@@ -30,12 +30,12 @@ import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.bandcamp.BandcampAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.beam.BeamAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.http.HttpAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.local.LocalAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.twitch.TwitchStreamAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.vimeo.VimeoAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
-import fredboat.audio.source.HttpSourceManager;
 import fredboat.audio.source.PlaylistImportSourceManager;
 import fredboat.audio.source.SpotifyPlaylistSourceManager;
 import fredboat.config.property.AppConfig;
@@ -132,7 +132,7 @@ public class AudioPlayerManagerConfiguration {
                                                                           BeamAudioSourceManager beamAudioSourceManager,
                                                                           SpotifyPlaylistSourceManager spotifyPlaylistSourceManager,
                                                                           LocalAudioSourceManager localAudioSourceManager,
-                                                                          HttpSourceManager httpSourceManager) {
+                                                                          HttpAudioSourceManager httpAudioSourceManager) {
         ArrayList<AudioSourceManager> audioSourceManagers = new ArrayList<>();
 
         if (audioSourcesConfig.isYouTubeEnabled()) {
@@ -162,7 +162,7 @@ public class AudioPlayerManagerConfiguration {
         if (audioSourcesConfig.isHttpEnabled()) {
             //add new source managers above the HttpAudio one, because it will either eat your request or throw an exception
             //so you will never reach a source manager below it
-            audioSourceManagers.add(httpSourceManager);
+            audioSourceManagers.add(httpAudioSourceManager);
         }
         return audioSourceManagers;
     }
@@ -253,7 +253,7 @@ public class AudioPlayerManagerConfiguration {
 
     @Bean(destroyMethod = "")
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public HttpSourceManager httpSourceManager() {
-        return new HttpSourceManager();
+    public HttpAudioSourceManager httpSourceManager() {
+        return new HttpAudioSourceManager();
     }
 }

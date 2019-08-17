@@ -63,6 +63,8 @@ public interface AppConfig {
 
     List<Long> getAdminIds();
 
+    List<Long> getOwnerIds();
+
     boolean useAutoBlacklist();
 
     int getPlayerLimit();
@@ -75,7 +77,7 @@ public interface AppConfig {
     default String getStatus() {
         String game = getGame();
         if (game.isEmpty()) {
-            return "Say " + getPrefix() + CommandInitializer.HELP_COMM_NAME;
+            return "music | " + getPrefix() + CommandInitializer.HELP_COMM_NAME;
         } else {
             return game;
         }

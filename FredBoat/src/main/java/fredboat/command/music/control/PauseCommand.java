@@ -36,6 +36,7 @@ import fredboat.util.TextUtils;
 
 import javax.annotation.Nonnull;
 
+import static fredboat.commandmeta.CommandInitializer.PLAY_COMM_NAME;
 import static fredboat.main.LauncherKt.getBotController;
 
 public class PauseCommand extends JCommand implements IMusicCommand, ICommandRestricted {

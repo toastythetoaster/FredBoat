@@ -46,6 +46,8 @@ class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig
 
     override fun getAdminIds() = listOf(Raws.botAdminRole.id)
 
+    override fun getOwnerIds() = listOf(Raws.owner.id)
+
     override fun useAutoBlacklist() = false
 
     override fun getGame() = "Passing all tests"
@@ -105,6 +107,10 @@ class MockConfig : AppConfig, AudioSourcesConfig, Credentials, EventLoggerConfig
     override fun getGuildStatsInterval() = 1
 
     override fun getCarbonKey() = ""
+
+    override fun getWastebinUser() = ""
+
+    override fun getWastebinPass() = ""
 
     override fun getQuarterdeck() = object : BackendConfig.Quarterdeck {
         override fun getHost() = "http://localhost:4269"

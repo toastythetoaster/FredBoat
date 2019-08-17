@@ -33,7 +33,7 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
     public override fun queueAudioDisconnect() =
             lavalink.sentinel.sendAndForget(routingKey, AudioQueueRequest(QUEUE_DISCONNECT, guildId.toLong()))
 
-    fun connect(channel: VoiceChannel) {
+    fun connect(channel: VoiceChannel, skipIfSameChannel: Boolean = true) {
         if (channel.guild.id != guild)
             throw IllegalArgumentException("The provided VoiceChannel is not a part of the Guild that this AudioManager " +
                     "handles. Please provide a VoiceChannel from the proper Guild")
@@ -44,8 +44,9 @@ class SentinelLink(val lavalink: SentinelLavalink, guildId: String) : Link(laval
             throw InsufficientPermissionException(VOICE_CONNECT, "We do not have permission to join $channel")
         perms.assertHas(VOICE_SPEAK, "We do not have permission to speak in $channel")
 
-        // Do nothing if we are already connected
-        if (super.getChannel() == channel.id.toString()) return
+        // Do nothing if we are already connected to that channel
+        val alreadyInChannel = channel.members.any { it.isUs } && super.getChannel() == channel.id.toString()
+        if (skipIfSameChannel && alreadyInChannel) return
 
         if (channel.userLimit > 1 // Is there a user limit?
                 && channel.userLimit <= channel.members.size // Is that limit reached?

@@ -46,6 +46,7 @@ import fredboat.sentinel.VoiceChannel
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.ratelimit.Ratelimiter
 import fredboat.util.rest.YoutubeAPI
+import lavalink.client.io.Link.State.CONNECTED
 import org.apache.commons.lang3.tuple.ImmutablePair
 import org.apache.commons.lang3.tuple.Pair
 import org.slf4j.LoggerFactory
@@ -137,6 +138,7 @@ class GuildPlayer(
         get() = audioTrackProvider is AbstractTrackProvider && audioTrackProvider.isShuffle
         set(shuffle) = if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.isShuffle = shuffle
+            context?.isPriority = false
         } else {
             throw UnsupportedOperationException("Can't shuffle " + audioTrackProvider.javaClass)
         }
@@ -166,7 +168,7 @@ class GuildPlayer(
     private fun announceTrack(atc: AudioTrackContext) {
         if (repeatMode != RepeatMode.SINGLE && isTrackAnnounceEnabled && !isPaused) {
             val activeTextChannel = activeTextChannel
-            activeTextChannel?.send(atc.i18nFormat("trackAnnounce", atc.effectiveTitle.escapeAndDefuse()))
+            activeTextChannel?.send(atc.i18nFormat("trackAnnounce", atc.effectiveTitle.escapeAndDefuse(), atc.member.effectiveName.escapeAndDefuse()))
                     ?.subscribe()
         }
     }
@@ -217,8 +219,15 @@ class GuildPlayer(
                     Permission.VOICE_MOVE_OTHERS.uiName))
         }
 
+        val link = lavalink.getLink(guild)
+
+        if (link.state == CONNECTED && currentVoiceChannel?.members?.contains(guild.selfMember) == false) {
+            log.warn("Link is ${link.state} but we are not in its channel. Assuming our session expired...")
+            link.onDisconnected()
+        }
+
         try {
-            lavalink.getLink(guild).connect(targetChannel)
+            link.connect(targetChannel)
             log.info("Connected to voice channel $targetChannel")
         } catch (e: Exception) {
             log.error("Failed to join voice channel {}", targetChannel, e)
@@ -238,8 +247,9 @@ class GuildPlayer(
         lavalink.getLink(guild).disconnect()
     }
 
-    fun queue(identifier: String, context: CommandContext) {
+    fun queue(identifier: String, context: CommandContext, isPriority: Boolean = false) {
         val ic = IdentifierContext(identifier, context.textChannel, context.member)
+        ic.isPriority = isPriority
 
         joinChannel(context.member)
 
@@ -252,14 +262,15 @@ class GuildPlayer(
         audioLoader.loadAsync(ic)
     }
 
-    fun queue(atc: AudioTrackContext) {
+    fun queue(atc: AudioTrackContext, isPriority: Boolean = false) {
         if (!guild.selfPresent) throw IllegalStateException("Attempt to queue track in a guild we are not present in")
 
         val member = guild.getMember(atc.userId)
         if (member != null) {
             joinChannel(member)
         }
-        audioTrackProvider.add(atc)
+
+        if (isPriority) audioTrackProvider.addFirst(atc) else audioTrackProvider.add(atc)
         play()
     }
 
@@ -314,6 +325,7 @@ class GuildPlayer(
     fun reshuffle() {
         if (audioTrackProvider is AbstractTrackProvider) {
             audioTrackProvider.reshuffle()
+            context?.isPriority = false
         } else {
             throw UnsupportedOperationException("Can't reshuffle " + audioTrackProvider.javaClass)
         }

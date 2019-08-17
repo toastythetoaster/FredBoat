@@ -44,8 +44,8 @@ import fredboat.util.TextUtils
 import fredboat.util.extension.addFooter
 import fredboat.util.extension.escapeAndDefuse
 import fredboat.util.extension.escapeMarkdown
-import kotlinx.coroutines.experimental.reactive.awaitFirst
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitSingle
 import java.util.*
 
 class PermissionsCommand(
@@ -231,7 +231,7 @@ class PermissionsCommand(
 
     override fun help(context: Context): String {
         val usage = "{0}{1} add <role/user>\n{0}{1} del <role/user>\n{0}{1} list\n#"
-        return usage + context.i18nFormat("helpPerms", permissionLevel.getName()) + "\n" + BotConstants.DOCS_PERMISSIONS_URL
+        return usage + context.i18nFormat("helpPerms", permissionLevel) + "\n" + BotConstants.DOCS_PERMISSIONS_URL
     }
 
 }

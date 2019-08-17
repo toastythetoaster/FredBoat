@@ -30,6 +30,7 @@ import fredboat.command.info.HelpCommand
 import fredboat.commandmeta.abs.Command
 import fredboat.commandmeta.abs.CommandContext
 import fredboat.commandmeta.abs.IModerationCommand
+import fredboat.definitions.PermissionLevel
 import fredboat.feature.I18n
 import fredboat.main.getBotController
 import fredboat.perms.Permission
@@ -40,8 +41,9 @@ import fredboat.sentinel.User
 import fredboat.shared.constant.DistributionEnum
 import fredboat.util.ArgumentUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.launch
-import kotlinx.coroutines.experimental.reactive.awaitFirstOrNull
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import org.slf4j.LoggerFactory
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -214,7 +216,7 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
                 sink.success() // Unable to find user, already sent feedback
                 return@create
             }
-            launch {
+            GlobalScope.launch {
                 checkPreconditionWithFeedback(user!!, context)
                         .doOnError { sink.error(it) }
                         .subscribe { preconditionMet ->
@@ -270,7 +272,8 @@ abstract class DiscordModerationCommand protected constructor(name: String, vara
     }
 
     override suspend fun invoke(context: CommandContext) {
-        if (getBotController().appConfig.distribution != DistributionEnum.DEVELOPMENT) {
+        if (context.memberLevel() < PermissionLevel.BOT_ADMIN &&
+                getBotController().appConfig.distribution != DistributionEnum.DEVELOPMENT) {
             if (this is UnbanCommand || this is SoftbanCommand) {
                 context.reply("The unban and softban commands have been temporarily disabled. We have made significant" +
                         " changes to these, but have yet to thoroughly test that they are secure. We do not want to" +

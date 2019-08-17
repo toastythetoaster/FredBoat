@@ -34,15 +34,14 @@ import fredboat.definitions.PermissionLevel
 import fredboat.main.Launcher
 import fredboat.messaging.internal.Context
 import fredboat.util.DiscordUtil
-import kotlinx.coroutines.experimental.reactive.awaitFirst
+import kotlinx.coroutines.reactive.awaitFirst
 
 /**
  * @author frederik
  */
 class ReviveCommand(name: String, vararg aliases: String) : Command(name, *aliases), ICommandRestricted {
 
-    override val minimumPerms: PermissionLevel
-        get() = PermissionLevel.BOT_ADMIN
+    override val minimumPerms = PermissionLevel.BOT_ADMIN
 
     override suspend fun invoke(context: CommandContext) {
         if (!context.hasArguments()) {
@@ -62,7 +61,8 @@ class ReviveCommand(name: String, vararg aliases: String) : Command(name, *alias
             return
         }
 
-        context.sentinel.send<Unit>(context.routingKey, ReviveShardRequest(shardId)).awaitFirst()
+        val routingKey = context.sentinel.tracker.getKey(shardId)
+        context.sentinel.send<String>(routingKey, ReviveShardRequest(shardId)).awaitFirst()
         context.replyWithName("Queued shard revive for shard $shardId")
         // TODO Launcher.getBotController().getShardManager().restart(shardId); // If not found it will just function like #start()
     }

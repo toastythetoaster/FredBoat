@@ -39,7 +39,7 @@ import fredboat.sentinel.RawUser
 import fredboat.util.AppInfo
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.reactive.awaitSingle
 import java.text.MessageFormat
 import java.util.*
 
@@ -97,15 +97,14 @@ class StatsCommand(
             content += "Sharding:                       " + context?.guild?.shardString + "\n"
             content += "Music players playing:          " + Launcher.botController.playerRegistry.playingCount() + "\n"
 
-            val counts = getBotController().sentinelCountingService.getAllCounts().awaitSingle()
+            val counts = getBotController().sentinelCountingService.getAllCountsCached()
             //val not = "not counted yet"
-            content += "Known servers:                  " + counts.t1.guilds + "\n"
-            content += "Users in servers:               " + counts.t2 + "\n"
-            content += "Text channels:                  " + counts.t1.textChannels + "\n"
-            content += "Voice channels:                 " + counts.t1.voiceChannels + "\n"
-            content += "Categories:                     " + counts.t1.categories + "\n"
-            content += "Roles:                          " + counts.t1.roles + "\n"
-            content += "Emotes:                         " + counts.t1.emotes + "\n"
+            content += "Known servers:                  " + counts.first.guilds + "\n"
+            content += "Users in servers:               " + counts.second + "\n"
+            content += "Text channels:                  " + counts.first.textChannels + "\n"
+            content += "Voice channels:                 " + counts.first.voiceChannels + "\n"
+            content += "Categories:                     " + counts.first.categories + "\n"
+            content += "Roles:                          " + counts.first.roles + "\n"
 
             content += "\n----------\n\n"
 

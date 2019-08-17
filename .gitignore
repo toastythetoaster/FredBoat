@@ -71,6 +71,9 @@ local.properties
 .project
 .classpath
 
+### Visual Studio Code ###
+.vscode
+
 # External tool builders
 .externalToolBuilders/
 
@@ -114,6 +117,7 @@ local.properties
 /config/*.yml
 
 ### Custom ###
+postgres-data/
 lib/
 dist/*
 build/

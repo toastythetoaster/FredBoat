@@ -40,7 +40,8 @@ import fredboat.sentinel.RawUser
 import fredboat.shared.constant.BotConstants
 import fredboat.util.DiscordUtil
 import fredboat.util.TextUtils
-import kotlinx.coroutines.experimental.reactive.awaitSingle
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
 import java.util.*
@@ -82,11 +83,13 @@ class CommandManager(private val patronageChecker: PatronageChecker, private val
         if (guild.id == BotConstants.FREDBOAT_HANGOUT_ID && DiscordUtil.isOfficialBot(selfUser.id)) {
             if (channel.id != 174821093633294338L // #spam_and_music
                     && channel.id != 217526705298866177L // #staff
+                    && invoker.roles.none { it.id == BotConstants.FBH_MODERATOR_ROLE_ID }
                     && !PermsUtil.checkPerms(PermissionLevel.ADMIN, invoker)) {
                 context.deleteMessage()
                 val response = context.replyWithNameMono(
                         "Please read <#219483023257763842> for server rules and only use commands in <#174821093633294338>!"
                 ).awaitSingle()
+                delay(5000L)
                 channel.deleteMessage(response.messageId).subscribe()
                 return
             }

@@ -126,7 +126,7 @@ class AudioLoader(private val ratelimiter: Ratelimiter, internal val trackProvid
 
     /**
      * this function needs to be updated if we add more manual playlist loaders
-     * currently it only covers the Hastebin and Spotify playlists
+     * currently it only covers the Wastebin and Spotify playlists
      *
      * @param identifier the very same identifier that the playlist loaders will be presented with if we asked them to
      * load a playlist
@@ -195,7 +195,8 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
 
                 if (!context.isQuiet) {
                     context.reply(if (loader.gplayer.isPlaying)
-                        context.i18nFormat("loadSingleTrack", TextUtils.escapeAndDefuse(at.info.title))
+                        context.i18nFormat(if (context.isPriority) "loadSingleTrackFirst" else "loadSingleTrack",
+                                TextUtils.escapeAndDefuse(at.info.title))
                     else
                         context.i18nFormat("loadSingleTrackAndPlay", TextUtils.escapeAndDefuse(at.info.title))
                     )
@@ -205,7 +206,9 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
 
                 at.position = context.position
 
-                loader.trackProvider.add(AudioTrackContext(at, context.member))
+                val atc = AudioTrackContext(at, context.member, context.isPriority)
+                if (context.isPriority) loader.trackProvider.addFirst(atc) else loader.trackProvider.add(atc)
+
                 if (!loader.gplayer.isPaused) {
                     loader.gplayer.play()
                 }
@@ -228,9 +231,9 @@ private class ResultHandler(val loader: AudioLoader, val context: IdentifierCont
 
             val toAdd = ArrayList<AudioTrackContext>()
             for (at in ap.tracks) {
-                toAdd.add(AudioTrackContext(at, context.member))
+                toAdd.add(AudioTrackContext(at, context.member, context.isPriority))
             }
-            loader.trackProvider.addAll(toAdd)
+            if (context.isPriority) loader.trackProvider.addAllFirst(toAdd) else loader.trackProvider.addAll(toAdd)
             context.reply(context.i18nFormat("loadListSuccess", ap.tracks.size, ap.name))
             if (!loader.gplayer.isPaused) {
                 loader.gplayer.play()

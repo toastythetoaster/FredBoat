@@ -47,7 +47,8 @@ import fredboat.sentinel.User
 import fredboat.sentinel.getGuild
 import fredboat.util.ratelimit.Ratelimiter
 import io.prometheus.client.guava.cache.CacheMetricsCollector
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -92,7 +93,7 @@ class MessageEventHandler(
         if (permissions hasNot (MESSAGE_READ + MESSAGE_WRITE)
                 && !event.content.contains(CommandInitializer.HELP_COMM_NAME)) return
 
-        launch {
+        GlobalScope.launch {
             val context = commandContextParser.parse(event) ?: return@launch
 
             // Renew the time to prevent invalidation
@@ -157,14 +158,14 @@ class MessageEventHandler(
             //hack in / hardcode some commands; this is not meant to look clean
             val lowered = content.toLowerCase()
             if (lowered.contains("shard")) {
-                launch {
+                GlobalScope.launch {
                     for (message in ShardsCommand.getShardStatus(author.sentinel, content)) {
                         author.sendPrivate(message).subscribe()
                     }
                 }
                 return
             } else if (lowered.contains("stats")) {
-                launch {
+                GlobalScope.launch {
                     author.sendPrivate(StatsCommand.getStats(null)).subscribe()
                 }
                 return

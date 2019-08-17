@@ -25,10 +25,13 @@
 
 package fredboat.feature.metrics.collectors
 
+import fredboat.audio.lavalink.SentinelLavalink
 import fredboat.feature.metrics.BotMetrics
+import fredboat.sentinel.GuildCache
 import io.prometheus.client.Collector
 import io.prometheus.client.CounterMetricFamily
 import io.prometheus.client.GaugeMetricFamily
+import lavalink.client.io.Link
 import org.springframework.stereotype.Component
 import java.util.*
 
@@ -39,7 +42,9 @@ import java.util.*
  */
 @Component
 class FredBoatCollector(
-        private val botMetrics: BotMetrics
+        private val botMetrics: BotMetrics,
+        private val ll: SentinelLavalink,
+        private val guildCache: GuildCache
 ) : Collector() {
 
     private var lastEntityCountHash = 0
@@ -62,6 +67,14 @@ class FredBoatCollector(
         val dockerPulls = CounterMetricFamily("fredboat_docker_pulls",
                 "Total fredboat docker image pulls as reported by the docker hub.", labelNames)
         mfs.add(dockerPulls)
+
+        val linkStateGauge = GaugeMetricFamily("fredboat_lavalink_link_states",
+                "Number of Lavalink Links in different states", listOf("state"))
+        mfs.add(linkStateGauge)
+
+        val guildCacheSize = GaugeMetricFamily("fredboat_guild_cache_size",
+                "Number of subscribed guilds", listOf("total"))
+        mfs.add(guildCacheSize)
 
         //global jda entity stats
         if (botMetrics.entityCounts != null && botMetrics.entityCounts?.hashCode() != lastEntityCountHash) {
@@ -90,6 +103,14 @@ class FredBoatCollector(
             dockerPulls.addMetric(Arrays.asList("total", "Bot"), dockerStats.dockerPullsBot.toDouble())
             dockerPulls.addMetric(Arrays.asList("total", "Db"), dockerStats.dockerPullsDb.toDouble())
         }
+
+        val statesMap = Link.State.values().associate { it to 0 }.toMutableMap()
+        ll.links.forEach { statesMap[it.state] = statesMap[it.state]!! + 1 }
+        statesMap.forEach { state, count ->
+            linkStateGauge.addMetric(listOf(state.name), count.toDouble())
+        }
+
+        guildCacheSize.addMetric(listOf("total"), guildCache.cache.size.toDouble())
 
         return mfs
     }
