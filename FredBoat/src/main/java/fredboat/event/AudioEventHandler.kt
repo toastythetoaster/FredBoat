@@ -25,14 +25,18 @@ class AudioEventHandler(
     }
 
     override fun onVoiceLeave(channel: VoiceChannel, member: Member) {
-        checkForAutoPause(channel)
+        if (!checkForAutoStop(channel))
+            checkForAutoPause(channel)
+
         if (!member.isUs) return
         getLink(channel).onDisconnected()
     }
 
     override fun onVoiceMove(oldChannel: VoiceChannel, newChannel: VoiceChannel, member: Member) {
         checkForAutoResume(newChannel, member)
-        checkForAutoPause(oldChannel)
+        if (!checkForAutoStop(newChannel))
+            checkForAutoPause(oldChannel)
+
         if (!member.isUs) return
         getLink(newChannel).setChannel(newChannel.id.toString())
     }
@@ -75,6 +79,27 @@ class AudioEventHandler(
             player.setPause(false)
             player.activeTextChannel?.send(I18n.get(guild).getString("eventAutoResumed"))?.subscribe()
         }
+    }
+
+    /**
+     * Check if the player should be stopped, if yes it will stop the player and return true
+     * else returns false
+     *
+     * @return Boolean if player has been stopped
+     **/
+    private fun checkForAutoStop(channel: VoiceChannel): Boolean {
+        val player = playerRegistry.getExisting(channel.guild) ?: return false
+
+        if (!player.isQueueEmpty
+                && player.humanUsersInCurrentVC.isEmpty()
+                && guildConfigService.fetchGuildConfig(channel.guild.id).isClearOnEmpty) {
+            player.stop()
+            player.activeTextChannel?.send(I18n.get(channel.guild).getString("eventAutoStop"))?.subscribe()
+
+            return true
+        }
+
+        return false
     }
 
 }
